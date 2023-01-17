@@ -13,3 +13,7 @@ workspace/servicio-commons/mvnw
 workspace/servicio-commons/.mvn/wrapper/maven-wrapper.jar
 workspace/servicio-commons/.mvn/wrapper/maven-wrapper.jar
 workspace/servicio-commons/.mvn/wrapper/maven-wrapper.properties
+workspace/microservicio-vendible/.mvn/wrapper/maven-wrapper.jar
+workspace/microservicio-vendible/.mvn/wrapper/maven-wrapper.properties
+workspace/microservicio-vendible/mvnw
+workspace/microservicio-vendible/.mvn/wrapper/maven-wrapper.jar

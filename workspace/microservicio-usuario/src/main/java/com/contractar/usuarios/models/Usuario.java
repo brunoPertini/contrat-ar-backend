@@ -13,12 +13,16 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 
+import java.io.Serializable;
+
 import org.locationtech.jts.geom.Point;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "usuario")
-public class Usuario {
+public class Usuario implements Serializable{
+	private static final long serialVersionUID = -1655979560902202392L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -36,22 +40,18 @@ public class Usuario {
 	
 	private Point ubicacion;
 	
-	@Enumerated(EnumType.STRING)
-	private PlanType plan;
-	
 	public Usuario() {
 		
 	}
 
 	public Usuario(Long id, String nombre, String apellido, String email, boolean isActive,
-			Point ubicacion, PlanType plan) {
+			Point ubicacion) {
 		this.id = id;
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.email = email;
 		this.isActive = isActive;
 		this.ubicacion = ubicacion;
-		this.plan = plan;
 	}
 
 	public Long getId() {
