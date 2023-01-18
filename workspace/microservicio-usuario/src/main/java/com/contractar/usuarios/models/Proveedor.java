@@ -12,8 +12,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.UniqueConstraint;
 
 @SuppressWarnings("serial")
 @Entity
@@ -30,6 +35,11 @@ public class Proveedor extends Usuario {
 	@Enumerated(EnumType.STRING)
 	private PlanType plan;
 	
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "proveedores_vendibles",
+	joinColumns=@JoinColumn(name="proveedor_id"),
+	inverseJoinColumns = @JoinColumn(name="vendible_id"),
+	uniqueConstraints = {@UniqueConstraint(columnNames = {"usuario_id", "role_id"})})
 	private List<Vendible> vendibles;
 	
 	public Proveedor() {
