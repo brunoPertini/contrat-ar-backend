@@ -1,7 +1,5 @@
 package com.contractar.usuarios.models;
 
-import com.contractar.serviciocommons.plans.PlanType;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

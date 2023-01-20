@@ -1,6 +1,9 @@
 package com.contractar.microserviciovendible.models;
 
 import java.io.Serializable;
+import java.util.List;
+
+import com.contractar.usuarios.models.Proveedor;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -11,11 +14,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 
-@Entity(name="vendible")
+@Entity
+@Table(name = "vendible")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="vendible_type", 
-  discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
 public class Vendible implements Serializable {
 
 	private static final long serialVersionUID = -4955873418985503685L;
@@ -30,6 +35,9 @@ public class Vendible implements Serializable {
 	private int precio;
 	
 	private String descripcion;
+	
+	@ManyToMany(mappedBy = "vendibles")
+	private List<Proveedor> proveedores;
 
 	public int getPrecio() {
 		return precio;
@@ -59,6 +67,14 @@ public class Vendible implements Serializable {
 		
 	}
 
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
 	public Vendible(int precio, String descripcion, String nombre) {
 		super();
 		this.precio = precio;

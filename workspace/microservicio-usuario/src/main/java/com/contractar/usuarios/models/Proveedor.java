@@ -38,8 +38,8 @@ public class Proveedor extends Usuario {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "proveedores_vendibles",
 	joinColumns=@JoinColumn(name="proveedor_id"),
-	inverseJoinColumns = @JoinColumn(name="vendible_id"),
-	uniqueConstraints = {@UniqueConstraint(columnNames = {"usuario_id", "role_id"})})
+	inverseJoinColumns = @JoinColumn(name="id"),
+	uniqueConstraints = {@UniqueConstraint(columnNames = {"proveedor_id", "id"})})
 	private List<Vendible> vendibles;
 	
 	public Proveedor() {
