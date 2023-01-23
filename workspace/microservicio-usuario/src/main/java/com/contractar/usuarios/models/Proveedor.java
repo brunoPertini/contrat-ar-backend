@@ -13,11 +13,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.UniqueConstraint;
 
 @SuppressWarnings("serial")
@@ -25,25 +25,25 @@ import jakarta.persistence.UniqueConstraint;
 @Table(name = "proveedor")
 @PrimaryKeyJoinColumn(name = "proveedorId")
 public class Proveedor extends Usuario {
-	
+
 	@Column(length = 80, unique = true)
 	private String dni;
-	
+
 	@Column(length = 40)
 	private String password;
-	
+
 	@Enumerated(EnumType.STRING)
 	private PlanType plan;
-	
+
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "proveedores_vendibles",
 	joinColumns=@JoinColumn(name="proveedor_id"),
 	inverseJoinColumns = @JoinColumn(name="id"),
 	uniqueConstraints = {@UniqueConstraint(columnNames = {"proveedor_id", "id"})})
 	private List<Vendible> vendibles;
-	
+
 	public Proveedor() {
-		this.vendibles = new ArrayList<Vendible>();
+		this.vendibles = new ArrayList<>();
 	}
 
 	public Proveedor(Long id, String nombre, String apellido, String email, boolean isActive,Point ubicacion,

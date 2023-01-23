@@ -24,18 +24,18 @@ import jakarta.persistence.Table;
 public class Vendible implements Serializable {
 
 	private static final long serialVersionUID = -4955873418985503685L;
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@Column(unique = true)
 	private String nombre;
-	
+
 	private int precio;
-	
+
 	private String descripcion;
-	
+
 	@ManyToMany(mappedBy = "vendibles")
 	private List<Proveedor> proveedores;
 
@@ -62,9 +62,9 @@ public class Vendible implements Serializable {
 	public void setNombre(String nombre) {
 		this.nombre = nombre;
 	}
-	
+
 	public Vendible() {
-		
+
 	}
 
 	public Long getId() {
@@ -74,7 +74,7 @@ public class Vendible implements Serializable {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
+
 	public Vendible(int precio, String descripcion, String nombre) {
 		super();
 		this.precio = precio;

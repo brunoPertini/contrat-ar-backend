@@ -7,11 +7,11 @@ import jakarta.persistence.Entity;
 @SuppressWarnings("serial")
 @Entity
 public class Producto extends Vendible {
-	
+
 	private int stock;
-	
+
 	public Producto() {
-		
+
 	}
 
 	public Producto(int stock) {
@@ -26,6 +26,6 @@ public class Producto extends Vendible {
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
-	
-	
+
+
 }

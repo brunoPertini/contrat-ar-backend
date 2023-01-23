@@ -1,19 +1,17 @@
 package com.contractar.usuarios.models;
 
+import java.io.Serializable;
+
+import org.locationtech.jts.geom.Point;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
-
-import java.io.Serializable;
-
-import org.locationtech.jts.geom.Point;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -24,22 +22,22 @@ public class Usuario implements Serializable{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@Column(length = 80)
 	private String nombre;
-	
+
 	@Column(length = 100)
 	private String apellido;
-	
+
 	@Column(unique= true, nullable = false)
 	private String email;
-	
+
 	private boolean isActive;
-	
+
 	private Point ubicacion;
-	
+
 	public Usuario() {
-		
+
 	}
 
 	public Usuario(Long id, String nombre, String apellido, String email, boolean isActive,
