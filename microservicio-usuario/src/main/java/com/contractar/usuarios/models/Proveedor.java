@@ -20,11 +20,11 @@ import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-@SuppressWarnings("serial")
 @Entity
-@Table(name = "proveedor")
 @PrimaryKeyJoinColumn(name = "proveedorId")
 public class Proveedor extends Usuario {
+
+	private static final long serialVersionUID = -7439587233032181786L;
 
 	@Column(length = 80, unique = true)
 	private String dni;
@@ -38,12 +38,19 @@ public class Proveedor extends Usuario {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "proveedores_vendibles",
 	joinColumns=@JoinColumn(name="proveedor_id"),
-	inverseJoinColumns = @JoinColumn(name="id"),
-	uniqueConstraints = {@UniqueConstraint(columnNames = {"proveedor_id", "id"})})
+	inverseJoinColumns = @JoinColumn(name="vendible_id"))
 	private List<Vendible> vendibles;
 
+	public List<Vendible> getVendibles() {
+		return vendibles;
+	}
+
+	public void setVendibles(List<Vendible> vendibles) {
+		this.vendibles = vendibles;
+	}
+
 	public Proveedor() {
-		this.vendibles = new ArrayList<>();
+
 	}
 
 	public Proveedor(Long id, String nombre, String apellido, String email, boolean isActive,Point ubicacion,

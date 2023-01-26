@@ -15,7 +15,6 @@ import jakarta.persistence.Table;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name = "usuario")
 public class Usuario implements Serializable{
 	private static final long serialVersionUID = -1655979560902202392L;
 
