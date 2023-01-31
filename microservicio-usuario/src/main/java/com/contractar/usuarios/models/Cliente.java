@@ -19,7 +19,6 @@ public class Cliente extends Usuario {
 		super(id, nombre, apellido, email, isActive, ubicacion);
 		this.password = password;
 	}
-
 	@Column(length = 40)
 	private String password;
 
