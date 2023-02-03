@@ -4,7 +4,6 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 @DiscriminatorValue("producto")
-@SuppressWarnings("serial")
 @Entity
 public class Producto extends Vendible {
 

@@ -1,10 +1,10 @@
-package com.contractar.usuarios.services;
+package com.contractar.microserviciousuario.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.contractar.usuarios.models.Usuario;
-import com.contractar.usuarios.repository.UsuarioRepository;
+import com.contractar.microserviciousuario.models.Usuario;
+import com.contractar.microserviciousuario.repository.UsuarioRepository;
 
 @Service
 public class UsuarioService {

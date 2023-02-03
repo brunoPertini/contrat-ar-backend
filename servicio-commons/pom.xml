@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.0.1</version>
+		<version>3.0.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.contract-ar.servicio-commons</groupId>
+	<groupId>com.contractar</groupId>
 	<artifactId>servicio-commons</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>servicio-commons</name>
-	<description>Servicio con código en común  para ser utilizado por dos o más microservicios</description>
+	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>19</java.version>
 	</properties>

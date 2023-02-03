@@ -1,4 +1,4 @@
-package com.contractar.usuarios.models;
+package com.contractar.microserviciousuario.models;
 
 import org.locationtech.jts.geom.Point;
 

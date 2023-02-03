@@ -12,15 +12,10 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
-public class Vendible implements Serializable {
-
-	private static final long serialVersionUID = -4955873418985503685L;
+public class Vendible{
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="vendible_id")
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
 	@Column(unique = true)
@@ -54,20 +49,17 @@ public class Vendible implements Serializable {
 		this.nombre = nombre;
 	}
 
-	public Vendible() {
-
-	}
-
 	public Long getId() {
 		return id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
-	}
+	} 
+
+	public Vendible() {}
 
 	public Vendible(int precio, String descripcion, String nombre) {
-		super();
 		this.precio = precio;
 		this.descripcion = descripcion;
 		this.nombre = nombre;

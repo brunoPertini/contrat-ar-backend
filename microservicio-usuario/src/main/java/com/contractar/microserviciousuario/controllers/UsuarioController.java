@@ -1,4 +1,4 @@
-package com.contractar.usuarios.controllers;
+package com.contractar.microserviciousuario.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.contractar.usuarios.models.Usuario;
-import com.contractar.usuarios.services.UsuarioService;
+import com.contractar.microserviciousuario.models.Usuario;
+import com.contractar.microserviciousuario.services.UsuarioService;
 
 @RestController
 public class UsuarioController {

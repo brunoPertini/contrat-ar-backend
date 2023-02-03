@@ -1,4 +1,4 @@
-package com.contractar.usuarios.models;
+package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 
