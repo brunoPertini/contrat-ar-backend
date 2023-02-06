@@ -16,6 +16,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @PrimaryKeyJoinColumn(name = "proveedorId")
@@ -24,12 +27,11 @@ public class Proveedor extends Usuario {
 	private static final long serialVersionUID = -7439587233032181786L;
 
 	@Column(length = 80, unique = true)
+	@NotBlank
 	private String dni;
 
-	@Column(length = 40)
-	private String password;
-
 	@Enumerated(EnumType.STRING)
+	@NotNull
 	private PlanType plan;
 
 	@ManyToMany(fetch = FetchType.LAZY)
@@ -54,7 +56,6 @@ public class Proveedor extends Usuario {
 			String dni, String password, PlanType plan, List<Vendible> vendibles) {
 		super(id, nombre, apellido, email, isActive, ubicacion);
 		this.dni = dni;
-		this.password = password;
 		this.plan = plan;
 		this.vendibles = vendibles;
 	}
@@ -65,14 +66,6 @@ public class Proveedor extends Usuario {
 
 	public void setDni(String dni) {
 		this.dni = dni;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	public PlanType getPlan() {
