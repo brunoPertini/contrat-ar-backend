@@ -10,13 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.services.UsuarioService;
 
+import jakarta.validation.Valid;
+
 @RestController
 public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
     @PostMapping("/usuarios")
-    public ResponseEntity<Usuario> crearUsuario(@RequestBody Usuario usuario) {
+    public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
         Usuario createdUsuario =  usuarioService.create(usuario); 
         return new ResponseEntity<Usuario>(createdUsuario, HttpStatus.CREATED);
     }

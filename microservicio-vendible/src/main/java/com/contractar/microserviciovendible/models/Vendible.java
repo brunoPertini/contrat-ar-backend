@@ -11,11 +11,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
 public class Vendible{
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="vendible_id")
 	private Long id;
 
 	@Column(unique = true)

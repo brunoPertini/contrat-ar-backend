@@ -11,7 +11,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Table;
+
+import jakarta.validation.constraints.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -22,16 +23,19 @@ public class Usuario implements Serializable{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(length = 80)
+	@Column(length = 80, nullable = false)
+	@NotBlank
 	private String nombre;
 
-	@Column(length = 100)
+	@Column(length = 100, nullable = false)
+	@NotBlank
 	private String apellido;
 
 	@Column(unique= true, nullable = false)
+	@NotBlank
 	private String email;
 
-	private boolean isActive;
+	private boolean isActive;	
 
 	private Point ubicacion;
 
