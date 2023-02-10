@@ -9,4 +9,8 @@ public class Servicio extends Vendible {
 	public Servicio () {
 
 	}
+
+	public Servicio(int precio, String descripcion, String nombre) {
+		super(precio, descripcion, nombre);
+	}
 }

@@ -1,8 +1,6 @@
 package com.contractar.microserviciousuario.services;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
@@ -35,14 +33,6 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    // private List<Producto> createProductos() {
-
-    // }
-
-    // private List<Servicio> createServicios() {
-
-    // }
-
 
     public Proveedor createProveedor(Proveedor proveedor, ProveedorType proveedorType) {
         boolean isProductoProveedor = proveedorType.equals(ProveedorType.PRODUCTOS);
@@ -53,8 +43,13 @@ public class UsuarioService {
             String nombre = (String)v.get("nombre");
             String descripcion = (String)v.get("descripcion");
             int precio = (int)v.get("precio");
-            int stock = (int)v.get("stock");
-            return new Producto(precio, descripcion, nombre, stock);   
+
+            if (isProductoProveedor) {
+                int stock = (int)v.get("stock");
+                return new Producto(precio, descripcion, nombre, stock);  
+            } else {
+                return new Servicio(precio, descripcion, nombre);
+            } 
         })
         .collect(Collectors.toList());
 
