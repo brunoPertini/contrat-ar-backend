@@ -7,6 +7,7 @@ import org.locationtech.jts.geom.Point;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.serviciocommons.plans.PlanType;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -34,17 +35,17 @@ public class Proveedor extends Usuario {
 	@NotNull
 	private PlanType plan;
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, targetEntity = Vendible.class)
 	@JoinTable(name = "proveedores_vendibles",
 	joinColumns=@JoinColumn(name="proveedor_id"),
 	inverseJoinColumns = @JoinColumn(name="vendible_id"))
-	private List<Vendible> vendibles;
+	private List<?> vendibles;
 
-	public List<Vendible> getVendibles() {
+	public List<?> getVendibles() {
 		return vendibles;
 	}
 
-	public void setVendibles(List<Vendible> vendibles) {
+	public void setVendibles(List<?> vendibles) {
 		this.vendibles = vendibles;
 	}
 
@@ -53,7 +54,7 @@ public class Proveedor extends Usuario {
 	}
 
 	public Proveedor(Long id, String nombre, String apellido, String email, boolean isActive,Point ubicacion,
-			String dni, String password, PlanType plan, List<Vendible> vendibles) {
+			String dni, String password, PlanType plan, List<?> vendibles) {
 		super(id, nombre, apellido, email, isActive, ubicacion);
 		this.dni = dni;
 		this.plan = plan;

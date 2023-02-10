@@ -1,6 +1,10 @@
 package com.contractar.microserviciovendible.models;
 
 import java.io.Serializable;
+
+import org.hibernate.annotations.DiscriminatorFormula;
+import org.hibernate.annotations.DiscriminatorOptions;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
@@ -10,11 +14,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
-public class Vendible{
+public class Vendible implements Serializable{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,10 +28,13 @@ public class Vendible{
 	private Long id;
 
 	@Column(unique = true)
+	@NotBlank
 	private String nombre;
 
+	@NotNull
 	private int precio;
 
+	@NotBlank
 	private String descripcion;
 
 	public int getPrecio() {
@@ -67,5 +76,4 @@ public class Vendible{
 		this.descripcion = descripcion;
 		this.nombre = nombre;
 	}
-
 }
