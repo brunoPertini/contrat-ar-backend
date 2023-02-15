@@ -3,6 +3,9 @@ package com.contractar.microserviciousuario.models;
 import java.io.Serializable;
 
 import org.locationtech.jts.geom.Point;
+import com.contractar.serviciocommons.usuarios.UbicacionDeserializer;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,6 +43,8 @@ public class Usuario implements Serializable{
 
 	private boolean isActive;	
 
+	@NotNull
+	@JsonDeserialize(using = UbicacionDeserializer.class)
 	private Point ubicacion;
 
 	public Usuario() {

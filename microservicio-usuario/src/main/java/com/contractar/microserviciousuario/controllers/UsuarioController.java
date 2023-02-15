@@ -38,5 +38,5 @@ public class UsuarioController {
     public ResponseEntity<Cliente> crearCliente(@RequestBody @Valid Cliente usuario) {
         Cliente createdUsuario =  usuarioService.createCliente(usuario); 
         return new ResponseEntity<Cliente>(createdUsuario, HttpStatus.CREATED);
-    }
+    }   
 }
