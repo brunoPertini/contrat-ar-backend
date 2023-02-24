@@ -1,6 +1,8 @@
 package com.contractar.microserviciousuario.models;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.locationtech.jts.geom.Point;
 
@@ -50,7 +52,7 @@ public class Proveedor extends Usuario {
 	}
 
 	public Proveedor() {
-
+		this.vendibles = new ArrayList<Vendible>();
 	}
 
 	public Proveedor(Long id, String nombre, String apellido, String email, boolean isActive,Point ubicacion,
@@ -58,7 +60,11 @@ public class Proveedor extends Usuario {
 		super(id, nombre, apellido, email, isActive, ubicacion);
 		this.dni = dni;
 		this.plan = plan;
-		this.vendibles = vendibles;
+		if (vendibles != null) {
+			this.vendibles = vendibles;
+		} else {
+			this.vendibles = new ArrayList<Vendible>();
+		}
 	}
 
 	public String getDni() {
