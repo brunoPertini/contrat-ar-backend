@@ -1,6 +1,8 @@
 package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Date;
 
 import org.locationtech.jts.geom.Point;
 import com.contractar.serviciocommons.usuarios.UbicacionDeserializer;
@@ -47,18 +49,22 @@ public class Usuario implements Serializable{
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	private Point ubicacion;
 
+	@NotNull
+	private LocalDate birthDate;
+
 	public Usuario() {
 
 	}
 
 	public Usuario(Long id, String nombre, String apellido, String email, boolean isActive,
-			Point ubicacion) {
+			Point ubicacion, LocalDate birthDate) {
 		this.id = id;
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.email = email;
 		this.isActive = isActive;
 		this.ubicacion = ubicacion;
+		this.birthDate = birthDate;
 	}
 
 	public Long getId() {
@@ -107,5 +113,13 @@ public class Usuario implements Serializable{
 
 	public void setUbicacion(Point ubicacion) {
 		this.ubicacion = ubicacion;
+	}
+
+	public LocalDate getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(LocalDate birthDate) {
+		this.birthDate = birthDate;
 	}
 }

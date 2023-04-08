@@ -1,5 +1,6 @@
 package com.contractar.microserviciousuario.models;
 
+import java.time.LocalDate;
 import org.locationtech.jts.geom.Point;
 
 import jakarta.persistence.Entity;
@@ -13,7 +14,7 @@ public class Cliente extends Usuario {
 	public Cliente() {}
 
 	public Cliente(Long id, String nombre, String apellido, String email, boolean isActive,
-	Point ubicacion, String password) {
-		super(id, nombre, apellido, email, isActive, ubicacion);
+	Point ubicacion, String password, LocalDate birthDate) {
+		super(id, nombre, apellido, email, isActive, ubicacion, birthDate);
 	}
 }

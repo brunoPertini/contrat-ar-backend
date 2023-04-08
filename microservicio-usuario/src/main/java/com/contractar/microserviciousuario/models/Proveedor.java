@@ -1,9 +1,8 @@
 package com.contractar.microserviciousuario.models;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microserviciovendible.models.Vendible;
@@ -20,7 +19,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -56,8 +54,8 @@ public class Proveedor extends Usuario {
 	}
 
 	public Proveedor(Long id, String nombre, String apellido, String email, boolean isActive,Point ubicacion,
-			String dni, String password, PlanType plan, List<?> vendibles) {
-		super(id, nombre, apellido, email, isActive, ubicacion);
+			String dni, String password, PlanType plan, List<?> vendibles, LocalDate birthDate) {
+		super(id, nombre, apellido, email, isActive, ubicacion, birthDate);
 		this.dni = dni;
 		this.plan = plan;
 		if (vendibles != null) {
