@@ -30,11 +30,11 @@ public class Usuario implements Serializable{
 
 	@Column(length = 80, nullable = false)
 	@NotBlank
-	private String nombre;
+	private String name;
 
 	@Column(length = 100, nullable = false)
 	@NotBlank
-	private String apellido;
+	private String surname;
 
 	@Column(length = 40)
 	private String password;
@@ -47,7 +47,7 @@ public class Usuario implements Serializable{
 
 	@NotNull
 	@JsonDeserialize(using = UbicacionDeserializer.class)
-	private Point ubicacion;
+	private Point location;
 
 	@NotNull
 	private LocalDate birthDate;
@@ -56,14 +56,14 @@ public class Usuario implements Serializable{
 
 	}
 
-	public Usuario(Long id, String nombre, String apellido, String email, boolean isActive,
-			Point ubicacion, LocalDate birthDate) {
+	public Usuario(Long id, String name, String surname, String email, boolean isActive,
+			Point location, LocalDate birthDate) {
 		this.id = id;
-		this.nombre = nombre;
-		this.apellido = apellido;
+		this.name = name;
+		this.surname = surname;
 		this.email = email;
 		this.isActive = isActive;
-		this.ubicacion = ubicacion;
+		this.location = location;
 		this.birthDate = birthDate;
 	}
 
@@ -75,20 +75,20 @@ public class Usuario implements Serializable{
 		this.id = id;
 	}
 
-	public String getNombre() {
-		return nombre;
+	public String getname() {
+		return name;
 	}
 
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
+	public void setname(String name) {
+		this.name = name;
 	}
 
-	public String getApellido() {
-		return apellido;
+	public String getsurname() {
+		return surname;
 	}
 
-	public void setApellido(String apellido) {
-		this.apellido = apellido;
+	public void setsurname(String surname) {
+		this.surname = surname;
 	}
 
 	public String getEmail() {
@@ -107,12 +107,12 @@ public class Usuario implements Serializable{
 		this.isActive = isActive;
 	}
 
-	public Point getUbicacion() {
-		return ubicacion;
+	public Point getlocation() {
+		return location;
 	}
 
-	public void setUbicacion(Point ubicacion) {
-		this.ubicacion = ubicacion;
+	public void setlocation(Point location) {
+		this.location = location;
 	}
 
 	public LocalDate getBirthDate() {

@@ -13,8 +13,8 @@ public class Cliente extends Usuario {
 
 	public Cliente() {}
 
-	public Cliente(Long id, String nombre, String apellido, String email, boolean isActive,
-	Point ubicacion, String password, LocalDate birthDate) {
-		super(id, nombre, apellido, email, isActive, ubicacion, birthDate);
+	public Cliente(Long id, String name, String surname, String email, boolean isActive,
+	Point location, String password, LocalDate birthDate) {
+		super(id, name, surname, email, isActive, location, birthDate);
 	}
 }

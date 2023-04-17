@@ -53,9 +53,9 @@ public class Proveedor extends Usuario {
 		this.vendibles = new ArrayList<Vendible>();
 	}
 
-	public Proveedor(Long id, String nombre, String apellido, String email, boolean isActive,Point ubicacion,
+	public Proveedor(Long id, String name, String surname, String email, boolean isActive,Point location,
 			String dni, String password, PlanType plan, List<?> vendibles, LocalDate birthDate) {
-		super(id, nombre, apellido, email, isActive, ubicacion, birthDate);
+		super(id, name, surname, email, isActive, location, birthDate);
 		this.dni = dni;
 		this.plan = plan;
 		if (vendibles != null) {
