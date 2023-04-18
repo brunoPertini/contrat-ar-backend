@@ -55,7 +55,7 @@ public class Proveedor extends Usuario {
 
 	public Proveedor(Long id, String name, String surname, String email, boolean isActive,Point location,
 			String dni, String password, PlanType plan, List<?> vendibles, LocalDate birthDate) {
-		super(id, name, surname, email, isActive, location, birthDate);
+		super(id, name, surname, email, isActive, location, birthDate, password);
 		this.dni = dni;
 		this.plan = plan;
 		if (vendibles != null) {

@@ -57,7 +57,7 @@ public class Usuario implements Serializable{
 	}
 
 	public Usuario(Long id, String name, String surname, String email, boolean isActive,
-			Point location, LocalDate birthDate) {
+			Point location, LocalDate birthDate, String password) {
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
@@ -65,6 +65,7 @@ public class Usuario implements Serializable{
 		this.isActive = isActive;
 		this.location = location;
 		this.birthDate = birthDate;
+		this.password = password;
 	}
 
 	public Long getId() {
@@ -121,5 +122,13 @@ public class Usuario implements Serializable{
 
 	public void setBirthDate(LocalDate birthDate) {
 		this.birthDate = birthDate;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 }

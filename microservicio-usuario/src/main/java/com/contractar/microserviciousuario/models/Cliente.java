@@ -14,7 +14,7 @@ public class Cliente extends Usuario {
 	public Cliente() {}
 
 	public Cliente(Long id, String name, String surname, String email, boolean isActive,
-	Point location, String password, LocalDate birthDate) {
+	Point location, String password, LocalDate birthDate, String password) {
 		super(id, name, surname, email, isActive, location, birthDate);
 	}
 }
