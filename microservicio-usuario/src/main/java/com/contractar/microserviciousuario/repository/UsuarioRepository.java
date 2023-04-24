@@ -7,4 +7,6 @@ import com.contractar.microserviciousuario.models.Usuario;
 public interface UsuarioRepository extends PagingAndSortingRepository<Usuario, Long>{
     public Usuario save(Usuario usuario);
 
+    public Usuario findByEmail(String email);
+
 }
