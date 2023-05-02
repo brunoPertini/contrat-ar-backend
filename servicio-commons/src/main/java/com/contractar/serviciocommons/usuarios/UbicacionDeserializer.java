@@ -14,15 +14,18 @@ import org.locationtech.jts.geom.GeometryFactory;
 
 public class UbicacionDeserializer extends StdDeserializer<Point> {
 
-    public UbicacionDeserializer() {
+
+	private static final long serialVersionUID = -538509359608459102L;
+
+	public UbicacionDeserializer() {
         super(Point.class); 
     }
 
     @Override
     public Point deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException, JsonProcessingException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        double x = Double.parseDouble(node.get("x").textValue());
-        double y = Double.parseDouble(node.get("y").textValue());        
+        double x = node.get("coordinates").get(0).asDouble();
+        double y = node.get("coordinates").get(1).asDouble();        
         return new GeometryFactory().createPoint(new Coordinate(x, y));
     }
 }

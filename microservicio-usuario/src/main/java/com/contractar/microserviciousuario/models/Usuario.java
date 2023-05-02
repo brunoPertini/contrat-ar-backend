@@ -2,11 +2,9 @@ package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 
 import org.locationtech.jts.geom.Point;
 import com.contractar.serviciocommons.usuarios.UbicacionDeserializer;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;
@@ -36,7 +34,7 @@ public class Usuario implements Serializable{
 	@NotBlank
 	private String surname;
 
-	@Column(length = 40)
+	@Column(length = 200)
 	private String password;
 
 	@Column(unique= true, nullable = false)
