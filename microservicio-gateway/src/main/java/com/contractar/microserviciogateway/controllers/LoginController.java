@@ -20,10 +20,10 @@ import com.contractar.microserviciogateway.security.helpers.JwtHelper;
 
 @RestController
 public class LoginController {
-	private final JwtHelper jwtHelper;
+    private final JwtHelper jwtHelper;
 	private final UserDetailsService userDetailsService;
 	private final PasswordEncoder passwordEncoder;
-
+	
 	public LoginController(JwtHelper jwtHelper, UserDetailsService userDetailsService,
 			PasswordEncoder passwordEncoder) {
 		this.jwtHelper = jwtHelper;
@@ -32,27 +32,28 @@ public class LoginController {
 	}
 
 	@GetMapping("/login")
-	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
-		UserDetails userDetails;
-		try {
+    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
+        UserDetails userDetails;
+        try {
 			userDetails = userDetailsService.loadUserByUsername(email);
-		} catch (Exception e) {
+		} catch (UsernameNotFoundException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
 		}
-
+		
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, String> claims = new HashMap<>();
 			claims.put("email", email);
-
-			String authorities = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+			
+			String authorities = userDetails.getAuthorities().stream()
+					.map(GrantedAuthority::getAuthority)
 					.collect(Collectors.joining(","));
 			claims.put("authorities", authorities);
 			claims.put("userId", String.valueOf(1));
-
+			
 			String jwt = jwtHelper.createJwtForClaims(email, claims);
 			return new ResponseEntity<String>(jwt, HttpStatus.OK);
 		}
-
+		
 		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
 	}
 }

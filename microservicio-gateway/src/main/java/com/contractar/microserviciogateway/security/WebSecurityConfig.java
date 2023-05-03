@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -57,7 +59,7 @@ public class WebSecurityConfig {
 		http.cors().configurationSource(corsConfigurationSource()).and().csrf().disable().sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		
-		http.authorizeHttpRequests(auth -> auth.requestMatchers("/error", "/login", "/usuarios/**")
+		http.authorizeHttpRequests(auth -> auth.requestMatchers("/error", "/login")
 				.permitAll()
 				.anyRequest()
 				.authenticated())
