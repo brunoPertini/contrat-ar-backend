@@ -19,5 +19,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
     	http.csrf().disable();
         http.authorizeRequests().antMatchers(HttpMethod.GET, "/usuarios/**").permitAll()
         .anyRequest().authenticated();
+        
+        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+        
+        http.sessionManagement()
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 }
