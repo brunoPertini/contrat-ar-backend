@@ -32,6 +32,6 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
-INSERT INTO `usuario` VALUES (1,'1992-02-04','brunopertini@gmail.com',_binary '\0',POINT(40.71727401, -74.00898606),'Bruno',NULL,'Pertini');
+INSERT INTO `usuario` VALUES (1,'1992-02-04','brunopertini@gmail.com',_binary '\0',POINT(40.71727401, -74.00898606),'Bruno','$2y$10$Sfufwhb8xIcEOVHTrXVgbeOdETDNQiYIil1Q4Q0j8.zOBJJu9YJwO','Pertini');
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;

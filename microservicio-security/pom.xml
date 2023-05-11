@@ -9,13 +9,12 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.contractar</groupId>
-	<artifactId>microservicio-gateway</artifactId>
+	<artifactId>microservicio-security</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>microservicio-gateway</name>
+	<name>microservicio-security</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
-		<maven.compiler.release>11</maven.compiler.release>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -75,7 +74,6 @@
 	        <artifactId>saaj-impl</artifactId>
     	</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
