@@ -1,3 +1,6 @@
+CREATE SCHEMA `contract_ar` ;
+
+
 --
 -- Dumping data for table `cliente`
 --

@@ -14,8 +14,8 @@
 	<name>microservicio-usuario</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
-		<java.version>19</java.version>
-		 <maven.compiler.release>19</maven.compiler.release>
+		<java.version>17</java.version>
+		 <maven.compiler.release>17</maven.compiler.release>
 		 <spring-cloud.version>2021.0.5</spring-cloud.version>
 	</properties>
 	<dependencies>

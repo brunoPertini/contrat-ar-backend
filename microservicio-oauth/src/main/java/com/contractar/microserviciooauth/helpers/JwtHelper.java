@@ -1,4 +1,4 @@
-package com.contractar.microserviciosecurity.helpers;
+package com.contractar.microserviciooauth.helpers;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;

@@ -1,6 +1,7 @@
-package com.contractar.microserviciosecurity.controllers;
+package com.contractar.microserviciooauth.controllers;
 
 import java.security.PrivateKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,20 +15,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.contractar.microserviciosecurity.helpers.JwtHelper;
+import com.contractar.microserviciooauth.helpers.JwtHelper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
-
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 
 @RestController
 public class SecurityController {
@@ -48,7 +46,7 @@ public class SecurityController {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	@GetMapping("/login")
+	@GetMapping("/oauth/login")
 	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
 		UserDetails userDetails;
 		try {

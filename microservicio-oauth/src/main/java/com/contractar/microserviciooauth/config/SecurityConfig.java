@@ -1,34 +1,40 @@
-package com.contractar.microserviciosecurity.config;
+package com.contractar.microserviciooauth.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-
-import com.contractar.microserviciosecurity.services.UserDetailsServiceImpl;
-
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter{
-	@Autowired
-	private UserDetailsServiceImpl userService;
-    
-    @Bean
-	public static BCryptPasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
+@EnableWebSecurity
+public class SecurityConfig {
+
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		
+		http.csrf().disable();
+		
+		http.authorizeHttpRequests(authorize -> authorize.requestMatchers(HttpMethod.GET, "/oauth/login").anonymous()
+				.requestMatchers("/error", "/actuator/**").permitAll()
+				.anyRequest().authenticated());
+		
+		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));
+		
+		http.oauth2Login().and().formLogin().disable();
+		
+		http.httpBasic().disable();
+	
+		return http.build();
 	}
-    
-    @Bean
-    public ClientRegistrationRepository clientRepository() {
+	
+    private ClientRegistrationRepository clientRepository() {
 
       ClientRegistration clientRegistration =
     	   ClientRegistration
@@ -42,9 +48,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
       return new InMemoryClientRegistrationRepository(clientRegistration);
     }
     
-    @Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.userDetailsService(this.userService).passwordEncoder(passwordEncoder());
+    @Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
-    
 }
