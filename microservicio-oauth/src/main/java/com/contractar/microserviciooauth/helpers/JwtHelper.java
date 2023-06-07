@@ -23,7 +23,7 @@ public class JwtHelper {
 		this.publicKey = storePublicKey;
 	}
 	
-	public String createJwtForClaims(String subject, Map<String, String> claims) {
+	public String createJwtForClaims(String subject, Map<String, Object> claims) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(Instant.now().toEpochMilli());
 		calendar.add(Calendar.DATE, 1);
@@ -31,7 +31,13 @@ public class JwtHelper {
 		JWTCreator.Builder jwtBuilder = JWT.create().withSubject(subject);
 		
 		// Add claims
-		claims.forEach(jwtBuilder::withClaim);
+		claims.forEach((key, value) -> {
+			if (value instanceof String) {
+				jwtBuilder.withClaim(key, (String)value);
+			} else {
+				jwtBuilder.withArrayClaim(key, (String[]) value);
+			}
+		});
 		
 		// Add expiredAt and etc
 		return jwtBuilder

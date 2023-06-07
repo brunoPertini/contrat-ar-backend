@@ -20,7 +20,8 @@ import com.contractar.microserviciousuario.models.Usuario;
 @Component
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-	private final String usersPath = "http://localhost:8002/usuarios?email={email}";
+	@Value("${security.users.usersServiceUrl}")
+	private String usersPath;
 	
 	private RestTemplate httpClient;
 

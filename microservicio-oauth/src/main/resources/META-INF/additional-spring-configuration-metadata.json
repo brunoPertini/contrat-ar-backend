@@ -1,0 +1,22 @@
+{"properties": [
+  {
+    "name": "users.usersServiceUrl",
+    "type": "java.lang.String",
+    "description": "A description for 'users.usersServiceUrl'"
+  },
+  {
+    "name": "security.users.usersServiceUrl",
+    "type": "java.lang.String",
+    "description": "A description for 'security.users.usersServiceUrl'"
+  },
+  {
+    "name": "security.keyStore.password",
+    "type": "java.lang.String",
+    "description": "A description for 'security.keyStore.password'"
+  },
+  {
+    "name": "security.keyStore.keyAlias",
+    "type": "java.lang.String",
+    "description": "A description for 'security.keyStore.keyAlias'"
+  }
+]}

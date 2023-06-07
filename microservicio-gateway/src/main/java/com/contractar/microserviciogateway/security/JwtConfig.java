@@ -10,45 +10,24 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-
-@Order(1)
 @Configuration
 public class JwtConfig {
 	
 	@Value("classpath:contractar-jwt.jks")
 	Resource resource;
 	
-	private String keyStorePassword = "contractar";
+	@Value("${security.keyStore.password}")
+	private String keyStorePassword;
 
-	private String keyAlias = "contractar-oauth";
-
-	private String privateKeyPassphrase = "contractar";
-
-	private static Logger logger = LoggerFactory.getLogger(JwtConfig.class);
+	@Value("${security.keyStore.keyAlias}")
+	private String keyAlias;
 
 	private KeyStore keyStore;
-	
-	private Algorithm algorithm;
-	private JWTVerifier verifier;
 	  
 
 	private KeyStore loadKeyStore() {

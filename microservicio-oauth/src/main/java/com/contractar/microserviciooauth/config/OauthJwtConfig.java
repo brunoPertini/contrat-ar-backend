@@ -10,11 +10,8 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 
@@ -24,13 +21,11 @@ public class OauthJwtConfig {
 	@Value("classpath:contractar-jwt.jks")
 	Resource resource;
 
-	private String keyStorePassword = "contractar";
+	@Value("${security.keyStore.password}")
+	private String keyStorePassword;
 
-	private String keyAlias = "contractar-oauth";
-
-	private String privateKeyPassphrase = "contractar";
-
-	private static Logger logger = LoggerFactory.getLogger(OauthJwtConfig.class);
+	@Value("${security.keyStore.keyAlias}")
+	private String keyAlias;
 
 	private KeyStore keyStore;
 	
