@@ -3,10 +3,11 @@ package com.contractar.microserviciogateway.security;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +15,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
@@ -25,6 +27,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
 	@Autowired
 	private RSAPrivateKey storePrivateKey;
+	
+	@Autowired
+    private OAuth2WebSecurityExpressionHandler expressionHandler;
 	
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -46,6 +51,13 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				 .build();
 	}
 	
+	@Bean
+    public OAuth2WebSecurityExpressionHandler oAuth2WebSecurityExpressionHandler(ApplicationContext applicationContext) {
+        OAuth2WebSecurityExpressionHandler expressionHandler = new OAuth2WebSecurityExpressionHandler();
+        expressionHandler.setApplicationContext(applicationContext);
+        return expressionHandler;
+    }
+	
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable();
@@ -53,7 +65,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				"/actuator/**",
 				"/error")
 				.permitAll()
-				.anyRequest().authenticated();
+				.anyRequest()
+				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
 		http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
 
@@ -65,5 +78,6 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Override
 	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
 		resources.tokenStore(tokenStore());
+		resources.expressionHandler(expressionHandler);
 	}
 }

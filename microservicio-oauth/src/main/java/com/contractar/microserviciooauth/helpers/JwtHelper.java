@@ -26,7 +26,7 @@ public class JwtHelper {
 	public String createJwtForClaims(String subject, Map<String, Object> claims) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(Instant.now().toEpochMilli());
-		calendar.add(Calendar.DATE, 1);
+		calendar.add(Calendar.MINUTE, 40);
 		
 		JWTCreator.Builder jwtBuilder = JWT.create().withSubject(subject);
 		

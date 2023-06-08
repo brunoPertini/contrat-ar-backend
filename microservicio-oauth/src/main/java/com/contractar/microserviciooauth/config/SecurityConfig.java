@@ -4,6 +4,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,6 +30,12 @@ public class SecurityConfig {
 
 	@Autowired
 	private RSAPrivateKey storePrivateKey;
+	
+	@Value("${spring.security.oauth2.client.id}")
+	private String clientId;
+	
+	@Value("${spring.security.oauth2.client.secret}")
+	private String clientSecret;
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,19 +49,23 @@ public class SecurityConfig {
 		
 		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));
 		
-		http.oauth2Login().and().formLogin().disable();
+		http.oauth2Login().authorizationEndpoint()
+        .baseUri("/oauth/login");
+		
+		http.formLogin().disable();	
 		
 		http.httpBasic().disable();
 	
 		return http.build();
 	}
 	
-    private ClientRegistrationRepository clientRepository() {
+	@Bean
+    public ClientRegistrationRepository clientRepository() {
 
       ClientRegistration clientRegistration =
     	   ClientRegistration
-          .withRegistrationId("contractar")
-          .clientSecret(passwordEncoder().encode("contractar"))
+          .withRegistrationId(clientId)
+          .clientSecret(passwordEncoder().encode(clientSecret))
           .scope("read", "write")
           .authorizationGrantType(AuthorizationGrantType.PASSWORD)
           .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
