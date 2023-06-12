@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurity
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+
 @Configuration
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
@@ -61,10 +62,11 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable();
-		http.authorizeRequests().antMatchers("/oauth/login",
+		http.authorizeRequests().antMatchers(
 				"/actuator/**",
 				"/error")
 				.permitAll()
+				.antMatchers("/oauth/login").access("@securityUtils.hasValidClientId(request)")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 

@@ -5,7 +5,7 @@ import org.n52.jackson.datatype.jts.JtsModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.contractar.serviciocommons.usuarios.UbicacionDeserializer;
+import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
