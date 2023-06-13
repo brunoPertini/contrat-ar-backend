@@ -14,11 +14,16 @@
 	<name>microservicio-usuario</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
-		<java.version>19</java.version>
-		 <maven.compiler.release>19</maven.compiler.release>
+		<java.version>17</java.version>
 		 <spring-cloud.version>2021.0.5</spring-cloud.version>
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -51,11 +56,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.contractar</groupId>
-			<artifactId>servicio-commons</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.contractar</groupId>
 			<artifactId>microservicio-vendible</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
@@ -73,6 +73,11 @@
 			<artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
 			<version>2.2.10.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>com.contractar</groupId>
+			<artifactId>microservicio-commons</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
     <dependencies>
@@ -85,48 +90,12 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>    
-            		<mainClass>com.contractar.microserviciousuario.MicroservicioUsuarioApplication</mainClass>
-        		</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-						<configuration>
-							<classifier>exec</classifier>
-						</configuration>
-					</execution>
-        		</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>3.2.0</version>
-				<executions>
-				<execution>
-					<id>add-source</id>
-					<phase>generate-sources</phase>
-					<goals>
-					<goal>add-source</goal>
-					</goals>
-					<configuration>
-					<sources>
-						<source>/home/bruno/contrat-ar-backend/microservicio-usuario</source>
-						<source>/home/bruno/contrat-ar-backend/microservicio-vendible</source>
-						<source>/home/bruno/contrat-ar-backend/servicio-commons</source>
-					</sources>
-					</configuration>
-				</execution>
-				</executions>
-      		</plugin>
 		</plugins>
 	</build>
-
 </project>

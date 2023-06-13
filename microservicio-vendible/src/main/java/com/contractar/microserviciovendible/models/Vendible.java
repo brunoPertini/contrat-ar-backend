@@ -2,9 +2,6 @@ package com.contractar.microserviciovendible.models;
 
 import java.io.Serializable;
 
-import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.DiscriminatorOptions;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
@@ -21,6 +18,8 @@ import jakarta.validation.constraints.NotNull;
 @DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
 public class Vendible implements Serializable{
+
+	private static final long serialVersionUID = -6708815378872073493L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

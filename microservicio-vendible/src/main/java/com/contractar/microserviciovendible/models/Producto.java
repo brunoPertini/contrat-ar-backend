@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 @Entity
 public class Producto extends Vendible {
 
+	private static final long serialVersionUID = 8633680788289782676L;
 	private int stock;
 
 	public Producto() {

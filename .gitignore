@@ -9,6 +9,7 @@ workspace/microservicio-usuario/.mvn/wrapper/maven-wrapper.jar
 workspace/microservicio-usuario/.mvn/wrapper/maven-wrapper.jar
 *.jar
 *.cmd
+*.class
 workspace/servicio-commons/mvnw
 workspace/servicio-commons/.mvn/wrapper/maven-wrapper.jar
 workspace/servicio-commons/.mvn/wrapper/maven-wrapper.jar
@@ -19,3 +20,4 @@ workspace/microservicio-vendible/mvnw
 workspace/microservicio-vendible/.mvn/wrapper/maven-wrapper.jar
 .vscode/launch.json
 .vscode/settings.json
+/.metadata/

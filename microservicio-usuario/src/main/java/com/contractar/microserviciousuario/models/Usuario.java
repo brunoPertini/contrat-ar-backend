@@ -2,11 +2,9 @@ package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 
 import org.locationtech.jts.geom.Point;
-import com.contractar.serviciocommons.usuarios.UbicacionDeserializer;
-
+import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;
@@ -16,7 +14,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.*;
 
 @Entity
@@ -36,7 +35,7 @@ public class Usuario implements Serializable{
 	@NotBlank
 	private String surname;
 
-	@Column(length = 40)
+	@Column(length = 200)
 	private String password;
 
 	@Column(unique= true, nullable = false)
@@ -51,6 +50,10 @@ public class Usuario implements Serializable{
 
 	@NotNull
 	private LocalDate birthDate;
+	
+	@OneToOne
+	@JoinColumn(name = "role")
+	private Role role;
 
 	public Usuario() {
 
@@ -130,5 +133,13 @@ public class Usuario implements Serializable{
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	
+	public Role getRole() {
+		return role;
+	}
+
+	public void setRole(Role role) {
+		this.role = role;
 	}
 }

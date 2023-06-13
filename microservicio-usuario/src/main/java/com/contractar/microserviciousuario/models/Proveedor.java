@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microserviciocommons.plans.PlanType;
+import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciovendible.models.Vendible;
-import com.contractar.serviciocommons.plans.PlanType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -34,6 +35,10 @@ public class Proveedor extends Usuario {
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private PlanType plan;
+	
+	@Enumerated(EnumType.STRING)
+	@NotNull
+	private ProveedorType proveedorType;
 
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, targetEntity = Vendible.class)
 	@JoinTable(name = "proveedores_vendibles",
@@ -79,6 +84,14 @@ public class Proveedor extends Usuario {
 
 	public void setPlan(PlanType plan) {
 		this.plan = plan;
+	}
+	
+	public ProveedorType getProveedorType() {
+		return proveedorType;
+	}
+
+	public void setProveedorType(ProveedorType proveedorType) {
+		this.proveedorType = proveedorType;
 	}
 
 }
