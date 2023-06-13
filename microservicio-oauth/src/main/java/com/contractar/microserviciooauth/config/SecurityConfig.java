@@ -24,61 +24,54 @@ import com.nimbusds.jose.jwk.RSAKey;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-	
+
 	@Autowired
 	private RSAPublicKey storePublicKey;
 
 	@Autowired
 	private RSAPrivateKey storePrivateKey;
-	
+
 	@Value("${spring.security.oauth2.client.id}")
 	private String clientId;
-	
+
 	@Value("${spring.security.oauth2.client.secret}")
 	private String clientSecret;
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		
+
 		http.csrf().disable();
-		
-		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/error",
-				"/actuator/**",
-				"/oauth/login").anonymous()
-				.anyRequest().authenticated());
-		
+
+		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/error", "/actuator/**", "/oauth/login")
+				.anonymous().anyRequest().authenticated());
+
 		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));
-		
-		http.oauth2Login().authorizationEndpoint()
-        .baseUri("/oauth/login");
-		
-		http.formLogin().disable();	
-		
+
+		http.oauth2Login().authorizationEndpoint().baseUri("/oauth/login");
+
+		http.formLogin().disable();
+
 		http.httpBasic().disable();
-	
+
 		return http.build();
 	}
-	
+
 	@Bean
-    public ClientRegistrationRepository clientRepository() {
+	public ClientRegistrationRepository clientRepository() {
 
-      ClientRegistration clientRegistration =
-    	   ClientRegistration
-          .withRegistrationId(clientId)
-          .clientSecret(passwordEncoder().encode(clientSecret))
-          .scope("read", "write")
-          .authorizationGrantType(AuthorizationGrantType.PASSWORD)
-          .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-          .build();
+		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId(clientId)
+				.clientSecret(passwordEncoder().encode(clientSecret)).scope("read", "write")
+				.authorizationGrantType(AuthorizationGrantType.PASSWORD)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN).build();
 
-      return new InMemoryClientRegistrationRepository(clientRegistration);
-    }
-    
-    @Bean
+		return new InMemoryClientRegistrationRepository(clientRegistration);
+	}
+
+	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-    
+
 	@Bean
 	public JwtDecoder jwtDecoder() throws JOSEException {
 		RSAPublicKey publicKey = storePublicKey;
