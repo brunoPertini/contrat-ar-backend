@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
@@ -59,6 +60,13 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
+		http.cors().configurationSource(request -> {
+            CorsConfiguration corsConfiguration = new CorsConfiguration();
+            corsConfiguration.addAllowedOrigin("*");
+            corsConfiguration.addAllowedMethod("*");
+            corsConfiguration.addAllowedHeader("*");
+            return corsConfiguration;
+        });
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll().antMatchers("/oauth/login")
 				.access("@securityUtils.hasValidClientId(request)").anyRequest()
