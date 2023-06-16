@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Role;
@@ -15,6 +14,7 @@ import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciocommons.constants.RolesNames;
+import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.proveedores.ProveedorHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 
@@ -59,7 +59,12 @@ public class UsuarioService {
         return clienteRepository.save(cliente); 
     }
 
-    public Usuario findByEmail(String email) {
-        return usuarioRepository.findByEmail(email);
+    public Usuario findByEmail(String email) throws UserNotFoundException {
+        Usuario usuario  = usuarioRepository.findByEmail(email);
+        
+        if (usuario != null) {
+        	return usuario;
+        }
+        throw new UserNotFoundException();
     }
 }

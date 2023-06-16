@@ -11,7 +11,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,19 +29,23 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		
-		Map<String, String> parameters = Map.ofEntries(
-				new AbstractMap.SimpleEntry<String, String>("email", email));
-		
-		Usuario user = httpClient.getForObject(usersPath, Usuario.class, parameters);
+	public UserDetails loadUserByUsername(String email) {	
+		try {
+			Map<String, String> parameters = Map.ofEntries(
+					new AbstractMap.SimpleEntry<String, String>("email", email));
+			
+			Usuario user = httpClient.getForObject(usersPath, Usuario.class, parameters);
 
-		List<GrantedAuthority> authorities = new ArrayList<>();
+			List<GrantedAuthority> authorities = new ArrayList<>();
+			
+			authorities.add(new SimpleGrantedAuthority("USER"));
+
+			return new User(user.getEmail(), user.getPassword(), authorities);
+
+		} catch(Exception e) {
+			throw e;
+		}
 		
-		authorities.add(new SimpleGrantedAuthority("USER"));
-
-		return new User(user.getEmail(), user.getPassword(), authorities);
-
 	}
 
 }

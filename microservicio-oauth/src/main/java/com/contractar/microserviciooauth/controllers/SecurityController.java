@@ -14,8 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
 
 @RestController
@@ -32,13 +32,8 @@ public class SecurityController {
 	}
 
 	@GetMapping("/oauth/login")
-	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
-		UserDetails userDetails;
-		try {
-			userDetails = userDetailsService.loadUserByUsername(email);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
-		}
+	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) throws UserNotFoundException {
+		UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, Object> claims = new HashMap<>();
@@ -56,7 +51,8 @@ public class SecurityController {
 			String jwt = jwtHelper.createJwtForClaims(email, claims);
 			return new ResponseEntity<String>(jwt, HttpStatus.OK);
 		}
+		
+		throw new UserNotFoundException();
 
-		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
 	}
 }

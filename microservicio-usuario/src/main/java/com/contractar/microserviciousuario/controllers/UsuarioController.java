@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Usuario;
@@ -41,8 +41,8 @@ public class UsuarioController {
     }
     
     @GetMapping(UsersControllerUrls.GET_USUARIOS)
-    public ResponseEntity<Usuario> findByEmail(@RequestParam(required = true) String email) {
+    public ResponseEntity<Usuario> findByEmail(@RequestParam(required = true) String email) throws UserNotFoundException {
         Usuario usuario = usuarioService.findByEmail(email);
-        return new ResponseEntity<Usuario>(usuario, HttpStatus.OK);
+        return new ResponseEntity<Usuario>(usuario, HttpStatus.OK); 
     }
 }
