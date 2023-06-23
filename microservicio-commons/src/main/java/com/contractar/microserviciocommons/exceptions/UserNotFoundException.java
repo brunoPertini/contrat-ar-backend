@@ -7,7 +7,7 @@ public class UserNotFoundException extends Exception {
 	public final int STATUS_CODE = 404;
 	
 	public UserNotFoundException() {
-		super("Por favor revise su email y contraseña");
+		super("Por favor revise su email o contraseña");
 	}
 	
 	public UserNotFoundException(String message , Throwable err) {
