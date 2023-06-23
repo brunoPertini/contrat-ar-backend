@@ -71,7 +71,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 					.collect(Collectors.toList());
 			
 			claims.put("authorities", authorities.toArray(new String[0]));
-			claims.put("userId", String.valueOf(1));
 
 			return jwtHelper.createJwtForClaims(email, claims);
 		}

@@ -12,17 +12,18 @@ import com.contractar.microserviciocommons.infra.ExceptionFactory;
 
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
-	 @ExceptionHandler(value = { UserNotFoundException.class, HttpClientErrorException.class })
-	public ResponseEntity<Object> handleException(Exception ex) {
-		 if (ex instanceof HttpClientErrorException) {
-			 HttpClientErrorException castedException = (HttpClientErrorException) ex;
-				return new ExceptionFactory().getResponseException(castedException.getResponseBodyAsString(),
-						castedException.getStatusCode());
-		 } else {
-			 UserNotFoundException castedException = (UserNotFoundException) ex;
-			 return new ExceptionFactory().getResponseException(castedException.getMessage(),
-						HttpStatusCode.valueOf(castedException.STATUS_CODE));
-		 }
-		
+	@ExceptionHandler(value = { UserNotFoundException.class })
+	public ResponseEntity<Object> handleUserNotFoundException(Exception ex) {
+		UserNotFoundException castedException = (UserNotFoundException) ex;
+		return new ExceptionFactory().getResponseException(castedException.getMessage(),
+				HttpStatusCode.valueOf(castedException.STATUS_CODE));
+	}
+
+	@ExceptionHandler(value = { HttpClientErrorException.class })
+	public ResponseEntity<Object> handleHttpClientErrorException(Exception ex) {
+		HttpClientErrorException castedException = (HttpClientErrorException) ex;
+		return new ExceptionFactory().getResponseException(castedException.getResponseBodyAsString(),
+				castedException.getStatusCode());
+
 	}
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -68,8 +69,12 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
             return corsConfiguration;
         });
 		http.csrf().disable();
-		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll().antMatchers("/oauth/login")
-				.access("@securityUtils.hasValidClientId(request)").anyRequest()
+		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll()
+				.antMatchers("/oauth/login")
+				.access("@securityUtils.hasValidClientId(request)")
+				.antMatchers(HttpMethod.POST, "/usuarios/**")
+				.access("@securityUtils.hasValidClientId(request)")
+				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
 		http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);

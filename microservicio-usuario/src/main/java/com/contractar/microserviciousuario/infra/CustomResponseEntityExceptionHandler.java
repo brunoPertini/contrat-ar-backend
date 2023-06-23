@@ -13,7 +13,7 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 	 @ExceptionHandler(value 
 		      = { UserNotFoundException.class })
-	public ResponseEntity<Object> handleException(Exception ex) {	 
+	public ResponseEntity<Object> handleUserNotFoundException(Exception ex) {	 
 		 HttpStatus httpStatus = HttpStatus.valueOf(404);
 			return ResponseEntity.status(httpStatus)
 			  .contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());

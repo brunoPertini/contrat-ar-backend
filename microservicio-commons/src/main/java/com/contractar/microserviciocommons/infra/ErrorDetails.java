@@ -11,7 +11,6 @@ public final class ErrorDetails {
 	private String error;
 
 	public ErrorDetails(Date timestamp, int status, String error) {
-		super();
 		this.timestamp = timestamp;
 		this.status = status;
 		this.error = error;

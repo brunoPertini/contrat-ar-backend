@@ -20,51 +20,50 @@ import com.contractar.microserviciocommons.proveedores.ProveedorType;
 
 @Service
 public class UsuarioService {
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+	@Autowired
+	private UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ProveedorRepository proveedorRepository;
+	@Autowired
+	private ProveedorRepository proveedorRepository;
 
-    @Autowired
-    private ClienteRepository clienteRepository;
-    
-    private String setFinalRole(ProveedorType proveedorType) {
-    	Optional<ProveedorType> proveedorTypeOptional = Optional.ofNullable(proveedorType);
-    	
-    	if (!proveedorTypeOptional.isPresent()) {
-    		return RolesNames.CLIENTE;
-    	}
-    	
-    	return proveedorType.equals(ProveedorType.PRODUCTOS) ? RolesNames.PROVEEDOR_PRODUCTOS
-    			: RolesNames.PROVEEDOR_SERVICIOS;
-    }
+	@Autowired
+	private ClienteRepository clienteRepository;
 
-    public Usuario create(Usuario usuario) {
-        return usuarioRepository.save(usuario);
-    }
+	private String setFinalRole(ProveedorType proveedorType) {
+		Optional<ProveedorType> proveedorTypeOptional = Optional.ofNullable(proveedorType);
 
+		if (!proveedorTypeOptional.isPresent()) {
+			return RolesNames.CLIENTE;
+		}
 
-    public Proveedor createProveedor(Proveedor proveedor) {
-    	ProveedorType proveedorType = proveedor.getProveedorType();
-        List<? extends Vendible> parsedVendibles = ProveedorHelper.parseVendibles(proveedor, proveedorType);
+		return proveedorType.equals(ProveedorType.PRODUCTOS) ? RolesNames.PROVEEDOR_PRODUCTOS
+				: RolesNames.PROVEEDOR_SERVICIOS;
+	}
 
-        proveedor.setVendibles(parsedVendibles);
-        proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
-        return proveedorRepository.save(proveedor);
-    }
+	public Usuario create(Usuario usuario) {
+		return usuarioRepository.save(usuario);
+	}
 
-    public Cliente createCliente(Cliente cliente) {
-    	cliente.setRole(new Role(this.setFinalRole(null)));
-        return clienteRepository.save(cliente); 
-    }
+	public Proveedor createProveedor(Proveedor proveedor) {
+		ProveedorType proveedorType = proveedor.getProveedorType();
+		List<? extends Vendible> parsedVendibles = ProveedorHelper.parseVendibles(proveedor, proveedorType);
 
-    public Usuario findByEmail(String email) throws UserNotFoundException {
-        Usuario usuario  = usuarioRepository.findByEmail(email);
-        
-        if (usuario != null) {
-        	return usuario;
-        }
-        throw new UserNotFoundException();
-    }
+		proveedor.setVendibles(parsedVendibles);
+		proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
+		return proveedorRepository.save(proveedor);
+	}
+
+	public Cliente createCliente(Cliente cliente) {
+		cliente.setRole(new Role(this.setFinalRole(null)));
+		return clienteRepository.save(cliente);
+	}
+
+	public Usuario findByEmail(String email) throws UserNotFoundException {
+		Usuario usuario = usuarioRepository.findByEmail(email);
+
+		if (usuario != null) {
+			return usuario;
+		}
+		throw new UserNotFoundException();
+	}
 }
