@@ -1,5 +1,6 @@
 package com.contractar.microserviciooauth.infra;
 
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,10 +12,17 @@ import com.contractar.microserviciocommons.infra.ExceptionFactory;
 
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
-	 @ExceptionHandler(value 
-		      = { HttpClientErrorException.class, UserNotFoundException.class })
-	public ResponseEntity<Object> handleException(HttpClientErrorException ex) {
-		 
-		return new ExceptionFactory().getResponseException(ex.getResponseBodyAsString(), ex.getStatusCode());
+	 @ExceptionHandler(value = { UserNotFoundException.class, HttpClientErrorException.class })
+	public ResponseEntity<Object> handleException(Exception ex) {
+		 if (ex instanceof HttpClientErrorException) {
+			 HttpClientErrorException castedException = (HttpClientErrorException) ex;
+				return new ExceptionFactory().getResponseException(castedException.getResponseBodyAsString(),
+						castedException.getStatusCode());
+		 } else {
+			 UserNotFoundException castedException = (UserNotFoundException) ex;
+			 return new ExceptionFactory().getResponseException(castedException.getMessage(),
+						HttpStatusCode.valueOf(castedException.STATUS_CODE));
+		 }
+		
 	}
 }
