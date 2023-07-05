@@ -7,9 +7,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.services.UserDetailsServiceImpl;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class SecurityController {
@@ -25,6 +30,14 @@ public class SecurityController {
 		UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
 		String jwt = ((UserDetailsServiceImpl)userDetailsService).createJwtForUser(email, password, userDetails);
+		
+        Cookie cookie = new Cookie("t", jwt);
+        cookie.setPath("/");
+        cookie.setMaxAge(3600);
+
+        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
+        response.addCookie(cookie);
+       
 		return new ResponseEntity<String>(jwt, HttpStatus.OK);			
 	}
 }
