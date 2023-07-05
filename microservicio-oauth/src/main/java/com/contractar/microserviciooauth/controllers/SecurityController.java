@@ -34,6 +34,7 @@ public class SecurityController {
         Cookie cookie = new Cookie("t", jwt);
         cookie.setPath("/");
         cookie.setMaxAge(3600);
+        cookie.setHttpOnly(true);
 
         HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
         response.addCookie(cookie);

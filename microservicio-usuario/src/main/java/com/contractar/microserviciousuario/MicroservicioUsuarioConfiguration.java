@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
+import com.contractar.microserviciocommons.usuarios.UserDetailsDeserializer;
+import com.contractar.microserviciousuario.models.Usuario;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
@@ -15,6 +17,7 @@ public class MicroservicioUsuarioConfiguration {
         ObjectMapper objectMapper = new ObjectMapper();
         JtsModule jtsModule = new JtsModule();
         jtsModule.addDeserializer(Point.class, new UbicacionDeserializer());
+        jtsModule.addDeserializer(Usuario.class, new UserDetailsDeserializer());
         objectMapper.registerModule(jtsModule);
         return jtsModule;
     }

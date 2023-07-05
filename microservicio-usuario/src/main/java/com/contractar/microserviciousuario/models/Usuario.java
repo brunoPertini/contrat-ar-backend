@@ -2,9 +2,17 @@ package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.locationtech.jts.geom.Point;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
+import com.contractar.microserviciocommons.usuarios.UserDetailsDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;
@@ -20,7 +28,8 @@ import jakarta.validation.constraints.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Usuario implements Serializable{
+@JsonDeserialize(using = UserDetailsDeserializer.class)
+public class Usuario implements Serializable, UserDetails{
 	private static final long serialVersionUID = -1655979560902202392L;
 
 	@Id
@@ -141,5 +150,38 @@ public class Usuario implements Serializable{
 
 	public void setRole(Role role) {
 		this.role = role;
+	}
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+		Role role = this.getRole();
+		grantedAuthorities.add(new SimpleGrantedAuthority(role.getNombre()));
+	    return grantedAuthorities;
+	}
+
+	@Override
+	public String getUsername() {
+		return "";
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return isActive();
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return isActive();
 	}
 }
