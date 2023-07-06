@@ -2,12 +2,9 @@ package com.contractar.microserviciooauth.services;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,7 +46,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			List<GrantedAuthority> authorities = new ArrayList<>();
 			
-			authorities.add(new SimpleGrantedAuthority("USER"));
+			authorities.add(new SimpleGrantedAuthority(user.getRole().getNombre()));
 
 			return new User(user.getEmail(), user.getPassword(), authorities);
 
@@ -62,16 +59,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public String createJwtForUser(String email, String password, UserDetails userDetails) throws UserNotFoundException {
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, Object> claims = new HashMap<>();
-			claims.put("email", email);
-
-			Collection<String> authorities = userDetails
-					.getAuthorities()
-					.stream()
-					.map(GrantedAuthority::getAuthority)
-					.collect(Collectors.toList());
-			
-			claims.put("authorities", authorities.toArray(new String[0]));
-
+			claims.put("role", userDetails.getAuthorities().stream().findFirst().get());
 			return jwtHelper.createJwtForClaims(email, claims);
 		}
 		

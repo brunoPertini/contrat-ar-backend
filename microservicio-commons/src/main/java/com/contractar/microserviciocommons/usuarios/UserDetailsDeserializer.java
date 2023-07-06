@@ -9,6 +9,7 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import com.contractar.microserviciousuario.models.Role;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -22,16 +23,15 @@ public class UserDetailsDeserializer extends JsonDeserializer<Usuario> {
 	public Usuario deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException, JacksonException {
 		JsonNode node = jsonParser.getCodec().readTree(jsonParser);
 		
-		List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-		
-		Usuario usuario = new Usuario();
-		
+		List<GrantedAuthority> grantedAuthorities = new ArrayList<>();		
 		
 		String name = node.get("name").asText();
 		String surname = node.get("surname").asText();
 		String password = node.get("password").asText();
 		String email = node.get("email").asText();
 	    LocalDate birthDate = LocalDate.parse(node.get("birthDate").asText());
+	    
+	    Role role = new Role(node.get("role").get("nombre").asText());
         
 	    Iterator<JsonNode> elements = node.get("authorities").elements();
 	    
@@ -41,11 +41,8 @@ public class UserDetailsDeserializer extends JsonDeserializer<Usuario> {
 	        grantedAuthorities.add(new SimpleGrantedAuthority(authority.asText()));
 	    }
 	    
-	    usuario.setname(name);
-	    usuario.setsurname(surname);
-	    usuario.setPassword(password);
-	    usuario.setEmail(email);
-	    usuario.setBirthDate(birthDate);
+	    Usuario usuario = new Usuario(null, name, surname, email, true, null, birthDate, password, grantedAuthorities, role);
+	    
 	    
 		return usuario;
 	}

@@ -26,7 +26,8 @@ public class SecurityController {
 	}
 
 	@GetMapping("/oauth/login")
-	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) throws UserNotFoundException {
+	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password)
+			throws UserNotFoundException {
 		UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
 		String jwt = ((UserDetailsServiceImpl)userDetailsService).createJwtForUser(email, password, userDetails);

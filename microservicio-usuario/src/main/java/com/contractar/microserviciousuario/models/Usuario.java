@@ -3,13 +3,12 @@ package com.contractar.microserviciousuario.models;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.User;
 
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UserDetailsDeserializer;
@@ -29,7 +28,7 @@ import jakarta.validation.constraints.*;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @JsonDeserialize(using = UserDetailsDeserializer.class)
-public class Usuario implements Serializable, UserDetails{
+public class Usuario extends User implements Serializable{
 	private static final long serialVersionUID = -1655979560902202392L;
 
 	@Id
@@ -63,13 +62,14 @@ public class Usuario implements Serializable, UserDetails{
 	@OneToOne
 	@JoinColumn(name = "role")
 	private Role role;
-
+	
 	public Usuario() {
-
+		super("fake","", new ArrayList<SimpleGrantedAuthority>());
 	}
 
 	public Usuario(Long id, String name, String surname, String email, boolean isActive,
-			Point location, LocalDate birthDate, String password) {
+			Point location, LocalDate birthDate, String password,List<GrantedAuthority> authorities, Role role) {
+		super(name+surname, password, false, true, true, true, authorities);
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
@@ -78,6 +78,7 @@ public class Usuario implements Serializable, UserDetails{
 		this.location = location;
 		this.birthDate = birthDate;
 		this.password = password;
+		this.role = role;
 	}
 
 	public Long getId() {
@@ -150,38 +151,5 @@ public class Usuario implements Serializable, UserDetails{
 
 	public void setRole(Role role) {
 		this.role = role;
-	}
-
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-		Role role = this.getRole();
-		grantedAuthorities.add(new SimpleGrantedAuthority(role.getNombre()));
-	    return grantedAuthorities;
-	}
-
-	@Override
-	public String getUsername() {
-		return "";
-	}
-
-	@Override
-	public boolean isAccountNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isAccountNonLocked() {
-		return isActive();
-	}
-
-	@Override
-	public boolean isCredentialsNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return isActive();
 	}
 }
