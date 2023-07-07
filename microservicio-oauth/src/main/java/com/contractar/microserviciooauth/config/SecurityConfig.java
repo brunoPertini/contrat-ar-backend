@@ -42,7 +42,10 @@ public class SecurityConfig {
 
 		http.csrf().disable();
 
-		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/error", "/actuator/**", "/oauth/login")
+		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/error",
+				"/actuator/**",
+				"/oauth/login",
+				"/oauth/public_key")
 				.anonymous().anyRequest().authenticated());
 
 		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));

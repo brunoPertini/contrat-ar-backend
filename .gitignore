@@ -21,3 +21,4 @@ workspace/microservicio-vendible/.mvn/wrapper/maven-wrapper.jar
 .vscode/launch.json
 .vscode/settings.json
 /.metadata/
+*.pem
