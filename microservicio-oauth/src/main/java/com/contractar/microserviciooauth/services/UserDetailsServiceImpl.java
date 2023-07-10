@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.IndexPagesRoutes;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
 import com.contractar.microserviciousuario.models.Usuario;
@@ -59,7 +60,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public String createJwtForUser(String email, String password, UserDetails userDetails) throws UserNotFoundException {
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, Object> claims = new HashMap<>();
-			claims.put("role", userDetails.getAuthorities().stream().findFirst().get());
+			String userRole = userDetails.getAuthorities().stream().findFirst().get().toString();
+			claims.put("role", userRole);
+			claims.put("indexPage", IndexPagesRoutes.getAllRoutes().get(userRole));
 			return jwtHelper.createJwtForClaims(email, claims);
 		}
 		
