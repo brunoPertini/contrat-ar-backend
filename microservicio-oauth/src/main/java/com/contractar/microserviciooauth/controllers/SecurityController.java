@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.services.UserDetailsServiceImpl;
+import com.contractar.microserviciousuario.models.Usuario;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,8 +39,8 @@ public class SecurityController {
 	@GetMapping("/oauth/login")
 	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password)
 			throws UserNotFoundException {
-		UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
+		Usuario userDetails = (Usuario) userDetailsService.loadUserByUsername(email);
+				
 		String jwt = ((UserDetailsServiceImpl)userDetailsService).createJwtForUser(email, password, userDetails);
 		
         Cookie cookie = new Cookie("t", jwt);
