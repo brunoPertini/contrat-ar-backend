@@ -2,9 +2,16 @@ package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.locationtech.jts.geom.Point;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
+import com.contractar.microserviciocommons.usuarios.UserDetailsDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;
@@ -20,7 +27,8 @@ import jakarta.validation.constraints.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Usuario implements Serializable{
+@JsonDeserialize(using = UserDetailsDeserializer.class)
+public class Usuario extends User implements Serializable {
 	private static final long serialVersionUID = -1655979560902202392L;
 
 	@Id
@@ -38,11 +46,11 @@ public class Usuario implements Serializable{
 	@Column(length = 200)
 	private String password;
 
-	@Column(unique= true, nullable = false)
+	@Column(unique = true, nullable = false)
 	@NotBlank
 	private String email;
 
-	private boolean isActive;	
+	private boolean isActive;
 
 	@NotNull
 	@JsonDeserialize(using = UbicacionDeserializer.class)
@@ -50,17 +58,18 @@ public class Usuario implements Serializable{
 
 	@NotNull
 	private LocalDate birthDate;
-	
+
 	@OneToOne
 	@JoinColumn(name = "role")
 	private Role role;
 
 	public Usuario() {
-
+		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 	}
 
-	public Usuario(Long id, String name, String surname, String email, boolean isActive,
-			Point location, LocalDate birthDate, String password) {
+	public Usuario(Long id, String name, String surname, String email, boolean isActive, Point location,
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
+		super(name + surname, password, false, true, true, true, authorities);
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
@@ -69,6 +78,7 @@ public class Usuario implements Serializable{
 		this.location = location;
 		this.birthDate = birthDate;
 		this.password = password;
+		this.role = role;
 	}
 
 	public Long getId() {
@@ -134,7 +144,7 @@ public class Usuario implements Serializable{
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
+
 	public Role getRole() {
 		return role;
 	}

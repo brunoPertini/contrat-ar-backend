@@ -3,6 +3,7 @@ package com.contractar.microserviciogateway.security;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -32,6 +33,13 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
 	@Autowired
 	private OAuth2WebSecurityExpressionHandler expressionHandler;
+	
+	private final Map<String,String> acceptedOrigins = Map.of(
+			"dev",
+			"http://localhost:3000",
+			"prod", 
+			 ""
+			);
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -63,14 +71,15 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.cors().configurationSource(request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            corsConfiguration.addAllowedOrigin("*");
+            corsConfiguration.addAllowedOrigin(acceptedOrigins.get("dev"));
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
+            corsConfiguration.setAllowCredentials(true);
             return corsConfiguration;
         });
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll()
-				.antMatchers("/oauth/login")
+				.antMatchers("/oauth/login", "/oauth/public_key")
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**")
 				.access("@securityUtils.hasValidClientId(request)")

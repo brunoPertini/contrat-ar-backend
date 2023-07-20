@@ -35,7 +35,7 @@ public class JwtHelper {
 			if (value instanceof String) {
 				jwtBuilder.withClaim(key, (String)value);
 			} else {
-				jwtBuilder.withArrayClaim(key, (String[]) value);
+				jwtBuilder.withClaim(key, value.toString());
 			}
 		});
 		

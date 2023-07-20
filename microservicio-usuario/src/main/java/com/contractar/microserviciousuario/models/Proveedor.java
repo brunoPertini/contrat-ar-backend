@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.locationtech.jts.geom.Point;
+import org.springframework.security.core.GrantedAuthority;
 
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
@@ -45,6 +46,10 @@ public class Proveedor extends Usuario {
 	joinColumns=@JoinColumn(name="proveedor_id"),
 	inverseJoinColumns = @JoinColumn(name="vendible_id"))
 	private List<?> vendibles;
+	
+	public Proveedor() {
+		super();
+	}
 
 	public List<?> getVendibles() {
 		return vendibles;
@@ -54,13 +59,10 @@ public class Proveedor extends Usuario {
 		this.vendibles = vendibles;
 	}
 
-	public Proveedor() {
-		this.vendibles = new ArrayList<Vendible>();
-	}
-
 	public Proveedor(Long id, String name, String surname, String email, boolean isActive,Point location,
-			String dni, String password, PlanType plan, List<?> vendibles, LocalDate birthDate) {
-		super(id, name, surname, email, isActive, location, birthDate, password);
+			String dni, String password, PlanType plan, List<?> vendibles, LocalDate birthDate,
+			List<GrantedAuthority> authorities, Role role) {
+		super(id, name, surname, email, isActive, location, birthDate, password, authorities, role);
 		this.dni = dni;
 		this.plan = plan;
 		if (vendibles != null) {
