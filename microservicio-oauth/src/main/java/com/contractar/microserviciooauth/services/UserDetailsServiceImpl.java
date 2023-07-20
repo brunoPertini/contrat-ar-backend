@@ -22,9 +22,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Value("${security.users.usersServiceUrl}")
 	private String usersPath;
-	
+
 	private RestTemplate httpClient;
-	
+
 	private final JwtHelper jwtHelper;
 	private final PasswordEncoder passwordEncoder;
 
@@ -35,34 +35,33 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String email) {	
+	public UserDetails loadUserByUsername(String email) {
 		try {
-			Map<String, String> parameters = Map.ofEntries(
-					new AbstractMap.SimpleEntry<String, String>("email", email));
-			
+			Map<String, String> parameters = Map.ofEntries(new AbstractMap.SimpleEntry<String, String>("email", email));
+
 			Usuario user = httpClient.getForObject(usersPath, Usuario.class, parameters);
 
 			return user;
 
-		} catch(Exception e) {
+		} catch (Exception e) {
 			throw e;
 		}
-		
+
 	}
-	
+
 	public String createJwtForUser(String email, String password, Usuario userDetails) throws UserNotFoundException {
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, Object> claims = new HashMap<>();
 			String userRole = userDetails.getRole().getNombre();
 			String indexPage = Optional.ofNullable(IndexPagesRoutes.getAllRoutes().get(userRole))
-			.orElseGet(() -> IndexPagesRoutes.getAllRoutes().get("DEFAULT"));		
+					.orElseGet(() -> IndexPagesRoutes.getAllRoutes().get("DEFAULT"));
 			claims.put("role", userRole);
 			claims.put("name", userDetails.getname());
 			claims.put("surname", userDetails.getsurname());
 			claims.put("indexPage", indexPage);
 			return jwtHelper.createJwtForClaims(email, claims);
 		}
-		
+
 		throw new UserNotFoundException();
 	}
 

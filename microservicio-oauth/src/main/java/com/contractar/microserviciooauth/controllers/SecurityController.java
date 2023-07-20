@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,7 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityController {
 
 	private UserDetailsService userDetailsService;
-	
+
 	@Value("classpath:clave_publica.pem")
 	Resource clavePublicaResource;
 
@@ -40,35 +38,36 @@ public class SecurityController {
 	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password)
 			throws UserNotFoundException {
 		Usuario userDetails = (Usuario) userDetailsService.loadUserByUsername(email);
-				
-		String jwt = ((UserDetailsServiceImpl)userDetailsService).createJwtForUser(email, password, userDetails);
-		
-        Cookie cookie = new Cookie("t", jwt);
-        cookie.setPath("/");
-        cookie.setMaxAge(3600);
-        cookie.setHttpOnly(true);
 
-        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
-        response.addCookie(cookie);
-       
-		return new ResponseEntity<String>(jwt, HttpStatus.OK);			
+		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails);
+
+		Cookie cookie = new Cookie("t", jwt);
+		cookie.setPath("/");
+		cookie.setMaxAge(3600);
+		cookie.setHttpOnly(true);
+
+		HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+				.getResponse();
+		response.addCookie(cookie);
+
+		return new ResponseEntity<String>(jwt, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/oauth/public_key")
 	public ResponseEntity<String> getPublicKey() {
 		try (InputStream inputStream = clavePublicaResource.getInputStream();
-	             Scanner scanner = new Scanner(inputStream, "UTF-8")) {
+				Scanner scanner = new Scanner(inputStream, "UTF-8")) {
 
-	            StringBuilder content = new StringBuilder();
-	            while (scanner.hasNextLine()) {
-	                String line = scanner.nextLine();
-	                content.append(line).append(System.lineSeparator());
-	            }
-
-	            String publicKey = content.toString();
-	            return ResponseEntity.ok(publicKey);
-	        } catch (IOException e) {
-				return ResponseEntity.ok("");
+			StringBuilder content = new StringBuilder();
+			while (scanner.hasNextLine()) {
+				String line = scanner.nextLine();
+				content.append(line).append(System.lineSeparator());
 			}
+
+			String publicKey = content.toString();
+			return ResponseEntity.ok(publicKey);
+		} catch (IOException e) {
+			return ResponseEntity.ok("");
+		}
 	}
 }

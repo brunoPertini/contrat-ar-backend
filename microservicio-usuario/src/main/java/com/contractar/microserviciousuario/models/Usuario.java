@@ -28,7 +28,7 @@ import jakarta.validation.constraints.*;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @JsonDeserialize(using = UserDetailsDeserializer.class)
-public class Usuario extends User implements Serializable{
+public class Usuario extends User implements Serializable {
 	private static final long serialVersionUID = -1655979560902202392L;
 
 	@Id
@@ -46,11 +46,11 @@ public class Usuario extends User implements Serializable{
 	@Column(length = 200)
 	private String password;
 
-	@Column(unique= true, nullable = false)
+	@Column(unique = true, nullable = false)
 	@NotBlank
 	private String email;
 
-	private boolean isActive;	
+	private boolean isActive;
 
 	@NotNull
 	@JsonDeserialize(using = UbicacionDeserializer.class)
@@ -58,18 +58,18 @@ public class Usuario extends User implements Serializable{
 
 	@NotNull
 	private LocalDate birthDate;
-	
+
 	@OneToOne
 	@JoinColumn(name = "role")
 	private Role role;
-	
+
 	public Usuario() {
-		super("fake","", new ArrayList<SimpleGrantedAuthority>());
+		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 	}
 
-	public Usuario(Long id, String name, String surname, String email, boolean isActive,
-			Point location, LocalDate birthDate, String password,List<GrantedAuthority> authorities, Role role) {
-		super(name+surname, password, false, true, true, true, authorities);
+	public Usuario(Long id, String name, String surname, String email, boolean isActive, Point location,
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
+		super(name + surname, password, false, true, true, true, authorities);
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
@@ -144,7 +144,7 @@ public class Usuario extends User implements Serializable{
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
+
 	public Role getRole() {
 		return role;
 	}
