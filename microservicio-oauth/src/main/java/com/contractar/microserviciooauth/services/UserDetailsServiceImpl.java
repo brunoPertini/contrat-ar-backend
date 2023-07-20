@@ -3,6 +3,8 @@ package com.contractar.microserviciooauth.services;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -52,10 +54,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, Object> claims = new HashMap<>();
 			String userRole = userDetails.getRole().getNombre();
+			String indexPage = Optional.ofNullable(IndexPagesRoutes.getAllRoutes().get(userRole))
+			.orElseGet(() -> IndexPagesRoutes.getAllRoutes().get("DEFAULT"));		
 			claims.put("role", userRole);
 			claims.put("name", userDetails.getname());
 			claims.put("surname", userDetails.getsurname());
-			claims.put("indexPage", IndexPagesRoutes.getAllRoutes().get(userRole));
+			claims.put("indexPage", indexPage);
 			return jwtHelper.createJwtForClaims(email, claims);
 		}
 		
