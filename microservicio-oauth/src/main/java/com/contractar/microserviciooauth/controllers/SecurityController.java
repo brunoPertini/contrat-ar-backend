@@ -2,6 +2,10 @@ package com.contractar.microserviciooauth.controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -40,10 +44,16 @@ public class SecurityController {
 		Usuario userDetails = (Usuario) userDetailsService.loadUserByUsername(email);
 
 		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails);
+		
+		ZoneId zone = ZoneId.of(ZoneId.SHORT_IDS.get("AGT"));
+		ZonedDateTime expirationDateTime = ZonedDateTime.now(zone).plusHours(1);
+
+		long expirationEpochMilli = expirationDateTime.toInstant().toEpochMilli();
 
 		Cookie cookie = new Cookie("t", jwt);
 		cookie.setPath("/");
-		cookie.setMaxAge(3600);
+		cookie.setAttribute("Expires", expirationDateTime.toString());
+		cookie.setMaxAge((int) ((expirationEpochMilli - ZonedDateTime.now(zone).toInstant().toEpochMilli()) / 1000));
 		cookie.setHttpOnly(true);
 
 		HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
