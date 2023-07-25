@@ -1,7 +1,7 @@
 package com.contractar.microserviciousuario.services;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,7 +46,7 @@ public class UsuarioService {
 
 	public Proveedor createProveedor(Proveedor proveedor) {
 		ProveedorType proveedorType = proveedor.getProveedorType();
-		List<? extends Vendible> parsedVendibles = ProveedorHelper.parseVendibles(proveedor, proveedorType);
+		Set<Vendible> parsedVendibles = (Set<Vendible>) ProveedorHelper.parseVendibles(proveedor, proveedorType);
 
 		proveedor.setVendibles(parsedVendibles);
 		proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
@@ -56,6 +56,19 @@ public class UsuarioService {
 	public Cliente createCliente(Cliente cliente) {
 		cliente.setRole(new Role(this.setFinalRole(null)));
 		return clienteRepository.save(cliente);
+	}
+	
+	public Proveedor findProveedorById(Long id) {
+		return proveedorRepository.findById(id);
+	}
+	
+	public Usuario findById(Long id) throws UserNotFoundException {
+		Usuario usuario = usuarioRepository.findById(id);
+
+		if (usuario != null) {
+			return usuario;
+		}
+		throw new UserNotFoundException();
 	}
 
 	public Usuario findByEmail(String email) throws UserNotFoundException {

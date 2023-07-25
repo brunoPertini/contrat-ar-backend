@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +15,7 @@ import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.services.UsuarioService;
+import com.contractar.microserviciovendible.models.Vendible;
 
 import jakarta.validation.Valid;
 
@@ -40,9 +42,21 @@ public class UsuarioController {
         return new ResponseEntity<Cliente>(createdUsuario, HttpStatus.CREATED);
     }
     
+    @GetMapping(UsersControllerUrls.GET_PROVEEDOR)
+    public ResponseEntity<Proveedor> findProveedor(@RequestParam Long id) {
+    	Proveedor proveedor = usuarioService.findProveedorById(id);
+    	return new ResponseEntity<Proveedor>(proveedor, HttpStatus.OK);
+    }
+    
     @GetMapping(UsersControllerUrls.GET_USUARIOS)
-    public ResponseEntity<Usuario> findByEmail(@RequestParam(required = true) String email) throws UserNotFoundException {
-        Usuario usuario = usuarioService.findByEmail(email);
+    public ResponseEntity<Usuario> findByParam(@RequestParam(required = false) String email,
+    		@RequestParam(required = false) Long id) throws UserNotFoundException {
+        Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id);
         return new ResponseEntity<Usuario>(usuario, HttpStatus.OK); 
+    }
+    
+    @PutMapping(UsersControllerUrls.UPDATE_PROVEEDOR)
+    public ResponseEntity addVendible(Vendible vendible) {
+    	
     }
 }
