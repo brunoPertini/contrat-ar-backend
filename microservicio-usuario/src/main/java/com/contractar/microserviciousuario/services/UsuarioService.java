@@ -58,25 +58,34 @@ public class UsuarioService {
 		return clienteRepository.save(cliente);
 	}
 	
-	public Proveedor findProveedorById(Long id) {
-		return proveedorRepository.findById(id);
-	}
-	
-	public Usuario findById(Long id) throws UserNotFoundException {
-		Usuario usuario = usuarioRepository.findById(id);
+	public boolean usuarioExists(Long id) throws UserNotFoundException {
+		boolean usuarioExists = usuarioRepository.existsById(id);
 
-		if (usuario != null) {
-			return usuario;
+		if (usuarioExists) {
+			return true;
 		}
 		throw new UserNotFoundException();
 	}
 
 	public Usuario findByEmail(String email) throws UserNotFoundException {
+
 		Usuario usuario = usuarioRepository.findByEmail(email);
 
 		if (usuario != null) {
 			return usuario;
 		}
 		throw new UserNotFoundException();
+	}
+	
+	public Usuario findById(Long id)  throws UserNotFoundException{
+		Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+		if (usuarioOpt.isPresent()) {
+			return usuarioOpt.get();
+		}
+		throw new UserNotFoundException();
+	}
+	
+	public void addVendible(Long proveedorId, Long vendibleId) {
+		proveedorRepository.addVendible(proveedorId, vendibleId);
 	}
 }

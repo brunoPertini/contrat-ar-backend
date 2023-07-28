@@ -2,10 +2,12 @@ package com.contractar.microserviciousuario.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,8 +17,6 @@ import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.services.UsuarioService;
-import com.contractar.microserviciovendible.models.Vendible;
-
 import jakarta.validation.Valid;
 
 @RestController
@@ -42,10 +42,12 @@ public class UsuarioController {
         return new ResponseEntity<Cliente>(createdUsuario, HttpStatus.CREATED);
     }
     
-    @GetMapping(UsersControllerUrls.GET_PROVEEDOR)
-    public ResponseEntity<Proveedor> findProveedor(@RequestParam Long id) {
-    	Proveedor proveedor = usuarioService.findProveedorById(id);
-    	return new ResponseEntity<Proveedor>(proveedor, HttpStatus.OK);
+    @SuppressWarnings("rawtypes")
+	@GetMapping(UsersControllerUrls.USUARIO_EXISTS)
+    public ResponseEntity usuarioExists(@PathVariable Long usuarioId) throws UserNotFoundException {
+    	boolean usuarioExists = usuarioService.usuarioExists(usuarioId);
+    	int responseStatus = usuarioExists ? 200 : 404;
+    	return new ResponseEntity(HttpStatusCode.valueOf(responseStatus));
     }
     
     @GetMapping(UsersControllerUrls.GET_USUARIOS)
@@ -55,8 +57,9 @@ public class UsuarioController {
         return new ResponseEntity<Usuario>(usuario, HttpStatus.OK); 
     }
     
-    @PutMapping(UsersControllerUrls.UPDATE_PROVEEDOR)
-    public ResponseEntity addVendible(Vendible vendible) {
-    	
+    @PatchMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+    public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) {
+    	usuarioService.addVendible(proveedorId, vendibleId); 
+    	return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
     }
 }

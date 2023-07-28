@@ -24,7 +24,7 @@ public class ServicioController {
 	
 	@PostMapping("/service")
 	public ResponseEntity<Servicio> save(@RequestBody @Valid Servicio servicio,
-			@RequestParam(required = true) Long proveedorId) {
+			@RequestParam(required = true) Long proveedorId) throws Exception {
 		return new ResponseEntity<Servicio>(servicioService.save(servicio, proveedorId), HttpStatus.CREATED);
 	}
 	
