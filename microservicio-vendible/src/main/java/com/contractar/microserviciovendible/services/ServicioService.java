@@ -1,11 +1,6 @@
 package com.contractar.microserviciovendible.services;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,6 +16,7 @@ import com.contractar.microserviciocommons.constants.controllers.UsersController
 import com.contractar.microserviciocommons.dto.ServicioDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
+import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciovendible.models.Servicio;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
@@ -77,55 +73,28 @@ public class ServicioService {
 	}
 	
 	@Transactional
-	public ServicioDTO update (ServicioDTO servicio, Long vendibleId) throws VendibleNotFoundException,
-	ClassNotFoundException,
-	IllegalArgumentException,
-	IllegalAccessException, InvocationTargetException {
+	public ServicioDTO update (ServicioDTO servicio, Long vendibleId) throws Exception {
 		Optional<Vendible> toUpdateServiceOpt = vendibleRepository.findById(vendibleId);
 		if (toUpdateServiceOpt.isPresent()) {
 			Vendible toUpdateService = toUpdateServiceOpt.get();
 			
-			Class<?> dtoClass = Class.forName("com.contractar.microserviciocommons.dto.ServicioDTO");
-			Class<?> vendibleClass = Class.forName("com.contractar.microserviciovendible.models.Vendible");
-
-			LinkedHashMap<String, Object> notEmptyFields = new LinkedHashMap<String, Object>();
-			Field [] fields = dtoClass.getDeclaredFields();
-			
-			for(Field field: fields) {
-				field.setAccessible(true);
-				Object fieldValue = field.get(servicio);
-				if ((fieldValue instanceof Number && (((Number)fieldValue).intValue() > 0)) || fieldValue != null) {
-					notEmptyFields.put(field.getName(), fieldValue);
-				}
-			}
-			
-			Method[] methods = vendibleClass.getMethods();
-			
-			
-			for (String fieldName: notEmptyFields.keySet()) {
-				String sufix =  Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-				String setterExpectedName = "set"+ sufix;
+			try {
+				ReflectionHelper.applySetterFromExistingFields(servicio,
+						toUpdateService,
+						"com.contractar.microserviciocommons.dto.ServicioDTO",
+						"com.contractar.microserviciovendible.models.Vendible");
 				
-				Method foundSetterMethod = null;
-
-				while (foundSetterMethod == null) {
-					for(Method method: methods) {
-						if (method.getName().equals(setterExpectedName)) {
-							foundSetterMethod = method;
-						}
-					}
-				}
+				Servicio updatedServicio = servicioRepository.save((Servicio)toUpdateService);
 				
-				foundSetterMethod.invoke(toUpdateService, notEmptyFields.get(fieldName));
-			}
-			
-			Servicio updatedServicio = servicioRepository.save((Servicio)toUpdateService);
-			
-			return new ServicioDTO(updatedServicio.getNombre(),
-					updatedServicio.getPrecio(),
-					updatedServicio.getDescripcion(),
-					updatedServicio.getImagesUrl(),
-					updatedServicio.getProveedores());		
+				return new ServicioDTO(updatedServicio.getNombre(),
+						updatedServicio.getPrecio(),
+						updatedServicio.getDescripcion(),
+						updatedServicio.getImagesUrl(),
+						updatedServicio.getProveedores());
+			} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
+					| InvocationTargetException e) {
+				throw new Exception("Reflection exception throwed");
+			}		
 		}
 		
 		throw new VendibleNotFoundException();

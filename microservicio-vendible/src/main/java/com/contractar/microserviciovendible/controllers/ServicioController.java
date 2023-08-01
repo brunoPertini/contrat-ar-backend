@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.dto.ServicioDTO;
-import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciovendible.models.Servicio;
 import com.contractar.microserviciovendible.services.ServicioService;
 
@@ -35,8 +34,7 @@ public class ServicioController {
 	
 	@PutMapping("/service/{vendibleId}")
 	public ResponseEntity<ServicioDTO> update(@RequestBody ServicioDTO servicio,
-			@PathVariable("vendibleId") Long vendibleId) throws VendibleNotFoundException, ClassNotFoundException,
-	IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+			@PathVariable("vendibleId") Long vendibleId) throws Exception {
 		return new ResponseEntity<ServicioDTO>(servicioService.update(servicio, vendibleId), HttpStatus.OK);
 	}
 	
