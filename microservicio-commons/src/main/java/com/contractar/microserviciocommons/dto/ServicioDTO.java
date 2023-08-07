@@ -1,6 +1,7 @@
 package com.contractar.microserviciocommons.dto;
 
 import java.util.List;
+
 import java.util.stream.Collectors;
 
 import com.contractar.microserviciousuario.models.Proveedor;

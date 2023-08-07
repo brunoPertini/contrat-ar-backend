@@ -3,13 +3,14 @@ package com.contractar.microserviciovendible.repository;
 import java.util.List;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.transaction.TransactionSystemException;
 
 import com.contractar.microserviciovendible.models.Servicio;
 
 public interface ServicioRepository extends PagingAndSortingRepository<Servicio, Long>{
 	public Servicio findById(Long id);
 
-	public Servicio save(Servicio servicio);
+	public Servicio save(Servicio servicio) throws TransactionSystemException;
 	
 	public List<Servicio> findByNombreContainingIgnoreCaseOrderByNombreAsc(String nombre);
 }
