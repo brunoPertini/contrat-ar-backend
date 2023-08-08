@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import com.contractar.microserviciousuario.models.Proveedor;
 
-public class ServicioDTO {
+public class ServicioDTO extends EntityDTO {
 	private String nombre;
 	private int precio;
 	private String descripcion;

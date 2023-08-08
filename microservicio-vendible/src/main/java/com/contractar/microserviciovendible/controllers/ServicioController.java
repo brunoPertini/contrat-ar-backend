@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ServicioDTO;
 import com.contractar.microserviciovendible.models.Servicio;
 import com.contractar.microserviciovendible.services.ServicioService;
@@ -25,19 +26,19 @@ public class ServicioController {
 	@Autowired
 	private ServicioService servicioService;
 	
-	@PostMapping("/service")
+	@PostMapping(VendiblesControllersUrls.SAVE_SERVICE)
 	public ResponseEntity<Servicio> save(@RequestBody @Valid Servicio servicio,
 			@RequestParam(required = true) Long proveedorId) throws Exception {
 		return new ResponseEntity<Servicio>(servicioService.save(servicio, proveedorId), HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/service/{vendibleId}")
+	@PutMapping(VendiblesControllersUrls.MODIFY_SERVICE)
 	public ResponseEntity<ServicioDTO> update(@RequestBody ServicioDTO servicio,
 			@PathVariable("vendibleId") Long vendibleId) throws Exception {
 		return new ResponseEntity<ServicioDTO>(servicioService.update(servicio, vendibleId), HttpStatus.OK);
 	}
 	
-	@GetMapping("/service")
+	@GetMapping(VendiblesControllersUrls.GET_SERVICE)
 	public ResponseEntity<List<ServicioDTO>> findByNombre(@RequestParam @NotBlank String nombre) {
 		return new ResponseEntity<List<ServicioDTO>>(this.servicioService.findByNombreAsc(nombre), HttpStatus.OK);
 	}
