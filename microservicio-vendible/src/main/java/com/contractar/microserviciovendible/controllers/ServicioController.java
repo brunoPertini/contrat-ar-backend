@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ServicioDTO;
+import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciovendible.models.Servicio;
 import com.contractar.microserviciovendible.services.ServicioService;
+import com.contractar.microserviciovendible.services.VendibleService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -26,10 +28,19 @@ public class ServicioController {
 	@Autowired
 	private ServicioService servicioService;
 	
+	@Autowired
+	private VendibleService vendibleService;
+	
 	@PostMapping(VendiblesControllersUrls.SAVE_SERVICE)
-	public ResponseEntity<Servicio> save(@RequestBody @Valid Servicio servicio,
+	public ResponseEntity<ServicioDTO> save(@RequestBody @Valid Servicio servicio,
 			@RequestParam(required = true) Long proveedorId) throws Exception {
-		return new ResponseEntity<Servicio>(servicioService.save(servicio, proveedorId), HttpStatus.CREATED);
+		Servicio addedServicio = (Servicio) vendibleService.save(servicio, VendibleType.SERVICIO.toString(), proveedorId);
+		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre(),
+				addedServicio.getPrecio(),
+				addedServicio.getDescripcion(),
+				addedServicio.getImagesUrl(),
+				addedServicio.getProveedores());
+		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.CREATED);
 	}
 	
 	@PutMapping(VendiblesControllersUrls.MODIFY_SERVICE)
