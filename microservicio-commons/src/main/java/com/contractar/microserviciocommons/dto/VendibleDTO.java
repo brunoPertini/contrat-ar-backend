@@ -1,5 +1,6 @@
 package com.contractar.microserviciocommons.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,9 @@ public abstract class VendibleDTO {
 		this.precio = precio;
 		this.descripcion = descripcion;
 		this.imagesUrl = imagesUrl;
-		this.proveedoresIds = proveedores.stream().map(proveedor -> proveedor.getId()).collect(Collectors.toList());
+		this.proveedoresIds = proveedores != null ? 
+				proveedores.stream().map(proveedor -> proveedor.getId()).collect(Collectors.toList())
+				: new ArrayList<Long>();
 	}
 
 	public String getNombre() {

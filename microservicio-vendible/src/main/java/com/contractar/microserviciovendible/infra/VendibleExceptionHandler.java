@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.contractar.microserviciocommons.dto.EntityDTO;
+import com.contractar.microserviciocommons.dto.VendibleDTO;
 import com.contractar.microserviciocommons.dto.ServicioDTO;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleUpdateException;
@@ -32,7 +32,7 @@ public class VendibleExceptionHandler extends ResponseEntityExceptionHandler {
 
 		if (cause instanceof ConstraintViolationException) {
 			try {
-				EntityDTO bodyDTO = RequestsHelper.parseRequestBodyToDTO(request, ServicioDTO.class);
+				VendibleDTO bodyDTO = RequestsHelper.parseRequestBodyToDTO(request, ServicioDTO.class);
 				VendibleUpdateException readableException = new VendibleUpdateException();
 				return new ExceptionFactory().getResponseException(readableException.getMessage(),
 						HttpStatusCode.valueOf(readableException.STATUS_CODE), bodyDTO);

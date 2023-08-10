@@ -3,7 +3,9 @@ package com.contractar.microserviciocommons.reflection;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public final class ReflectionHelper {
 
@@ -27,12 +29,13 @@ public final class ReflectionHelper {
 		Class<?> destinationClassType = Class.forName(destinationClass);
 
 		LinkedHashMap<String, Object> notEmptyFields = new LinkedHashMap<String, Object>();
-		Field[] fields = sourceClassType.getDeclaredFields();
+		Field[] fields = getAllFieldsOfHierachy(sourceClassType);
 
 		for (Field field : fields) {
 			field.setAccessible(true);
 			Object fieldValue = field.get(sourceObject);
-			if ((fieldValue instanceof Number && (((Number) fieldValue).intValue() > 0)) || fieldValue != null) {
+			boolean isNumberField = fieldValue instanceof Number;
+			if ((isNumberField && (((Number) fieldValue).intValue() > 0)) || (!isNumberField && fieldValue != null)) {
 				notEmptyFields.put(field.getName(), fieldValue);
 			}
 		}
@@ -45,15 +48,37 @@ public final class ReflectionHelper {
 
 			Method foundSetterMethod = null;
 
-			while (foundSetterMethod == null) {
+			boolean finishedLooping = false;
+
+			while (foundSetterMethod == null && !finishedLooping) {
 				for (Method method : methods) {
 					if (method.getName().equals(setterExpectedName)) {
 						foundSetterMethod = method;
 					}
 				}
+				
+				finishedLooping = true;
+				
 			}
-
-			foundSetterMethod.invoke(destinationObject, notEmptyFields.get(fieldName));
+			
+			if (foundSetterMethod != null) {
+				foundSetterMethod.invoke(destinationObject, notEmptyFields.get(fieldName));
+			}
 		}
+	}
+	
+	public static Field [] getAllFieldsOfHierachy(Class clazz) {
+		List<Field> fields = new ArrayList<Field>();
+		Class currentClass = clazz;
+		while(!currentClass.getSimpleName().equals("Object")) {
+			Field [] currentClassFields = currentClass.getDeclaredFields();
+			for(Field field: currentClassFields) {
+				fields.add(field);
+			}
+			
+			currentClass = currentClass.getSuperclass();
+		}
+		
+		return fields.toArray(new Field[fields.size()]);
 	}
 }

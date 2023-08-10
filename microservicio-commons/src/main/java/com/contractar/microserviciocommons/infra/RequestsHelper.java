@@ -7,7 +7,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
-import com.contractar.microserviciocommons.dto.EntityDTO;
+import com.contractar.microserviciocommons.dto.VendibleDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,13 +15,13 @@ import jakarta.servlet.http.HttpServletRequest;
 public class RequestsHelper {
 	
 	/**
-	 * Reads row content from request body (should be PUT, PATCH or POST) and parses it to an EntityDTO 
+	 * Reads row content from request body (should be PUT, PATCH or POST) and parses it to a VendibleDTO 
 	 * @param request
 	 * @param dtoClass
 	 * @return
 	 * @throws IOException
 	 */
-	public static EntityDTO parseRequestBodyToDTO(WebRequest request, Class<? extends EntityDTO> dtoClass) throws IOException {
+	public static VendibleDTO parseRequestBodyToDTO(WebRequest request, Class<? extends VendibleDTO> dtoClass) throws IOException {
 		NativeWebRequest nativeWebRequest = (NativeWebRequest) request;
 
 		HttpServletRequest httpServletRequest = nativeWebRequest.getNativeRequest(HttpServletRequest.class);

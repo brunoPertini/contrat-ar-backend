@@ -31,10 +31,12 @@ public class ServicioController {
 	@Autowired
 	private VendibleService vendibleService;
 	
+	private final String vendibleType = VendibleType.SERVICIO.toString();
+	
 	@PostMapping(VendiblesControllersUrls.SAVE_SERVICE)
 	public ResponseEntity<ServicioDTO> save(@RequestBody @Valid Servicio servicio,
 			@RequestParam(required = true) Long proveedorId) throws Exception {
-		Servicio addedServicio = (Servicio) vendibleService.save(servicio, VendibleType.SERVICIO.toString(), proveedorId);
+		Servicio addedServicio = (Servicio) vendibleService.save(servicio, vendibleType, proveedorId);
 		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre(),
 				addedServicio.getPrecio(),
 				addedServicio.getDescripcion(),
@@ -46,7 +48,15 @@ public class ServicioController {
 	@PutMapping(VendiblesControllersUrls.MODIFY_SERVICE)
 	public ResponseEntity<ServicioDTO> update(@RequestBody ServicioDTO servicio,
 			@PathVariable("vendibleId") Long vendibleId) throws Exception {
-		return new ResponseEntity<ServicioDTO>(servicioService.update(servicio, vendibleId), HttpStatus.OK);
+		String dtoFullClassName = ServicioDTO.class.getPackage().getName() + ".ServicioDTO";
+		String entityFullClassName = Servicio.class.getPackage().getName() + ".Servicio"; 
+		Servicio addedServicio = (Servicio) vendibleService.update(servicio, vendibleId, dtoFullClassName, entityFullClassName, vendibleType);
+		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre(),
+				addedServicio.getPrecio(),
+				addedServicio.getDescripcion(),
+				addedServicio.getImagesUrl(),
+				addedServicio.getProveedores());
+		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.OK);
 	}
 	
 	@GetMapping(VendiblesControllersUrls.GET_SERVICE)
