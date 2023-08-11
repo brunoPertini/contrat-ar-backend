@@ -40,6 +40,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 			"prod", 
 			 ""
 			);
+	
+	private final String[] vendiblesUrls = {"/product/**", "/service/**", "/vendible/**", "/usuarios/proveedor/**/vendible/**"};
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -83,6 +85,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**")
 				.access("@securityUtils.hasValidClientId(request)")
+				.antMatchers(vendiblesUrls).access("@securityUtils.hasValidClientId(request) and isAuthenticated()")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
