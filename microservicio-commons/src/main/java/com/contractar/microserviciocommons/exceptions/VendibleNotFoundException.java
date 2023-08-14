@@ -1,15 +1,23 @@
 package com.contractar.microserviciocommons.exceptions;
 
-public class VendibleNotFoundException extends Exception{
-private static final long serialVersionUID = 6456173146490537236L;
-	
-	public final int STATUS_CODE = 404;
-	
+public class VendibleNotFoundException extends CustomException{
+
+	private static final long serialVersionUID = 8777509554986568767L;
+
+	private static final String message = "Producto o servicio no encontrado";
+
 	public VendibleNotFoundException() {
-		super("Servicio o producto no encontrado");
+		super(message);
+		this.STATUS_CODE = 404;
 	}
-	
-	public VendibleNotFoundException(String message , Throwable err) {
+
+	public VendibleNotFoundException(String message, Throwable err) {
 		super(message, err);
-	}	
+		this.STATUS_CODE = 404;
+	}
+
+	public VendibleNotFoundException(Throwable err) {
+		super(message, err);
+		this.STATUS_CODE = 404;
+	}
 }

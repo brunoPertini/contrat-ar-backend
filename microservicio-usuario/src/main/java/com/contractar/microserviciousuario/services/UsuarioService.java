@@ -52,6 +52,10 @@ public class UsuarioService {
 		proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
 		return proveedorRepository.save(proveedor);
 	}
+	
+	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
+		return proveedorRepository.existsByIdAndProveedorType(id, proveedorType);
+	}
 
 	public Cliente createCliente(Cliente cliente) {
 		cliente.setRole(new Role(this.setFinalRole(null)));

@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Proveedor;
 
 public interface ProveedorRepository  extends CrudRepository<Proveedor, Long>{
@@ -18,4 +19,6 @@ public interface ProveedorRepository  extends CrudRepository<Proveedor, Long>{
     @Transactional
     public void addVendible(@Param("proveedorId") Long proveedorId,
     		@Param("vendibleId") Long vendibleId);
+    
+    public boolean existsByIdAndProveedorType(Long id, ProveedorType proveedorType);
 }

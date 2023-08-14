@@ -5,16 +5,20 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
+import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciovendible.models.Vendible;
@@ -43,11 +47,19 @@ public class VendibleService {
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId) throws Exception {
 		try {
-			String usuarioExistsUrl = microServicioUsuarioUrl
-					+ UsersControllerUrls.USUARIO_EXISTS.replace("{usuarioId}", proveedorId.toString());
+			ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString())
+					? ProveedorType.SERVICIOS
+					: ProveedorType.PRODUCTOS;
+			
+			  UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microServicioUsuarioUrl)
+		                .path(UsersControllerUrls.GET_PROVEEDOR)
+		                .queryParam("id", proveedorId)
+		                .queryParam("proveedorType", proveedorType);
 
-			ResponseEntity<Void> getUsuarioResponse = restTemplate.getForEntity(usuarioExistsUrl, null,
-					ResponseEntity.class);
+		    String usuarioExistsUrl = builder.toUriString();
+
+
+			ResponseEntity<Void> getUsuarioResponse = restTemplate.getForEntity(usuarioExistsUrl, Void.class);
 
 			if (getUsuarioResponse.getStatusCode().is2xxSuccessful()) {
 				Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
@@ -69,7 +81,11 @@ public class VendibleService {
 				throw new UserNotFoundException();
 			}
 		} catch (Exception e) {
-			throw e;
+			if (e instanceof DataIntegrityViolationException) {
+				throw new VendibleAlreadyExistsException();
+			} else {
+				throw e;
+			}
 		}
 	}
 

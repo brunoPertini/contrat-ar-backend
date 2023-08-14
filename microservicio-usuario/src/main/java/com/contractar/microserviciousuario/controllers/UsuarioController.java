@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Usuario;
@@ -21,45 +22,54 @@ import jakarta.validation.Valid;
 
 @RestController
 public class UsuarioController {
-    @Autowired
-    private UsuarioService usuarioService;
-    
-    @PostMapping("/usuarios")
-    public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
-        Usuario createdUsuario =  usuarioService.create(usuario); 
-        return new ResponseEntity<Usuario>(createdUsuario, HttpStatus.CREATED);
-    }
+	@Autowired
+	private UsuarioService usuarioService;
 
-    @PostMapping(UsersControllerUrls.CREATE_PROVEEDOR)
-    public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) {
-        Proveedor createdUsuario =  usuarioService.createProveedor(usuario); 
-        return new ResponseEntity<Proveedor>(createdUsuario, HttpStatus.CREATED);
-    }
+	@PostMapping("/usuarios")
+	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
+		Usuario createdUsuario = usuarioService.create(usuario);
+		return new ResponseEntity<Usuario>(createdUsuario, HttpStatus.CREATED);
+	}
 
-    @PostMapping(UsersControllerUrls.CREATE_CLIENTE)
-    public ResponseEntity<Cliente> crearCliente(@RequestBody @Valid Cliente usuario) {
-        Cliente createdUsuario =  usuarioService.createCliente(usuario); 
-        return new ResponseEntity<Cliente>(createdUsuario, HttpStatus.CREATED);
-    }
-    
-    @SuppressWarnings("rawtypes")
+	@PostMapping(UsersControllerUrls.CREATE_PROVEEDOR)
+	public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) {
+		Proveedor createdUsuario = usuarioService.createProveedor(usuario);
+		return new ResponseEntity<Proveedor>(createdUsuario, HttpStatus.CREATED);
+	}
+
+	@PostMapping(UsersControllerUrls.CREATE_CLIENTE)
+	public ResponseEntity<Cliente> crearCliente(@RequestBody @Valid Cliente usuario) {
+		Cliente createdUsuario = usuarioService.createCliente(usuario);
+		return new ResponseEntity<Cliente>(createdUsuario, HttpStatus.CREATED);
+	}
+
+	@SuppressWarnings("rawtypes")
 	@GetMapping(UsersControllerUrls.USUARIO_EXISTS)
-    public ResponseEntity usuarioExists(@PathVariable Long usuarioId) throws UserNotFoundException {
-    	boolean usuarioExists = usuarioService.usuarioExists(usuarioId);
-    	int responseStatus = usuarioExists ? 200 : 404;
-    	return new ResponseEntity(HttpStatusCode.valueOf(responseStatus));
-    }
-    
-    @GetMapping(UsersControllerUrls.GET_USUARIOS)
-    public ResponseEntity<Usuario> findByParam(@RequestParam(required = false) String email,
-    		@RequestParam(required = false) Long id) throws UserNotFoundException {
-        Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id);
-        return new ResponseEntity<Usuario>(usuario, HttpStatus.OK); 
-    }
-    
-    @PatchMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-    public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) {
-    	usuarioService.addVendible(proveedorId, vendibleId); 
-    	return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
-    }
+	public ResponseEntity usuarioExists(@PathVariable Long usuarioId) throws UserNotFoundException {
+		boolean usuarioExists = usuarioService.usuarioExists(usuarioId);
+		int responseStatus = usuarioExists ? 200 : 404;
+		return new ResponseEntity(HttpStatusCode.valueOf(responseStatus));
+	}
+
+	@GetMapping(UsersControllerUrls.GET_USUARIOS)
+	public ResponseEntity<Usuario> findByParam(@RequestParam(required = false) String email,
+			@RequestParam(required = false) Long id) throws UserNotFoundException {
+		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id);
+		return new ResponseEntity<Usuario>(usuario, HttpStatus.OK);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@GetMapping(UsersControllerUrls.GET_PROVEEDOR)
+	public ResponseEntity proveedorExists(@RequestParam(required = true) Long id,
+			@RequestParam(required = false) ProveedorType proveedorType) {
+		boolean proveedorExists = usuarioService.proveedorExistsByIdAndType(id, proveedorType);
+		int responseStatus = proveedorExists ? 200 : 404;
+		return new ResponseEntity(HttpStatusCode.valueOf(responseStatus));
+	}
+
+	@PatchMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+	public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) {
+		usuarioService.addVendible(proveedorId, vendibleId);
+		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
+	}
 }
