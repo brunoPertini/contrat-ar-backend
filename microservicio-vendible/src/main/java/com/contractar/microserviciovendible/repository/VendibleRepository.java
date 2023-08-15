@@ -17,4 +17,7 @@ public interface VendibleRepository extends CrudRepository<Vendible, Long>{
     @Modifying
     @Transactional
     public void deleteAllProvedoresAndVendiblesRelations(@Param("vendibleId") Long vendibleId);
+	
+	@Query(value = "SELECT vendible_type FROM vendible WHERE vendible_id=:vendibleId", nativeQuery = true)
+	public String getVendibleTypeById(@Param("vendibleId") Long vendibleId);
 }

@@ -4,7 +4,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Role;
@@ -14,9 +18,13 @@ import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciocommons.constants.RolesNames;
+import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
+import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
 import com.contractar.microserviciocommons.proveedores.ProveedorHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciocommons.vendibles.VendibleType;
 
 @Service
 public class UsuarioService {
@@ -28,6 +36,12 @@ public class UsuarioService {
 
 	@Autowired
 	private ClienteRepository clienteRepository;
+
+	@Autowired
+	private RestTemplate httpClient;
+
+	@Value("${microservicio-vendible.url}")
+	private String microservicioVendibleUrl;
 
 	private String setFinalRole(ProveedorType proveedorType) {
 		Optional<ProveedorType> proveedorTypeOptional = Optional.ofNullable(proveedorType);
@@ -52,7 +66,7 @@ public class UsuarioService {
 		proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
 		return proveedorRepository.save(proveedor);
 	}
-	
+
 	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
 		return proveedorRepository.existsByIdAndProveedorType(id, proveedorType);
 	}
@@ -61,7 +75,7 @@ public class UsuarioService {
 		cliente.setRole(new Role(this.setFinalRole(null)));
 		return clienteRepository.save(cliente);
 	}
-	
+
 	public boolean usuarioExists(Long id) throws UserNotFoundException {
 		boolean usuarioExists = usuarioRepository.existsById(id);
 
@@ -80,16 +94,45 @@ public class UsuarioService {
 		}
 		throw new UserNotFoundException();
 	}
-	
-	public Usuario findById(Long id)  throws UserNotFoundException{
+
+	public Usuario findById(Long id) throws UserNotFoundException {
 		Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
 		if (usuarioOpt.isPresent()) {
 			return usuarioOpt.get();
 		}
 		throw new UserNotFoundException();
 	}
-	
-	public void addVendible(Long proveedorId, Long vendibleId) {
-		proveedorRepository.addVendible(proveedorId, vendibleId);
+
+	public void addVendible(Long proveedorId, Long vendibleId)
+			throws VendibleBindingException, VendibleAlreadyBindedException {
+		String getVendibleTypeUrl = microservicioVendibleUrl
+				+ VendiblesControllersUrls.GET_VENDIBLE_TYPE.replace("{vendibleId}", vendibleId.toString());
+		Optional<String> vendibleTypeOpt = Optional
+				.ofNullable(httpClient.getForObject(getVendibleTypeUrl, String.class));
+		Optional<Proveedor> proveedorOpt = proveedorRepository.findById(proveedorId);
+
+		boolean vendibleExists = vendibleTypeOpt.isPresent() && !vendibleTypeOpt.get().equals("");
+
+		if (vendibleExists && proveedorOpt.isPresent()) {
+			String proveedorType = proveedorOpt.get().getProveedorType().toString();
+			String vendibleType = vendibleTypeOpt.get();
+
+			boolean typesMatch = vendibleType.equalsIgnoreCase(VendibleType.PRODUCTO.toString())
+					&& proveedorType.equalsIgnoreCase(ProveedorType.PRODUCTOS.toString())
+					|| vendibleType.equals(VendibleType.SERVICIO.toString().toLowerCase())
+							&& proveedorType.equals(ProveedorType.SERVICIOS.toString().toLowerCase());
+
+			if (typesMatch) {
+				try {
+					proveedorRepository.addVendible(proveedorId, vendibleId);
+				} catch (DataIntegrityViolationException e) {
+					throw new VendibleAlreadyBindedException();
+				}
+			} else {
+				throw new VendibleBindingException();
+			}
+		} else {
+			throw new VendibleBindingException();
+		}
 	}
 }

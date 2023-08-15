@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
+import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -68,7 +70,8 @@ public class UsuarioController {
 	}
 
 	@PatchMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) {
+	public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId)
+			throws VendibleBindingException, VendibleAlreadyBindedException {
 		usuarioService.addVendible(proveedorId, vendibleId);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}

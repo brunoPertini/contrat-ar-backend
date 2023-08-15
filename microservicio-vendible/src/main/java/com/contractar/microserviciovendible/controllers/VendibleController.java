@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
@@ -20,5 +21,10 @@ public class VendibleController {
 	public ResponseEntity<Void> deleteById(@PathVariable("vendibleId") Long id) throws VendibleNotFoundException {
 		vendibleService.deleteById(id);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(204));
+	}
+	
+	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_TYPE)
+	public ResponseEntity<String> getVendibleType(@PathVariable("vendibleId") Long id) {
+		return new ResponseEntity<String>(vendibleService.getVendibleTypeById(id), HttpStatusCode.valueOf(200));
 	}
 }

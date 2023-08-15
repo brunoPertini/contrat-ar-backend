@@ -94,6 +94,12 @@ public class VendibleService {
 			String entityFullClassName, String vendibleType) throws Exception {
 		Optional<Vendible> toUpdateVendibleOpt = vendibleRepository.findById(vendibleId);
 		if (toUpdateVendibleOpt.isPresent()) {
+			String vendibleRealType = this.getVendibleTypeById(vendibleId);
+			
+			if (!vendibleRealType.equalsIgnoreCase(vendibleType)) {
+				throw new VendibleNotFoundException();
+			}
+			
 			Vendible toUpdateVendible = toUpdateVendibleOpt.get();
 
 			try {
@@ -122,5 +128,14 @@ public class VendibleService {
 		} catch (EmptyResultDataAccessException ex) {
 			throw new VendibleNotFoundException();
 		}
+	}
+	
+	public Optional<Vendible> findById(Long VendibleId) {
+		return this.vendibleRepository.findById(VendibleId);
+	}
+	
+	public String getVendibleTypeById(Long vendibleId) {
+		Optional<Vendible> vendibleOpt = findById(vendibleId);
+		return vendibleOpt.isPresent() ? vendibleRepository.getVendibleTypeById(vendibleId) : "";
 	}
 }

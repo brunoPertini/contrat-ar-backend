@@ -5,8 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @SpringBootApplication
-@EntityScan(basePackages={"com.contractar.microserviciovendible.models", 
-	"com.contractar.microserviciousuario.models"})
+@EntityScan(basePackages = { "com.contractar.microserviciovendible.models",
+		"com.contractar.microserviciousuario.models" })
 public class MicroservicioUsuarioApplication {
 
 	public static void main(String[] args) {
