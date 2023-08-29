@@ -2,16 +2,18 @@ package com.contractar.microserviciooauth.controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,10 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.services.UserDetailsServiceImpl;
-import com.contractar.microserviciousuario.models.Usuario;
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -41,9 +42,12 @@ public class SecurityController {
 	@GetMapping("/oauth/login")
 	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password)
 			throws UserNotFoundException {
-		Usuario userDetails = (Usuario) userDetailsService.loadUserByUsername(email);
+		UsuarioOauthDTO userDetails = (UsuarioOauthDTO) userDetailsService.loadUserByUsername(email);
+		
+		SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userDetails.getRole().getNombre());
+		List<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>(Collections.singletonList(authority));
 
-		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails);
+		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails, authorities);
 		
 		ZoneId zone = ZoneId.of(ZoneId.SHORT_IDS.get("AGT"));
 		ZonedDateTime expirationDateTime = ZonedDateTime.now(zone).plusHours(1);

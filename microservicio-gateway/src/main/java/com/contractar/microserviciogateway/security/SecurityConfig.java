@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
@@ -20,6 +19,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
@@ -41,7 +42,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 			 ""
 			);
 	
-	private final String[] vendiblesUrls = {"/product/**", "/service/**", "/vendible/**", "/usuarios/proveedor/**/vendible/**"};
+	private final String[] vendiblesUrls = {"/service/**", "/vendible/**", "/usuarios/proveedor/**/vendible/**"};
+	
+	private final String[] productosUrls = {"/product/**"};
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -68,6 +71,17 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		expressionHandler.setApplicationContext(applicationContext);
 		return expressionHandler;
 	}
+	
+	@Bean
+	public JwtAuthenticationConverter jwtAuthenticationConverter() {
+		final JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+	    grantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
+	    grantedAuthoritiesConverter.setAuthorityPrefix("");
+
+	    final JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+	    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+	    return jwtAuthenticationConverter;
+	}
 
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
@@ -86,10 +100,14 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, "/usuarios/**")
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(vendiblesUrls).access("@securityUtils.hasValidClientId(request) and isAuthenticated()")
+				.antMatchers(productosUrls).hasAuthority("PROVEEDOR_PRODUCTOS")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
-		http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+		http.oauth2ResourceServer(oauth2 -> {
+	        oauth2.jwt()
+	          .jwtAuthenticationConverter(jwtAuthenticationConverter());
+	    });
 
 		http.httpBasic().disable();
 
