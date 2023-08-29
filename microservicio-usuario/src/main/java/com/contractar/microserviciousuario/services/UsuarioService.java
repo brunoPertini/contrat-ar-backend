@@ -119,8 +119,8 @@ public class UsuarioService {
 
 			boolean typesMatch = vendibleType.equalsIgnoreCase(VendibleType.PRODUCTO.toString())
 					&& proveedorType.equalsIgnoreCase(ProveedorType.PRODUCTOS.toString())
-					|| vendibleType.equals(VendibleType.SERVICIO.toString().toLowerCase())
-							&& proveedorType.equals(ProveedorType.SERVICIOS.toString().toLowerCase());
+					|| vendibleType.equalsIgnoreCase(VendibleType.SERVICIO.toString())
+							&& proveedorType.equalsIgnoreCase(ProveedorType.SERVICIOS.toString());
 
 			if (typesMatch) {
 				try {
