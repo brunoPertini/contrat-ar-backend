@@ -1,8 +1,7 @@
 package com.contractar.microserviciocommons.proveedores;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.LinkedHashMap;
 
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Producto;
@@ -11,23 +10,22 @@ import com.contractar.microserviciovendible.models.Vendible;
 
 public class ProveedorHelper {
 
-    public static List<? extends Vendible> parseVendibles(Proveedor proveedor, ProveedorType proveedorType) {
+    public static Set<Vendible> parseVendibles(Proveedor proveedor, ProveedorType proveedorType) {
         boolean isProductoProveedor = proveedorType.equals(ProveedorType.PRODUCTOS);
 
-        return ((List<LinkedHashMap>) proveedor.getVendibles())
+        return proveedor.getVendibles()
                 .stream()
                 .map(v -> {
-                    String nombre = (String) v.get("nombre");
-                    String descripcion = (String) v.get("descripcion");
-                    int precio = (int) v.get("precio");
+                    String nombre = v.getNombre();
+                    String descripcion = v.getDescripcion();
+                    int precio = v.getPrecio();
 
                     if (isProductoProveedor) {
-                        int stock = (int) v.get("stock");
+                        int stock = ((Producto) v).getStock();
                         return new Producto(precio, descripcion, nombre, stock);
                     } else {
                         return new Servicio(precio, descripcion, nombre);
                     }
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toSet());
     }
 }

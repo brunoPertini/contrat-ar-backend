@@ -16,7 +16,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public ResponseEntity<Object> handleUserNotFoundException(Exception ex) {
 		UserNotFoundException castedException = (UserNotFoundException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),
-				HttpStatusCode.valueOf(castedException.STATUS_CODE));
+				HttpStatusCode.valueOf(castedException.getStatusCode()));
 	}
 
 	@ExceptionHandler(value = { HttpClientErrorException.class })

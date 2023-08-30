@@ -5,11 +5,14 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,7 +37,15 @@ public class JwtHelper {
 		claims.forEach((key, value) -> {
 			if (value instanceof String) {
 				jwtBuilder.withClaim(key, (String)value);
+			} else if (key.equals("authorities")) {
+				List<SimpleGrantedAuthority> authorities = (List<SimpleGrantedAuthority>) value;
+				String [] authoritiesArray = new String[authorities.size()];
+				for(int i =0; i< authorities.size(); ++i) {
+					authoritiesArray[i] = authorities.get(i).toString();
+				}
+				jwtBuilder.withArrayClaim(key, authoritiesArray);
 			} else {
+				
 				jwtBuilder.withClaim(key, value.toString());
 			}
 		});

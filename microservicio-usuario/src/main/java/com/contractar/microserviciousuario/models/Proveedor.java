@@ -1,8 +1,10 @@
 package com.contractar.microserviciousuario.models;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -45,22 +47,22 @@ public class Proveedor extends Usuario {
 	@JoinTable(name = "proveedores_vendibles",
 	joinColumns=@JoinColumn(name="proveedor_id"),
 	inverseJoinColumns = @JoinColumn(name="vendible_id"))
-	private List<?> vendibles;
+	private Set<Vendible> vendibles;
 	
 	public Proveedor() {
 		super();
 	}
 
-	public List<?> getVendibles() {
+	public Set<Vendible> getVendibles() {
 		return vendibles;
 	}
 
-	public void setVendibles(List<?> vendibles) {
+	public void setVendibles(Set<Vendible> vendibles) {
 		this.vendibles = vendibles;
 	}
 
 	public Proveedor(Long id, String name, String surname, String email, boolean isActive,Point location,
-			String dni, String password, PlanType plan, List<?> vendibles, LocalDate birthDate,
+			String dni, String password, PlanType plan, Set<Vendible> vendibles, LocalDate birthDate,
 			List<GrantedAuthority> authorities, Role role) {
 		super(id, name, surname, email, isActive, location, birthDate, password, authorities, role);
 		this.dni = dni;
@@ -68,7 +70,7 @@ public class Proveedor extends Usuario {
 		if (vendibles != null) {
 			this.vendibles = vendibles;
 		} else {
-			this.vendibles = new ArrayList<Vendible>();
+			this.vendibles = new LinkedHashSet<Vendible>();
 		}
 	}
 

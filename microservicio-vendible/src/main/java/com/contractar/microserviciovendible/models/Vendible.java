@@ -1,11 +1,18 @@
 package com.contractar.microserviciovendible.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.contractar.microserviciousuario.models.Proveedor;
+
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +20,8 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
@@ -35,6 +44,33 @@ public class Vendible implements Serializable{
 
 	@NotBlank
 	private String descripcion;
+		
+	@Column
+	@ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+	@CollectionTable(name = "vendible_images", joinColumns = @JoinColumn(name = "vendible_id"))
+	private List<String> imagesUrl;
+	
+	
+	@ManyToMany(mappedBy = "vendibles",
+			targetEntity = Proveedor.class,
+			fetch = FetchType.LAZY)
+	private List<Proveedor> proveedores;
+
+	public List<Proveedor> getProveedores() {
+		return proveedores;
+	}
+
+	public void setProveedores(List<Proveedor> proveedores) {
+		this.proveedores = proveedores;
+	}
+
+	public List<String> getImagesUrl() {
+		return imagesUrl;
+	}
+
+	public void setImagesUrl(List<String> imagesUrl) {
+		this.imagesUrl = imagesUrl;
+	}
 
 	public int getPrecio() {
 		return precio;
@@ -68,11 +104,20 @@ public class Vendible implements Serializable{
 		this.id = id;
 	} 
 
-	public Vendible() {}
-
+	public Vendible() {
+		this.proveedores = new ArrayList<Proveedor>();
+	}
+	
 	public Vendible(int precio, String descripcion, String nombre) {
 		this.precio = precio;
 		this.descripcion = descripcion;
 		this.nombre = nombre;
+	}
+
+	public Vendible(int precio, String descripcion, String nombre, List<Proveedor> proveedores) {
+		this.precio = precio;
+		this.descripcion = descripcion;
+		this.nombre = nombre;
+		this.proveedores = proveedores;
 	}
 }
