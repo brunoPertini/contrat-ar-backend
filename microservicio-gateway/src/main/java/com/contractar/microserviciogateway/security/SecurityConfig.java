@@ -23,8 +23,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.web.cors.CorsConfiguration;
 
-import com.contractar.microserviciocommons.constants.RolesNames;
-
 @Configuration
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
 

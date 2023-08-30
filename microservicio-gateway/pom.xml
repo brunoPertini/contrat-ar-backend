@@ -70,11 +70,6 @@
             <groupId>com.sun.xml.messaging.saaj</groupId>
             <artifactId>saaj-impl</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.contractar</groupId>
-            <artifactId>microservicio-commons</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
