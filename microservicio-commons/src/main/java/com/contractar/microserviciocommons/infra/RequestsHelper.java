@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public class RequestsHelper {
 	
 	/**
-	 * Reads row content from request body (should be PUT, PATCH or POST) and parses it to a VendibleDTO 
+	 * Reads raw content from request body (should be PUT, PATCH or POST) and parses it to a VendibleDTO 
 	 * @param request
 	 * @param dtoClass
 	 * @return

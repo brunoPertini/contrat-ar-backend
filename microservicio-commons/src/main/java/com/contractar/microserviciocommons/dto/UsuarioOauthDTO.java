@@ -15,21 +15,21 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public class UsuarioOauthDTO extends User {
 	private static final long serialVersionUID = -5145570701186883068L;
 	private String name;
-	
+
 	private String surname;
-	
+
 	private String email;
-	
+
 	private boolean isActive;
-	
+
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	private Point location;
-	
+
 	private Role role;
-	
+
 	public UsuarioOauthDTO() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
-    }
+	}
 
 	public UsuarioOauthDTO(String name, String surname, String email, boolean isActive, Point location, String password,
 			List<SimpleGrantedAuthority> authorities, Role role) {

@@ -9,20 +9,20 @@ import jakarta.servlet.ServletInputStream;
 
 public class CachedBodyServletInputStream extends ServletInputStream {
 
-    private InputStream cachedBodyInputStream;
+	private InputStream cachedBodyInputStream;
 
-    public CachedBodyServletInputStream(byte[] cachedBody) {
-        this.cachedBodyInputStream = new ByteArrayInputStream(cachedBody);
-    }
+	public CachedBodyServletInputStream(byte[] cachedBody) {
+		this.cachedBodyInputStream = new ByteArrayInputStream(cachedBody);
+	}
 
-    @Override
-    public boolean isFinished() {
-        try {
+	@Override
+	public boolean isFinished() {
+		try {
 			return cachedBodyInputStream.available() == 0;
 		} catch (IOException e) {
 			return true;
 		}
-    }
+	}
 
 	@Override
 	public boolean isReady() {
@@ -31,11 +31,11 @@ public class CachedBodyServletInputStream extends ServletInputStream {
 
 	@Override
 	public int read() throws IOException {
-	    return cachedBodyInputStream.read();
+		return cachedBodyInputStream.read();
 	}
 
 	@Override
-    public void setReadListener(ReadListener readListener) {
-        throw new UnsupportedOperationException();
-    }
+	public void setReadListener(ReadListener readListener) {
+		throw new UnsupportedOperationException();
+	}
 }

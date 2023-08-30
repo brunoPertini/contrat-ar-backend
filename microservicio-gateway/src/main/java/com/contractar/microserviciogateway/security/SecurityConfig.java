@@ -23,6 +23,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.web.cors.CorsConfiguration;
 
+import com.contractar.microserviciocommons.constants.RolesNames;
+
 @Configuration
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
@@ -102,7 +104,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, "/usuarios/**")
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(vendiblesUrls).access("@securityUtils.hasValidClientId(request) and isAuthenticated()")
-				.antMatchers(productosUrls).hasAuthority("PROVEEDOR_PRODUCTOS")
+				.antMatchers(productosUrls).hasAuthority("PROVEEDOR_PRODUCTOS") //TODO: ver porque rompe si no pongo el harcodeo
 				.antMatchers(servicesUrls).hasAuthority("PROVEEDOR_SERVICIOS")
 				.antMatchers(vendiblesUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS" )
 				.anyRequest()
