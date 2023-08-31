@@ -1,10 +1,12 @@
 package com.contractar.microserviciocommons.dto;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.models.Proveedor;
 
 public abstract class VendibleDTO {
@@ -12,7 +14,7 @@ public abstract class VendibleDTO {
 	private int precio;
 	private String descripcion;
 	private Set<String> imagesUrl;
-	private List<Long> proveedoresIds;
+	private List<ProveedorDTO> proveedores;
 
 	public VendibleDTO(String nombre, int precio, String descripcion, Set<String> imagesUrl,
 			List<Proveedor> proveedores) {
@@ -20,9 +22,19 @@ public abstract class VendibleDTO {
 		this.precio = precio;
 		this.descripcion = descripcion;
 		this.imagesUrl = imagesUrl;
-		this.proveedoresIds = proveedores != null ? 
-				proveedores.stream().map(proveedor -> proveedor.getId()).collect(Collectors.toList())
-				: new ArrayList<Long>();
+		this.proveedores = proveedores != null ? 
+				proveedores.stream().map(proveedor -> {
+					String dtoFullClassName = ProveedorDTO.class.getPackage().getName() + ".ProveedorDTO";
+					String entityFullClassName = Proveedor.class.getPackage().getName() + ".Proveedor";
+					ProveedorDTO proveedorDTO = new ProveedorDTO();
+					try {
+						ReflectionHelper.applySetterFromExistingFields(proveedor, proveedorDTO, entityFullClassName,dtoFullClassName);
+					} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+						return proveedorDTO;
+					}
+					return proveedorDTO;
+				}).collect(Collectors.toList())
+				: new ArrayList<>();
 	}
 
 	public String getNombre() {
@@ -57,11 +69,11 @@ public abstract class VendibleDTO {
 		this.imagesUrl = imagesUrl;
 	}
 
-	public List<Long> getProveedoresIds() {
-		return proveedoresIds;
+	public List<ProveedorDTO> getProveedores() {
+		return proveedores;
 	}
 
-	public void setProveedoresIds(List<Long> proveedoresIds) {
-		this.proveedoresIds = proveedoresIds;
+	public void setProveedores(List<ProveedorDTO> proveedores) {
+		this.proveedores = proveedores;
 	}
 }
