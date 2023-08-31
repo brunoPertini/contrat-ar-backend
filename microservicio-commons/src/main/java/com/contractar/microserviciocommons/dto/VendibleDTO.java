@@ -2,6 +2,7 @@ package com.contractar.microserviciocommons.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -10,10 +11,10 @@ public abstract class VendibleDTO {
 	private String nombre;
 	private int precio;
 	private String descripcion;
-	private List<String> imagesUrl;
+	private Set<String> imagesUrl;
 	private List<Long> proveedoresIds;
 
-	public VendibleDTO(String nombre, int precio, String descripcion, List<String> imagesUrl,
+	public VendibleDTO(String nombre, int precio, String descripcion, Set<String> imagesUrl,
 			List<Proveedor> proveedores) {
 		this.nombre = nombre;
 		this.precio = precio;
@@ -48,11 +49,11 @@ public abstract class VendibleDTO {
 		this.descripcion = descripcion;
 	}
 
-	public List<String> getImagesUrl() {
+	public Set<String> getImagesUrl() {
 		return imagesUrl;
 	}
 
-	public void setImagesUrl(List<String> imagesUrl) {
+	public void setImagesUrl(Set<String> imagesUrl) {
 		this.imagesUrl = imagesUrl;
 	}
 

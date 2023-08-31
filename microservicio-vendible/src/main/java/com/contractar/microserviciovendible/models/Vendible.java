@@ -3,6 +3,7 @@ package com.contractar.microserviciovendible.models;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.contractar.microserviciousuario.models.Proveedor;
 
@@ -45,11 +46,11 @@ public class Vendible implements Serializable{
 	@NotBlank
 	private String descripcion;
 		
-	@Column
 	@ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
-	@CollectionTable(name = "vendible_images", joinColumns = @JoinColumn(name = "vendible_id"))
-	private List<String> imagesUrl;
-	
+	@CollectionTable(name = "vendible_images", joinColumns = @JoinColumn(name = "vendible_id", nullable = false))
+	@Column(name = "image_url", nullable = false)
+	private Set<String> imagesUrl;
+	 
 	
 	@ManyToMany(mappedBy = "vendibles",
 			targetEntity = Proveedor.class,
@@ -64,11 +65,11 @@ public class Vendible implements Serializable{
 		this.proveedores = proveedores;
 	}
 
-	public List<String> getImagesUrl() {
+	public Set<String> getImagesUrl() {
 		return imagesUrl;
 	}
 
-	public void setImagesUrl(List<String> imagesUrl) {
+	public void setImagesUrl(Set<String> imagesUrl) {
 		this.imagesUrl = imagesUrl;
 	}
 
