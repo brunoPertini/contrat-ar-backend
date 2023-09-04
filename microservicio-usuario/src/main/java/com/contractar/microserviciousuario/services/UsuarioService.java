@@ -62,7 +62,7 @@ public class UsuarioService {
 		ProveedorType proveedorType = proveedor.getProveedorType();
 		Set<Vendible> parsedVendibles = (Set<Vendible>) ProveedorHelper.parseVendibles(proveedor, proveedorType);
 
-		proveedor.setVendibles(parsedVendibles);
+		// proveedor.setVendibles(parsedVendibles);
 		proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
 		return proveedorRepository.save(proveedor);
 	}

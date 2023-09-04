@@ -6,6 +6,7 @@ import org.locationtech.jts.geom.Point;
 
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Role;
 
 import jakarta.validation.constraints.NotBlank;
@@ -29,6 +30,18 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.dni = dni;
 		this.plan = plan;
 		this.proveedorType = proveedorType;
+	}
+	
+	public ProveedorDTO(Proveedor proveedor) {
+		super(proveedor.getname(),
+				proveedor.getsurname(),
+				proveedor.getEmail(),
+				proveedor.isActive(), 
+				proveedor.getBirthDate(),
+				proveedor.getRole(),
+				proveedor.getlocation());
+		this.plan = proveedor.getPlan();
+		this.proveedorType = proveedor.getProveedorType();
 	}
 
 	public String getDni() {

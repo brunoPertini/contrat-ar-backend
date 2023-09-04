@@ -1,6 +1,8 @@
 package com.contractar.microserviciovendible.controllers;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.ServicioDTO;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Servicio;
 import com.contractar.microserviciovendible.services.ServicioService;
 import com.contractar.microserviciovendible.services.VendibleService;
@@ -37,11 +42,19 @@ public class ServicioController {
 	public ResponseEntity<ServicioDTO> save(@RequestBody @Valid Servicio servicio,
 			@RequestParam(required = true) Long proveedorId) throws Exception {
 		Servicio addedServicio = (Servicio) vendibleService.save(servicio, vendibleType, proveedorId);
-		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre(),
-				addedServicio.getPrecio(),
-				addedServicio.getDescripcion(),
-				addedServicio.getImagesUrl(),
-				addedServicio.getProveedores());
+		Set<ProveedorVendibleDTO> proveedoresVendibles = addedServicio.getProveedoresVendibles()
+				.stream()
+				.map(proveedorVendible -> {
+					Proveedor proveedor = proveedorVendible.getProveedor();
+					ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(addedServicio.getNombre(),
+							proveedorVendible.getDescripcion(), 
+							proveedorVendible.getPrecio(),
+							proveedorVendible.getImagenUrl(),
+							proveedorVendible.getStock(),
+							new ProveedorDTO(proveedor));
+							return proveedorVendibleDTO;
+				}).collect(Collectors.toSet());
+		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre(), proveedoresVendibles);
 		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.CREATED);
 	}
 	
@@ -51,11 +64,19 @@ public class ServicioController {
 		String dtoFullClassName = ServicioDTO.class.getPackage().getName() + ".ServicioDTO";
 		String entityFullClassName = Servicio.class.getPackage().getName() + ".Servicio"; 
 		Servicio addedServicio = (Servicio) vendibleService.update(servicio, vendibleId, dtoFullClassName, entityFullClassName, vendibleType);
-		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre(),
-				addedServicio.getPrecio(),
-				addedServicio.getDescripcion(),
-				addedServicio.getImagesUrl(),
-				addedServicio.getProveedores());
+		Set<ProveedorVendibleDTO> proveedoresVendibles = addedServicio.getProveedoresVendibles()
+				.stream()
+				.map(proveedorVendible -> {
+					Proveedor proveedor = proveedorVendible.getProveedor();
+					ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(addedServicio.getNombre(),
+							proveedorVendible.getDescripcion(), 
+							proveedorVendible.getPrecio(),
+							proveedorVendible.getImagenUrl(),
+							proveedorVendible.getStock(),
+							new ProveedorDTO(proveedor));
+							return proveedorVendibleDTO;
+				}).collect(Collectors.toSet());
+		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre(),proveedoresVendibles);
 		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.OK);
 	}
 	

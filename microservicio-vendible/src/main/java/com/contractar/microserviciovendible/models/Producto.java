@@ -15,7 +15,7 @@ public class Producto extends Vendible {
 	}
 
 	public Producto(int precio, String descripcion, String nombre, int stock) {
-		super(precio, descripcion, nombre);
+		super(nombre);
 		this.stock = stock;
 	}
 

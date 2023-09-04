@@ -1,16 +1,12 @@
 package com.contractar.microserviciocommons.dto;
 
-import java.util.List;
 import java.util.Set;
-
-import com.contractar.microserviciousuario.models.Proveedor;
 
 public class ProductoDTO extends VendibleDTO {
 	private int stock;
 
-	public ProductoDTO(String nombre, int precio, String descripcion, Set<String> imagesUrl,
-			List<Proveedor> proveedores, int stock) {
-		super(nombre, precio, descripcion, imagesUrl, proveedores);
+	public ProductoDTO(String nombre, Set<ProveedorVendibleDTO> proveedores, int stock) {
+		super(nombre, proveedores);
 		this.stock = stock;
 	}
 

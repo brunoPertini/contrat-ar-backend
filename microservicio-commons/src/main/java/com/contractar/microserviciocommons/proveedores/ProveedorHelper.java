@@ -15,16 +15,17 @@ public class ProveedorHelper {
 
         return proveedor.getVendibles()
                 .stream()
-                .map(v -> {
+                .map(proveedorVendible -> {
+                	Vendible v = proveedorVendible.getVendible();
                     String nombre = v.getNombre();
-                    String descripcion = v.getDescripcion();
-                    int precio = v.getPrecio();
+                    String descripcion = proveedorVendible.getDescripcion();
+                    int precio = proveedorVendible.getPrecio();
 
                     if (isProductoProveedor) {
                         int stock = ((Producto) v).getStock();
                         return new Producto(precio, descripcion, nombre, stock);
                     } else {
-                        return new Servicio(precio, descripcion, nombre);
+                        return new Servicio(nombre);
                     }
                 }).collect(Collectors.toSet());
     }

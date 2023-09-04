@@ -12,7 +12,7 @@ public class Servicio extends Vendible {
 
 	}
 
-	public Servicio(int precio, String descripcion, String nombre) {
-		super(precio, descripcion, nombre);
+	public Servicio(String nombre) {
+		super(nombre);
 	}
 }

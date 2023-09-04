@@ -1,12 +1,16 @@
 package com.contractar.microserviciovendible.services;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microserviciocommons.dto.ProductoDTO;
+import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
+import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
 
 @Service
@@ -17,11 +21,23 @@ public class ProductoService {
 
 	public List<ProductoDTO> findByNombreAsc(String nombre) {
 		try {
-			return this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream()
-					.map(producto -> new ProductoDTO(producto.getNombre(), producto.getPrecio(),
-							producto.getDescripcion(), producto.getImagesUrl(), producto.getProveedores(),
-							producto.getStock()))
-					.collect(Collectors.toList());
+			return this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre)
+					.stream()
+					.map(producto -> {
+						Set<ProveedorVendibleDTO> proveedoresVendibles = producto.getProveedoresVendibles()
+								.stream()
+								.map(proveedorVendible -> {
+									Proveedor proveedor = proveedorVendible.getProveedor();
+									ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(producto.getNombre(),
+											proveedorVendible.getDescripcion(), 
+											proveedorVendible.getPrecio(),
+											proveedorVendible.getImagenUrl(),
+											proveedorVendible.getStock(),
+											new ProveedorDTO(proveedor));
+											return proveedorVendibleDTO;
+								}).collect(Collectors.toSet());
+						return new ProductoDTO(producto.getNombre(), proveedoresVendibles, producto.getStock());
+					}).collect(Collectors.toList());
 		} catch (Exception e) {
 			throw e;
 		}
