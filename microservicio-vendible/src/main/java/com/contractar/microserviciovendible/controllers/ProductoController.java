@@ -54,7 +54,7 @@ public class ProductoController {
 							new ProveedorDTO(proveedor));
 							return proveedorVendibleDTO;
 				}).collect(Collectors.toSet());
-		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre(),proveedoresVendibles, addedProducto.getStock());
+		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre(),proveedoresVendibles);
 		return new ResponseEntity<ProductoDTO>(productoDTO, HttpStatus.CREATED);
 	}
 	
@@ -76,7 +76,7 @@ public class ProductoController {
 							new ProveedorDTO(proveedor));
 							return proveedorVendibleDTO;
 				}).collect(Collectors.toSet());
-		ProductoDTO updatedProductoDTO = new ProductoDTO(producto.getNombre(), proveedoresVendibles, producto.getStock());
+		ProductoDTO updatedProductoDTO = new ProductoDTO(producto.getNombre(), proveedoresVendibles);
 		return new ResponseEntity<ProductoDTO>(updatedProductoDTO, HttpStatus.OK);
 	}
 	

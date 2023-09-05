@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario.services;
 
+import java.util.AbstractMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -8,9 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Role;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.repository.ClienteRepository;
@@ -18,7 +22,9 @@ import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciocommons.constants.RolesNames;
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
@@ -39,6 +45,9 @@ public class UsuarioService {
 
 	@Autowired
 	private RestTemplate httpClient;
+	
+	@Autowired
+	private ProveedorVendibleService proveedorVendibleService;
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
@@ -103,18 +112,27 @@ public class UsuarioService {
 		throw new UserNotFoundException();
 	}
 
-	public void addVendible(Long proveedorId, Long vendibleId)
+	public void addVendible(Long vendibleId, Long proveedorId, ProveedorVendible proveedorVendible)
 			throws VendibleBindingException, VendibleAlreadyBindedException {
-		String getVendibleTypeUrl = microservicioVendibleUrl
-				+ VendiblesControllersUrls.GET_VENDIBLE_TYPE.replace("{vendibleId}", vendibleId.toString());
-		Optional<String> vendibleTypeOpt = Optional
-				.ofNullable(httpClient.getForObject(getVendibleTypeUrl, String.class));
+		
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microservicioVendibleUrl)
+                .path(VendiblesControllersUrls.GET_VENDIBLE)
+                .queryParam("vendibleId", vendibleId);
+		
+		String getVendibleUrl = builder.toUriString();
+    
+
+		Optional<Vendible> vendibleOpt = Optional.ofNullable(httpClient.getForObject(getVendibleUrl, Vendible.class));
 		Optional<Proveedor> proveedorOpt = proveedorRepository.findById(proveedorId);
 
-		boolean vendibleExists = vendibleTypeOpt.isPresent() && !vendibleTypeOpt.get().equals("");
-
-		if (vendibleExists && proveedorOpt.isPresent()) {
+		if (vendibleOpt.isPresent() && proveedorOpt.isPresent()) {
 			String proveedorType = proveedorOpt.get().getProveedorType().toString();
+			
+			String getVendibleTypeUrl = microservicioVendibleUrl
+					+ VendiblesControllersUrls.GET_VENDIBLE_TYPE.replace("{vendibleId}", vendibleId.toString());
+			Optional<String> vendibleTypeOpt = Optional
+					.ofNullable(httpClient.getForObject(getVendibleTypeUrl, String.class));
+			
 			String vendibleType = vendibleTypeOpt.get();
 
 			boolean typesMatch = vendibleType.equalsIgnoreCase(VendibleType.PRODUCTO.toString())
@@ -124,7 +142,9 @@ public class UsuarioService {
 
 			if (typesMatch) {
 				try {
-					proveedorRepository.addVendible(proveedorId, vendibleId);
+					proveedorVendibleService.bindVendibleToProveedor(vendibleOpt.get(),
+							proveedorOpt.get(),
+							proveedorVendible);
 				} catch (DataIntegrityViolationException e) {
 					throw new VendibleAlreadyBindedException();
 				}

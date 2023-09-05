@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
@@ -21,6 +22,7 @@ import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.services.UsuarioService;
 import jakarta.validation.Valid;
@@ -76,10 +78,11 @@ public class UsuarioController {
 		return new ResponseEntity(HttpStatusCode.valueOf(responseStatus));
 	}
 
-	@PatchMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId)
+	@PostMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+	public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
+			@RequestBody @Valid ProveedorVendible proveedorVendible)
 			throws VendibleBindingException, VendibleAlreadyBindedException {
-		usuarioService.addVendible(proveedorId, vendibleId);
+		usuarioService.addVendible(vendibleId, proveedorId, proveedorVendible);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
 }

@@ -22,8 +22,7 @@ public class ProveedorHelper {
                     int precio = proveedorVendible.getPrecio();
 
                     if (isProductoProveedor) {
-                        int stock = ((Producto) v).getStock();
-                        return new Producto(precio, descripcion, nombre, stock);
+                        return new Producto(nombre);
                     } else {
                         return new Servicio(nombre);
                     }

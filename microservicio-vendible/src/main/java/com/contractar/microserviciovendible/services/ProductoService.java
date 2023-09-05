@@ -36,7 +36,7 @@ public class ProductoService {
 											new ProveedorDTO(proveedor));
 											return proveedorVendibleDTO;
 								}).collect(Collectors.toSet());
-						return new ProductoDTO(producto.getNombre(), proveedoresVendibles, producto.getStock());
+						return new ProductoDTO(producto.getNombre());
 					}).collect(Collectors.toList());
 		} catch (Exception e) {
 			throw e;

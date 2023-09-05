@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -21,6 +20,7 @@ import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
@@ -47,39 +47,45 @@ public class VendibleService {
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId) throws Exception {
 		try {
-			ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString())
-					? ProveedorType.SERVICIOS
-					: ProveedorType.PRODUCTOS;
-			
-			  UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microServicioUsuarioUrl)
-		                .path(UsersControllerUrls.GET_PROVEEDOR)
-		                .queryParam("id", proveedorId)
-		                .queryParam("proveedorType", proveedorType);
+			Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
+					? this.servicioRepository.save(vendible)
+					: productoRepository.save(vendible);
 
-		    String usuarioExistsUrl = builder.toUriString();
+			if (proveedorId != null) {
+				ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString())
+						? ProveedorType.SERVICIOS
+						: ProveedorType.PRODUCTOS;
 
+				UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microServicioUsuarioUrl)
+						.path(UsersControllerUrls.GET_PROVEEDOR).queryParam("id", proveedorId)
+						.queryParam("proveedorType", proveedorType);
 
-			ResponseEntity<Void> getUsuarioResponse = restTemplate.getForEntity(usuarioExistsUrl, Void.class);
+				String usuarioExistsUrl = builder.toUriString();
 
-			if (getUsuarioResponse.getStatusCode().is2xxSuccessful()) {
-				Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
-						? this.servicioRepository.save(vendible)
-						: productoRepository.save(vendible);
-				if (addedVendible != null) {
-					String addVendibleUrl = microServicioUsuarioUrl
-							+ UsersControllerUrls.PROVEEDOR_VENDIBLE.replace("{proveedorId}", proveedorId.toString())
-									.replace("{vendibleId}", addedVendible.getId().toString());
+				ResponseEntity<Void> getUsuarioResponse = restTemplate.getForEntity(usuarioExistsUrl, Void.class);
 
-					ResponseEntity<Void> addVendibleResponse = restTemplate.exchange(addVendibleUrl, HttpMethod.PATCH,
-							null, Void.class);
+				if (getUsuarioResponse.getStatusCode().is2xxSuccessful()) {
 
-					return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
+					if (addedVendible != null) {
+						String addVendibleUrl = microServicioUsuarioUrl + UsersControllerUrls.PROVEEDOR_VENDIBLE
+								.replace("{proveedorId}", proveedorId.toString())
+								.replace("{vendibleId}", addedVendible.getId().toString());
 
+						ProveedorVendible pv = (ProveedorVendible)vendible.getProveedoresVendibles().toArray()[0];
+						
+						ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
+
+						return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
+
+					}
+					throw new Exception("Unknown error");
+				} else {
+					throw new UserNotFoundException();
 				}
-				throw new Exception("Unknown error");
-			} else {
-				throw new UserNotFoundException();
 			}
+
+			return addedVendible;
+
 		} catch (Exception e) {
 			if (e instanceof DataIntegrityViolationException) {
 				throw new VendibleAlreadyExistsException();
@@ -95,11 +101,11 @@ public class VendibleService {
 		Optional<Vendible> toUpdateVendibleOpt = vendibleRepository.findById(vendibleId);
 		if (toUpdateVendibleOpt.isPresent()) {
 			String vendibleRealType = this.getVendibleTypeById(vendibleId);
-			
+
 			if (!vendibleRealType.equalsIgnoreCase(vendibleType)) {
 				throw new VendibleNotFoundException();
 			}
-			
+
 			Vendible toUpdateVendible = toUpdateVendibleOpt.get();
 
 			try {
@@ -129,11 +135,11 @@ public class VendibleService {
 			throw new VendibleNotFoundException();
 		}
 	}
-	
+
 	public Optional<Vendible> findById(Long VendibleId) {
 		return this.vendibleRepository.findById(VendibleId);
 	}
-	
+
 	public String getVendibleTypeById(Long vendibleId) {
 		Optional<Vendible> vendibleOpt = findById(vendibleId);
 		return vendibleOpt.isPresent() ? vendibleRepository.getVendibleTypeById(vendibleId) : "";

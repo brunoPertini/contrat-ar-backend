@@ -5,6 +5,7 @@ import com.contractar.microserviciovendible.models.Vendible;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.validation.constraints.NotBlank;
@@ -32,11 +33,21 @@ public class ProveedorVendible {
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("vendibleId")
+	@JoinColumn(name = "vendible_id")
 	private Vendible vendible;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("proveedorId")
+	@JoinColumn(name = "proveedor_id")
 	private Proveedor proveedor;
+
+	public ProveedorVendibleId getId() {
+		return id;
+	}
+
+	public void setId(ProveedorVendibleId id) {
+		this.id = id;
+	}
 
 	public int getPrecio() {
 		return precio;
