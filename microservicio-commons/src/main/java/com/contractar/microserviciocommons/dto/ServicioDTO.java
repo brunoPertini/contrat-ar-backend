@@ -7,7 +7,7 @@ public class ServicioDTO extends VendibleDTO {
 	public ServicioDTO(String nombre) {
 		super(nombre, new LinkedHashSet<ProveedorVendibleDTO>());
 	}
-	
+
 	public ServicioDTO(String nombre, Set<ProveedorVendibleDTO> proveedores) {
 		super(nombre, proveedores);
 	}

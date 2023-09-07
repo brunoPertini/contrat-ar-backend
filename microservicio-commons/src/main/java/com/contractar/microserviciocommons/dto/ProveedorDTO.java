@@ -8,6 +8,7 @@ import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,9 +17,11 @@ public class ProveedorDTO extends UsuarioDTO {
 	@NotBlank
 	private String dni;
 
+	@JsonIgnore
 	@NotNull
 	private PlanType plan;
 
+	@JsonIgnore
 	@NotNull
 	private ProveedorType proveedorType;
 	

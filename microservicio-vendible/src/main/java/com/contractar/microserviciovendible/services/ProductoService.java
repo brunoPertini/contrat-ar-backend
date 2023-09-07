@@ -21,22 +21,21 @@ public class ProductoService {
 
 	public List<ProductoDTO> findByNombreAsc(String nombre) {
 		try {
-			return this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre)
-					.stream()
+			return this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream()
 					.map(producto -> {
-						Set<ProveedorVendibleDTO> proveedoresVendibles = producto.getProveedoresVendibles()
-								.stream()
+						ProductoDTO productoDTO = new ProductoDTO(producto.getNombre());
+						Set<ProveedorVendibleDTO> proveedoresVendibles = producto.getProveedoresVendibles().stream()
 								.map(proveedorVendible -> {
 									Proveedor proveedor = proveedorVendible.getProveedor();
-									ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(producto.getNombre(),
-											proveedorVendible.getDescripcion(), 
-											proveedorVendible.getPrecio(),
-											proveedorVendible.getImagenUrl(),
-											proveedorVendible.getStock(),
-											new ProveedorDTO(proveedor));
-											return proveedorVendibleDTO;
+									ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(
+											producto.getNombre(), proveedorVendible.getDescripcion(),
+											proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
+											proveedorVendible.getStock(), new ProveedorDTO(proveedor));
+									return proveedorVendibleDTO;
 								}).collect(Collectors.toSet());
-						return new ProductoDTO(producto.getNombre());
+
+						productoDTO.setProveedores(proveedoresVendibles);
+						return productoDTO;
 					}).collect(Collectors.toList());
 		} catch (Exception e) {
 			throw e;

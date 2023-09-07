@@ -4,7 +4,11 @@ import java.util.Set;
 
 public abstract class VendibleDTO {
 	private String nombre;
-	private Set<ProveedorVendibleDTO> proveedores;
+	protected Set<ProveedorVendibleDTO> proveedores;
+	
+	public VendibleDTO(String nombre) {
+		this.nombre = nombre;
+	}
 
 	public VendibleDTO(String nombre, Set<ProveedorVendibleDTO> proveedores) {
 		this.nombre = nombre;

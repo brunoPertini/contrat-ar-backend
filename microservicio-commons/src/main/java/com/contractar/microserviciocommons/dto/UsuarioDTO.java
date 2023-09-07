@@ -5,8 +5,10 @@ import java.time.LocalDate;
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
+import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.contractar.microserviciousuario.models.Role;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -35,6 +37,7 @@ public class UsuarioDTO {
 	private Role role;
 	
 	@JsonDeserialize(using = UbicacionDeserializer.class)
+	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
 	
 	public UsuarioDTO() {}

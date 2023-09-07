@@ -40,21 +40,19 @@ public class ProductoController {
 	
 	@PostMapping(VendiblesControllersUrls.SAVE_PRODUCT)
 	public ResponseEntity<ProductoDTO> save(@RequestBody @Valid Producto producto,
-			@RequestParam(required = true) Long proveedorId) throws Exception {
+			@RequestParam(required = false) Long proveedorId) throws Exception {
 		Producto addedProducto = (Producto) vendibleService.save(producto, vendibleType, proveedorId);
-		Set<ProveedorVendibleDTO> proveedoresVendibles = producto.getProveedoresVendibles()
-				.stream()
-				.map(proveedorVendible -> {
-					Proveedor proveedor = proveedorVendible.getProveedor();
-					ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(producto.getNombre(),
-							proveedorVendible.getDescripcion(), 
-							proveedorVendible.getPrecio(),
-							proveedorVendible.getImagenUrl(),
-							proveedorVendible.getStock(),
-							new ProveedorDTO(proveedor));
-							return proveedorVendibleDTO;
-				}).collect(Collectors.toSet());
-		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre(),proveedoresVendibles);
+		/*
+		 * Set<ProveedorVendibleDTO> proveedoresVendibles =
+		 * producto.getProveedoresVendibles() .stream() .map(proveedorVendible -> {
+		 * Proveedor proveedor = proveedorVendible.getProveedor(); ProveedorVendibleDTO
+		 * proveedorVendibleDTO = new ProveedorVendibleDTO(producto.getNombre(),
+		 * proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+		 * proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), new
+		 * ProveedorDTO(proveedor)); return proveedorVendibleDTO;
+		 * }).collect(Collectors.toSet());
+		 */
+		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre());
 		return new ResponseEntity<ProductoDTO>(productoDTO, HttpStatus.CREATED);
 	}
 	

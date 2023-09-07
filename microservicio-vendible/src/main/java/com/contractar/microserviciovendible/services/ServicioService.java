@@ -22,20 +22,20 @@ public class ServicioService {
 		try {
 			return this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream()
 					.map(servicio -> {
-						// TODO: extraer a helper para modularizar
-						Set<ProveedorVendibleDTO> proveedoresVendibles = servicio.getProveedoresVendibles()
-								.stream()
+						ServicioDTO servicioDTO = new ServicioDTO(servicio.getNombre());
+
+						Set<ProveedorVendibleDTO> proveedoresVendibles = servicio.getProveedoresVendibles().stream()
 								.map(proveedorVendible -> {
 									Proveedor proveedor = proveedorVendible.getProveedor();
-									ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(servicio.getNombre(),
-											proveedorVendible.getDescripcion(), 
-											proveedorVendible.getPrecio(),
-											proveedorVendible.getImagenUrl(),
-											proveedorVendible.getStock(),
-											new ProveedorDTO(proveedor));
-											return proveedorVendibleDTO;
+									ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(
+											servicio.getNombre(), proveedorVendible.getDescripcion(),
+											proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
+											proveedorVendible.getStock(), new ProveedorDTO(proveedor));
+									return proveedorVendibleDTO;
 								}).collect(Collectors.toSet());
-						return new ServicioDTO(servicio.getNombre(), proveedoresVendibles);
+						servicioDTO.setProveedores(proveedoresVendibles);
+
+						return servicioDTO;
 					}).collect(Collectors.toList());
 		} catch (Exception e) {
 			throw e;

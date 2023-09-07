@@ -50,8 +50,10 @@ public class VendibleService {
 			Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
 					? this.servicioRepository.save(vendible)
 					: productoRepository.save(vendible);
+			
+			boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
 
-			if (proveedorId != null) {
+			if (proveedorId != null && hasVendibleToLink) {
 				ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString())
 						? ProveedorType.SERVICIOS
 						: ProveedorType.PRODUCTOS;
@@ -70,7 +72,7 @@ public class VendibleService {
 						String addVendibleUrl = microServicioUsuarioUrl + UsersControllerUrls.PROVEEDOR_VENDIBLE
 								.replace("{proveedorId}", proveedorId.toString())
 								.replace("{vendibleId}", addedVendible.getId().toString());
-
+						
 						ProveedorVendible pv = (ProveedorVendible)vendible.getProveedoresVendibles().toArray()[0];
 						
 						ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
