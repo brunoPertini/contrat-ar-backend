@@ -6,11 +6,15 @@ import java.util.List;
 import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.contractar.microserviciocommons.usuarios.serialization.ClienteDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 
 @Entity
 @PrimaryKeyJoinColumn(name = "clienteId")
+@JsonDeserialize(using = ClienteDeserializer.class)
 public class Cliente extends Usuario {
 	private static final long serialVersionUID = -18128319090812613L;
 	

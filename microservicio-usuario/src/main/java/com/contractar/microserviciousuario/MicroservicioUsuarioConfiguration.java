@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
-import com.contractar.microserviciocommons.usuarios.UserDetailsDeserializer;
+import com.contractar.microserviciocommons.usuarios.serialization.UserDetailsDeserializer;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

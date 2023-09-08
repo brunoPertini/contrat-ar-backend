@@ -1,10 +1,6 @@
 package com.contractar.microserviciousuario.services;
 
-import java.util.AbstractMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,16 +15,15 @@ import com.contractar.microserviciousuario.models.Role;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.repository.ClienteRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
+import com.contractar.microserviciousuario.repository.RoleRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciocommons.constants.RolesNames;
-import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
-import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
-import com.contractar.microserviciocommons.proveedores.ProveedorHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 
@@ -42,6 +37,9 @@ public class UsuarioService {
 
 	@Autowired
 	private ClienteRepository clienteRepository;
+	
+	@Autowired
+	private RoleRepository roleRepository;
 
 	@Autowired
 	private RestTemplate httpClient;
@@ -51,29 +49,20 @@ public class UsuarioService {
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
-
-	private String setFinalRole(ProveedorType proveedorType) {
-		Optional<ProveedorType> proveedorTypeOptional = Optional.ofNullable(proveedorType);
-
-		if (!proveedorTypeOptional.isPresent()) {
-			return RolesNames.CLIENTE;
-		}
-
-		return proveedorType.equals(ProveedorType.PRODUCTOS) ? RolesNames.PROVEEDOR_PRODUCTOS
-				: RolesNames.PROVEEDOR_SERVICIOS;
-	}
-
+	
 	public Usuario create(Usuario usuario) {
 		return usuarioRepository.save(usuario);
 	}
 
-	public Proveedor createProveedor(Proveedor proveedor) {
-		ProveedorType proveedorType = proveedor.getProveedorType();
-		Set<Vendible> parsedVendibles = (Set<Vendible>) ProveedorHelper.parseVendibles(proveedor, proveedorType);
-
-		// proveedor.setVendibles(parsedVendibles);
-		proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
-		return proveedorRepository.save(proveedor);
+	public Proveedor createProveedor(Proveedor proveedor) throws Exception {
+		String roleName = "PROVEEDOR_" + proveedor.getProveedorType().toString();
+		Optional<Role> roleOpt = roleRepository.findByNombre(roleName);
+		if (roleOpt.isPresent()) {
+			proveedor.setRole(roleOpt.get());
+			return proveedorRepository.save(proveedor);
+		}
+		throw new Exception("Rol de usuario invalido");
+		
 	}
 
 	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
@@ -81,7 +70,8 @@ public class UsuarioService {
 	}
 
 	public Cliente createCliente(Cliente cliente) {
-		cliente.setRole(new Role(this.setFinalRole(null)));
+		Role clienteRole = roleRepository.findByNombre(RolesValues.CLIENTE.toString()).get();
+		cliente.setRole(clienteRole);
 		return clienteRepository.save(cliente);
 	}
 

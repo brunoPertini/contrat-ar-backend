@@ -7,14 +7,12 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
-import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
@@ -39,7 +37,7 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_PROVEEDOR)
-	public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) {
+	public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) throws Exception {
 		Proveedor createdUsuario = usuarioService.createProveedor(usuario);
 		return new ResponseEntity<Proveedor>(createdUsuario, HttpStatus.CREATED);
 	}
