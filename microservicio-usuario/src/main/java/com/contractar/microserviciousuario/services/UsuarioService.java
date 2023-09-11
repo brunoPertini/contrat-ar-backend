@@ -18,7 +18,6 @@ import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.RoleRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
-import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -132,7 +131,9 @@ public class UsuarioService {
 
 			if (typesMatch) {
 				try {
-					proveedorVendibleService.bindVendibleToProveedor(vendibleOpt.get(),
+					Vendible toBindVendible = vendibleOpt.get();
+					toBindVendible.setId(vendibleId);
+					proveedorVendibleService.bindVendibleToProveedor(toBindVendible,
 							proveedorOpt.get(),
 							proveedorVendible);
 				} catch (DataIntegrityViolationException e) {

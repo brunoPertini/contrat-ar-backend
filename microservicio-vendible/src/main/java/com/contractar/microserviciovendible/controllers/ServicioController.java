@@ -42,16 +42,6 @@ public class ServicioController {
 	public ResponseEntity<ServicioDTO> save(@RequestBody @Valid Servicio servicio,
 			@RequestParam(required = false) Long proveedorId) throws Exception {
 		Servicio addedServicio = (Servicio) vendibleService.save(servicio, vendibleType, proveedorId);
-		/*
-		 * Set<ProveedorVendibleDTO> proveedoresVendibles =
-		 * addedServicio.getProveedoresVendibles() .stream() .map(proveedorVendible -> {
-		 * Proveedor proveedor = proveedorVendible.getProveedor(); ProveedorVendibleDTO
-		 * proveedorVendibleDTO = new ProveedorVendibleDTO(addedServicio.getNombre(),
-		 * proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
-		 * proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), new
-		 * ProveedorDTO(proveedor)); return proveedorVendibleDTO;
-		 * }).collect(Collectors.toSet());
-		 */
 		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre());
 		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.CREATED);
 	}

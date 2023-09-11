@@ -2,7 +2,10 @@ package com.contractar.microserviciocommons.dto;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class VendibleDTO {
+	@JsonIgnore
 	private Long id;
 	private String nombre;
 	protected Set<ProveedorVendibleDTO> proveedores;
