@@ -7,7 +7,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
-import com.contractar.microserviciocommons.dto.VendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;

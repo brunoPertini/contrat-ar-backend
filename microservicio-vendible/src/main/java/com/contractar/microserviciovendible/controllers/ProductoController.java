@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ProductoDTO;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Producto;

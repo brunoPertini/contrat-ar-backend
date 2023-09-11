@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.contractar.microserviciocommons.dto.ProductoDTO;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
 

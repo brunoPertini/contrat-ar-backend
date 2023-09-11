@@ -1,6 +1,8 @@
 package com.contractar.microserviciocommons.dto;
 
 import java.time.LocalDate;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.locationtech.jts.geom.Point;
 
@@ -14,6 +16,24 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class ProveedorDTO extends UsuarioDTO {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+		ProveedorDTO dto = (ProveedorDTO) obj;
+		if (this.getId() != null) {
+			return this.getId() == dto.getId();	
+		}
+		return this.getEmail() != dto.getEmail();
+	}
+	
+	@Override
+    public int hashCode() {
+        return Objects.hash(this.getId(), this.getEmail());
+    }
+
 	@NotBlank
 	private String dni;
 
@@ -45,6 +65,9 @@ public class ProveedorDTO extends UsuarioDTO {
 				proveedor.getlocation());
 		this.plan = proveedor.getPlan();
 		this.proveedorType = proveedor.getProveedorType();
+		Optional.ofNullable(proveedor.getId()).ifPresent((id) -> {
+			this.setId(id);
+		});
 	}
 
 	public String getDni() {

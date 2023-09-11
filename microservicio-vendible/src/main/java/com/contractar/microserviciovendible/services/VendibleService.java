@@ -16,8 +16,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
-import com.contractar.microserviciocommons.dto.VendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;

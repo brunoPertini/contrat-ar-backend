@@ -1,6 +1,5 @@
 package com.contractar.microserviciovendible.services;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -8,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
-import com.contractar.microserviciocommons.dto.ServicioDTO;
+import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
 
@@ -18,27 +17,21 @@ public class ServicioService {
 	@Autowired
 	private ServicioRepository servicioRepository;
 
-	public List<ServicioDTO> findByNombreAsc(String nombre) {
-		try {
-			return this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream()
-					.map(servicio -> {
-						ServicioDTO servicioDTO = new ServicioDTO(servicio.getNombre());
+	public VendiblesResponseDTO findByNombreAsc(String nombre) {
+		VendiblesResponseDTO response = new VendiblesResponseDTO();
+		this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream().forEach(servicio -> {
+			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = servicio.getProveedoresVendibles().stream()
+					.map(proveedorVendible -> {
+						Proveedor proveedor = proveedorVendible.getProveedor();
+						SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(
+								servicio.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
+						response.getProveedores().add(new ProveedorDTO(proveedor));
+						return proveedorVendibleDTO;
+					}).collect(Collectors.toSet());
+			response.getVendibles().addAll(proveedoresVendibles);
+		});
 
-						Set<ProveedorVendibleDTO> proveedoresVendibles = servicio.getProveedoresVendibles().stream()
-								.map(proveedorVendible -> {
-									Proveedor proveedor = proveedorVendible.getProveedor();
-									ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(
-											servicio.getNombre(), proveedorVendible.getDescripcion(),
-											proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
-											proveedorVendible.getStock(), new ProveedorDTO(proveedor));
-									return proveedorVendibleDTO;
-								}).collect(Collectors.toSet());
-						servicioDTO.setProveedores(proveedoresVendibles);
-
-						return servicioDTO;
-					}).collect(Collectors.toList());
-		} catch (Exception e) {
-			throw e;
-		}
+		return response;
 	}
 }

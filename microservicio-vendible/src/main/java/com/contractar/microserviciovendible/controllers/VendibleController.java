@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
-import com.contractar.microserviciocommons.dto.VendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciovendible.services.VendibleService;
 

@@ -1,7 +1,6 @@
-package com.contractar.microserviciocommons.dto;
+package com.contractar.microserviciocommons.dto.vendibles;
 
-public class ProveedorVendibleDTO {
-	
+public abstract class AbstractProveedorVendibleDTO {
 	private String vendibleNombre;
 
 	private String descripcion;
@@ -12,7 +11,17 @@ public class ProveedorVendibleDTO {
 	
 	private int stock;
 	
-	private ProveedorDTO proveedor;
+	public AbstractProveedorVendibleDTO(String vendibleNombre, String descripcion, int precio, String imagenUrl,
+			int stock) {
+		this.vendibleNombre = vendibleNombre;
+		this.descripcion = descripcion;
+		this.precio = precio;
+		this.imagenUrl = imagenUrl;
+		this.stock = stock;
+	}
+
+	public AbstractProveedorVendibleDTO() {
+	}
 
 	public String getVendibleNombre() {
 		return vendibleNombre;
@@ -22,19 +31,6 @@ public class ProveedorVendibleDTO {
 		this.vendibleNombre = vendibleNombre;
 	}
 	
-	public ProveedorVendibleDTO() {}
-
-	public ProveedorVendibleDTO(String vendibleNombre, String descripcion, int precio, String imagenUrl, int stock,
-			ProveedorDTO proveedor) {
-		super();
-		this.vendibleNombre = vendibleNombre;
-		this.descripcion = descripcion;
-		this.precio = precio;
-		this.imagenUrl = imagenUrl;
-		this.stock = stock;
-		this.proveedor = proveedor;
-	}
-
 	public String getDescripcion() {
 		return descripcion;
 	}
@@ -66,12 +62,5 @@ public class ProveedorVendibleDTO {
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
-
-	public ProveedorDTO getProveedor() {
-		return proveedor;
-	}
-
-	public void setProveedor(ProveedorDTO proveedor) {
-		this.proveedor = proveedor;
-	}
+	
 }

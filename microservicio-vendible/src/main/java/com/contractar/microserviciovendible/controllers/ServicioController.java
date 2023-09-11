@@ -17,8 +17,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.ServicioDTO;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Servicio;
@@ -69,7 +70,7 @@ public class ServicioController {
 	}
 	
 	@GetMapping(VendiblesControllersUrls.GET_SERVICE)
-	public ResponseEntity<List<ServicioDTO>> findByNombre(@RequestParam @NotBlank String nombre) {
-		return new ResponseEntity<List<ServicioDTO>>(this.servicioService.findByNombreAsc(nombre), HttpStatus.OK);
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre) {
+		return new ResponseEntity<VendiblesResponseDTO>(this.servicioService.findByNombreAsc(nombre), HttpStatus.OK);
 	}
 }
