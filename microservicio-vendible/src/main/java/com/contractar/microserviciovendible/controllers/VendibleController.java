@@ -1,7 +1,5 @@
 package com.contractar.microserviciovendible.controllers;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
-import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.services.VendibleService;
 
 @Controller
@@ -21,12 +19,15 @@ public class VendibleController {
 	@Autowired
 	private VendibleService vendibleService;
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE)
-	public ResponseEntity<Vendible> getVendibleByParam(@RequestParam(required = false) Long vendibleId) {
-		Optional<Vendible> vendibleOpt = vendibleService.findById(vendibleId);
-		return vendibleOpt.isPresent() ? new ResponseEntity<Vendible>(vendibleOpt.get(), HttpStatusCode.valueOf(200)) 
-				: new ResponseEntity(HttpStatusCode.valueOf(404));
+	public ResponseEntity<VendibleDTO> getVendibleByParam(@RequestParam(required = false) Long vendibleId) {
+		try {
+			VendibleDTO vendible = vendibleService.findById(vendibleId);
+			return new ResponseEntity<VendibleDTO>(vendible, HttpStatusCode.valueOf(200));
+		} catch (VendibleNotFoundException e) {
+			return new ResponseEntity(HttpStatusCode.valueOf(404));
+		}
 	}
 	
 	@DeleteMapping(VendiblesControllersUrls.DELETE_VENDIBLE)

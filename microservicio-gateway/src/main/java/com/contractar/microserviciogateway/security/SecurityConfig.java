@@ -103,9 +103,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(vendiblesUrls).access("@securityUtils.hasValidClientId(request) and isAuthenticated()")
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS", "CLIENTE")
+				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS", "CLIENTE")
 				.antMatchers(productosUrls).hasAuthority("PROVEEDOR_PRODUCTOS") //TODO: ver porque rompe si no pongo el harcodeo
 				.antMatchers(HttpMethod.POST, servicesUrls).hasAuthority("PROVEEDOR_SERVICIOS")
-				.antMatchers(vendiblesUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
+				.antMatchers(HttpMethod.POST,vendiblesUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 

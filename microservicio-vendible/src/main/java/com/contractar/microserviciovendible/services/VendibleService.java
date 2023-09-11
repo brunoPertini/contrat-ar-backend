@@ -2,6 +2,8 @@ package com.contractar.microserviciovendible.services;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
@@ -20,6 +24,7 @@ import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
@@ -138,12 +143,35 @@ public class VendibleService {
 		}
 	}
 
-	public Optional<Vendible> findById(Long VendibleId) {
-		return this.vendibleRepository.findById(VendibleId);
+	public VendibleDTO findById(Long vendibleId) throws VendibleNotFoundException {
+		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
+		if (vendibleOpt.isPresent()) {
+			Vendible vendible = vendibleOpt.get();
+			VendibleDTO vendibleDTO = new VendibleDTO(vendible.getId(), vendible.getNombre());
+			
+			Set<ProveedorVendibleDTO> proveedoresVendibles = vendible.getProveedoresVendibles().stream()
+					.map(proveedorVendible -> {
+						Proveedor proveedor = proveedorVendible.getProveedor();
+						ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(
+								vendible.getNombre(), proveedorVendible.getDescripcion(),
+								proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
+								proveedorVendible.getStock(), new ProveedorDTO(proveedor));
+						return proveedorVendibleDTO;
+					}).collect(Collectors.toSet());
+			
+			vendibleDTO.setProveedores(proveedoresVendibles);
+			return vendibleDTO;
+		}
+		throw new VendibleNotFoundException();
 	}
 
 	public String getVendibleTypeById(Long vendibleId) {
-		Optional<Vendible> vendibleOpt = findById(vendibleId);
-		return vendibleOpt.isPresent() ? vendibleRepository.getVendibleTypeById(vendibleId) : "";
+		try {
+			findById(vendibleId);
+			return vendibleRepository.getVendibleTypeById(vendibleId);
+		} catch (VendibleNotFoundException e) {
+			return "";
+		}
+		
 	}
 }

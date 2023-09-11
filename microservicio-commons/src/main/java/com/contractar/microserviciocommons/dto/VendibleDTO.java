@@ -2,11 +2,17 @@ package com.contractar.microserviciocommons.dto;
 
 import java.util.Set;
 
-public abstract class VendibleDTO {
+public class VendibleDTO {
+	private Long id;
 	private String nombre;
 	protected Set<ProveedorVendibleDTO> proveedores;
 	
 	public VendibleDTO(String nombre) {
+		this.nombre = nombre;
+	}
+	
+	public VendibleDTO(Long id, String nombre) {
+		this.id = id;
 		this.nombre = nombre;
 	}
 
@@ -29,5 +35,13 @@ public abstract class VendibleDTO {
 
 	public void setProveedores(Set<ProveedorVendibleDTO> proveedores) {
 		this.proveedores = proveedores;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 }
