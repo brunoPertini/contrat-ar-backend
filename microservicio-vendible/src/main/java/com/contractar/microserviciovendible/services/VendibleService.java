@@ -43,7 +43,7 @@ public class VendibleService {
 
 	@Autowired
 	private ProductoRepository productoRepository;
-
+	
 	@Value("${microservicio-usuario.url}")
 	private String microServicioUsuarioUrl;
 

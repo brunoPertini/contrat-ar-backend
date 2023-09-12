@@ -1,6 +1,5 @@
 package com.contractar.microserviciovendible.controllers;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,6 +18,7 @@ import com.contractar.microserviciocommons.constants.controllers.VendiblesContro
 import com.contractar.microserviciocommons.dto.ProductoDTO;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Producto;
@@ -69,7 +69,7 @@ public class ProductoController {
 	}
 	
 	@GetMapping(VendiblesControllersUrls.GET_PRODUCT)
-	public ResponseEntity<List<ProductoDTO>> findByNombre(@RequestParam @NotBlank String nombre) {
-		return new ResponseEntity<List<ProductoDTO>>(this.productoService.findByNombreAsc(nombre), HttpStatus.OK);
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre) {
+		return new ResponseEntity<VendiblesResponseDTO>(this.productoService.findByNombreAsc(nombre), HttpStatus.OK);
 	}
 }

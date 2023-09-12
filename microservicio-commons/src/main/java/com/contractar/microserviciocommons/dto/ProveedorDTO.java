@@ -29,7 +29,7 @@ public class ProveedorDTO extends UsuarioDTO {
 		return this.getEmail() != dto.getEmail();
 	}
 	
-	@Override
+	@Override	
     public int hashCode() {
         return Objects.hash(this.getId(), this.getEmail());
     }
