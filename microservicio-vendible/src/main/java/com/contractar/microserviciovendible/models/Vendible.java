@@ -35,7 +35,7 @@ public class Vendible implements Serializable{
 	@NotBlank
 	private String nombre;
 	
-	@OneToMany(mappedBy = "vendible", fetch = FetchType.LAZY, orphanRemoval = false)
+	@OneToMany(mappedBy = "vendible", fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<ProveedorVendible> proveedoresVendibles;
 	 
 	public String getNombre() {

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,11 +18,13 @@ import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
+import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Usuario;
+import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
 import jakarta.validation.Valid;
 
@@ -29,6 +32,9 @@ import jakarta.validation.Valid;
 public class UsuarioController {
 	@Autowired
 	private UsuarioService usuarioService;
+	
+	@Autowired
+	private ProveedorVendibleService proveedorVendibleService;
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -82,5 +88,11 @@ public class UsuarioController {
 			throws VendibleBindingException, VendibleAlreadyBindedException {
 		usuarioService.addVendible(vendibleId, proveedorId, proveedorVendible);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
+	}
+	
+	@DeleteMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+	public ResponseEntity<Void> unBindVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) throws VendibleNotFoundException {
+		proveedorVendibleService.unBindVendible(vendibleId, proveedorId);
+		return new ResponseEntity<Void>(HttpStatusCode.valueOf(204));
 	}
 }

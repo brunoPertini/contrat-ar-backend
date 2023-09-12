@@ -1,8 +1,10 @@
 package com.contractar.microserviciousuario.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
@@ -20,5 +22,14 @@ public class ProveedorVendibleService {
 		proveedorVendible.setVendible(vendible);
 		proveedorVendible.setId(new ProveedorVendibleId(proveedor.getId(), vendible.getId()));
 		return repository.save(proveedorVendible);
+	}
+	 
+	public void unBindVendible(Long vendibleId, Long proveedorId) throws VendibleNotFoundException {
+		try {
+			ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
+			repository.deleteById(id);
+		} catch (EmptyResultDataAccessException ex) {
+			throw new VendibleNotFoundException();
+		}
 	}
 }

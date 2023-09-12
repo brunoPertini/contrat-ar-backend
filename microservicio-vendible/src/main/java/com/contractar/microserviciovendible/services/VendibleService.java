@@ -136,7 +136,6 @@ public class VendibleService {
 
 	public void deleteById(Long id) throws VendibleNotFoundException {
 		try {
-			vendibleRepository.deleteAllProvedoresAndVendiblesRelations(id);
 			vendibleRepository.deleteById(id);
 		} catch (EmptyResultDataAccessException ex) {
 			throw new VendibleNotFoundException();
