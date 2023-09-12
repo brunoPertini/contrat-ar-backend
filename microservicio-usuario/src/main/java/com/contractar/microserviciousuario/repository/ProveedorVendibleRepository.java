@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.repository.CrudRepository;
 
 import com.contractar.microserviciousuario.models.ProveedorVendible;
@@ -10,4 +12,6 @@ public interface ProveedorVendibleRepository extends CrudRepository<ProveedorVen
 	public ProveedorVendible save(ProveedorVendible p);
 	
 	public void deleteById(ProveedorVendibleId id);
+	
+	public Optional<ProveedorVendible> findById(ProveedorVendibleId id);
 }

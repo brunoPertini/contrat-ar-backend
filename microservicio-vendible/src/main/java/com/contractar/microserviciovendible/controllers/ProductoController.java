@@ -1,8 +1,5 @@
 package com.contractar.microserviciovendible.controllers;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ProductoDTO;
-import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
-import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Producto;
 import com.contractar.microserviciovendible.services.ProductoService;
 import com.contractar.microserviciovendible.services.VendibleService;
@@ -47,24 +42,9 @@ public class ProductoController {
 	}
 	
 	@PutMapping(VendiblesControllersUrls.MODIFY_PRODUCT)
-	public ResponseEntity<ProductoDTO> update(@RequestBody ProductoDTO productoDTO,
-			@PathVariable("vendibleId") Long vendibleId) throws Exception {
-		String dtoFullClassName = ProductoDTO.class.getPackage().getName() + ".ProductoDTO"; 
-		String entityFullClassName = Producto.class.getPackage().getName() + ".Producto"; 
-		Producto producto = (Producto) vendibleService.update(productoDTO, vendibleId, dtoFullClassName, entityFullClassName, vendibleType);
-		Set<ProveedorVendibleDTO> proveedoresVendibles = producto.getProveedoresVendibles()
-				.stream()
-				.map(proveedorVendible -> {
-					Proveedor proveedor = proveedorVendible.getProveedor();
-					ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(producto.getNombre(),
-							proveedorVendible.getDescripcion(), 
-							proveedorVendible.getPrecio(),
-							proveedorVendible.getImagenUrl(),
-							proveedorVendible.getStock(),
-							new ProveedorDTO(proveedor));
-							return proveedorVendibleDTO;
-				}).collect(Collectors.toSet());
-		ProductoDTO updatedProductoDTO = new ProductoDTO(producto.getNombre(), proveedoresVendibles);
+	public ResponseEntity<ProductoDTO> update(@RequestBody @Valid VendibleUpdateDTO body, @PathVariable("vendibleId") Long vendibleId) throws Exception {
+		Producto producto = (Producto) vendibleService.update(body.getNombre(), vendibleId, vendibleType);
+		ProductoDTO updatedProductoDTO = new ProductoDTO(producto.getNombre());
 		return new ResponseEntity<ProductoDTO>(updatedProductoDTO, HttpStatus.OK);
 	}
 	

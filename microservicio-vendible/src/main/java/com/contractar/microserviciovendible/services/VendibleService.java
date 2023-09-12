@@ -1,6 +1,5 @@
 package com.contractar.microserviciovendible.services;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,7 +21,6 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
@@ -43,7 +41,7 @@ public class VendibleService {
 
 	@Autowired
 	private ProductoRepository productoRepository;
-	
+
 	@Value("${microservicio-usuario.url}")
 	private String microServicioUsuarioUrl;
 
@@ -55,7 +53,7 @@ public class VendibleService {
 			Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
 					? this.servicioRepository.save(vendible)
 					: productoRepository.save(vendible);
-			
+
 			boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
 
 			if (proveedorId != null && hasVendibleToLink) {
@@ -77,10 +75,11 @@ public class VendibleService {
 						String addVendibleUrl = microServicioUsuarioUrl + UsersControllerUrls.PROVEEDOR_VENDIBLE
 								.replace("{proveedorId}", proveedorId.toString())
 								.replace("{vendibleId}", addedVendible.getId().toString());
-						
-						ProveedorVendible pv = (ProveedorVendible)vendible.getProveedoresVendibles().toArray()[0];
-						
-						ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
+
+						ProveedorVendible pv = (ProveedorVendible) vendible.getProveedoresVendibles().toArray()[0];
+
+						ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv,
+								Void.class);
 
 						return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
 
@@ -103,8 +102,7 @@ public class VendibleService {
 	}
 
 	@Transactional
-	public Vendible update(VendibleDTO vendible, Long vendibleId, String concreteVendibleDTOClass,
-			String entityFullClassName, String vendibleType) throws Exception {
+	public Vendible update(String nombre, Long vendibleId, String vendibleType) throws Exception {
 		Optional<Vendible> toUpdateVendibleOpt = vendibleRepository.findById(vendibleId);
 		if (toUpdateVendibleOpt.isPresent()) {
 			String vendibleRealType = this.getVendibleTypeById(vendibleId);
@@ -115,20 +113,13 @@ public class VendibleService {
 
 			Vendible toUpdateVendible = toUpdateVendibleOpt.get();
 
-			try {
-				ReflectionHelper.applySetterFromExistingFields(vendible, toUpdateVendible, concreteVendibleDTOClass,
-						entityFullClassName);
+			toUpdateVendible.setNombre(nombre);
 
-				Vendible updatedVendible = vendibleType.equals(VendibleType.SERVICIO.toString())
-						? servicioRepository.save(toUpdateVendible)
-						: productoRepository.save(toUpdateVendible);
+			Vendible updatedVendible = vendibleType.equals(VendibleType.SERVICIO.toString())
+					? servicioRepository.save(toUpdateVendible)
+					: productoRepository.save(toUpdateVendible);
 
-				return updatedVendible;
-
-			} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
-					| InvocationTargetException e) {
-				throw new Exception("Reflection exception throwed");
-			}
+			return updatedVendible;
 		}
 
 		throw new VendibleNotFoundException();
@@ -147,17 +138,17 @@ public class VendibleService {
 		if (vendibleOpt.isPresent()) {
 			Vendible vendible = vendibleOpt.get();
 			VendibleDTO vendibleDTO = new VendibleDTO(vendible.getId(), vendible.getNombre());
-			
+
 			Set<ProveedorVendibleDTO> proveedoresVendibles = vendible.getProveedoresVendibles().stream()
 					.map(proveedorVendible -> {
 						Proveedor proveedor = proveedorVendible.getProveedor();
-						ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(
-								vendible.getNombre(), proveedorVendible.getDescripcion(),
-								proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
-								proveedorVendible.getStock(), new ProveedorDTO(proveedor));
+						ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(vendible.getNombre(),
+								proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
+								new ProveedorDTO(proveedor));
 						return proveedorVendibleDTO;
 					}).collect(Collectors.toSet());
-			
+
 			vendibleDTO.setProveedores(proveedoresVendibles);
 			return vendibleDTO;
 		}
@@ -171,6 +162,6 @@ public class VendibleService {
 		} catch (VendibleNotFoundException e) {
 			return "";
 		}
-		
+
 	}
 }

@@ -10,15 +10,18 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
+import com.contractar.microserviciocommons.exceptions.VendibleUpdateException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -94,5 +97,12 @@ public class UsuarioController {
 	public ResponseEntity<Void> unBindVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) throws VendibleNotFoundException {
 		proveedorVendibleService.unBindVendible(vendibleId, proveedorId);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(204));
+	}
+	
+	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId,
+			@PathVariable Long proveedorId, @Valid @RequestBody ProveedorVendibleUpdateDTO body) throws VendibleNotFoundException, VendibleUpdateException {
+		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
+		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
 }
