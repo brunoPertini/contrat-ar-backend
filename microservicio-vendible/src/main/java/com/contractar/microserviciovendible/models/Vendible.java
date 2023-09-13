@@ -1,16 +1,14 @@
 package com.contractar.microserviciovendible.models;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -18,75 +16,27 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
-public class Vendible implements Serializable{
+public class Vendible implements Serializable {
 
 	private static final long serialVersionUID = -6708815378872073493L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="vendible_id")
+	@Column(name = "vendible_id")
 	private Long id;
 
 	@Column(unique = true)
 	@NotBlank
 	private String nombre;
 
-	@NotNull
-	private int precio;
-
-	@NotBlank
-	private String descripcion;
-		
-	@Column
-	@ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
-	@CollectionTable(name = "vendible_images", joinColumns = @JoinColumn(name = "vendible_id"))
-	private List<String> imagesUrl;
-	
-	
-	@ManyToMany(mappedBy = "vendibles",
-			targetEntity = Proveedor.class,
-			fetch = FetchType.LAZY)
-	private List<Proveedor> proveedores;
-
-	public List<Proveedor> getProveedores() {
-		return proveedores;
-	}
-
-	public void setProveedores(List<Proveedor> proveedores) {
-		this.proveedores = proveedores;
-	}
-
-	public List<String> getImagesUrl() {
-		return imagesUrl;
-	}
-
-	public void setImagesUrl(List<String> imagesUrl) {
-		this.imagesUrl = imagesUrl;
-	}
-
-	public int getPrecio() {
-		return precio;
-	}
-
-	public void setPrecio(int precio) {
-		this.precio = precio;
-	}
-
-	public String getDescripcion() {
-		return descripcion;
-	}
-
-	public void setDescripcion(String descripcion) {
-		this.descripcion = descripcion;
-	}
+	@OneToMany(mappedBy = "vendible", fetch = FetchType.LAZY, orphanRemoval = true)
+	private Set<ProveedorVendible> proveedoresVendibles;
 
 	public String getNombre() {
 		return nombre;
@@ -102,22 +52,27 @@ public class Vendible implements Serializable{
 
 	public void setId(Long id) {
 		this.id = id;
-	} 
+	}
 
 	public Vendible() {
-		this.proveedores = new ArrayList<Proveedor>();
-	}
-	
-	public Vendible(int precio, String descripcion, String nombre) {
-		this.precio = precio;
-		this.descripcion = descripcion;
-		this.nombre = nombre;
+		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendible>();
 	}
 
-	public Vendible(int precio, String descripcion, String nombre, List<Proveedor> proveedores) {
-		this.precio = precio;
-		this.descripcion = descripcion;
+	public Vendible(String nombre) {
 		this.nombre = nombre;
-		this.proveedores = proveedores;
+		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendible>();
+	}
+
+	public Vendible(String nombre, Set<ProveedorVendible> proveedoresVendibles) {
+		this.nombre = nombre;
+		this.proveedoresVendibles = proveedoresVendibles;
+	}
+
+	public Set<ProveedorVendible> getProveedoresVendibles() {
+		return proveedoresVendibles;
+	}
+
+	public void setProveedoresVendibles(Set<ProveedorVendible> proveedoresVendibles) {
+		this.proveedoresVendibles = proveedoresVendibles;
 	}
 }

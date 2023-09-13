@@ -1,7 +1,5 @@
 package com.contractar.microserviciovendible.controllers;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +13,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ProductoDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
+import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
+import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciovendible.models.Producto;
 import com.contractar.microserviciovendible.services.ProductoService;
@@ -27,42 +30,30 @@ import jakarta.validation.constraints.NotBlank;
 public class ProductoController {
 	@Autowired
 	private VendibleService vendibleService;
-	
+
 	@Autowired
 	private ProductoService productoService;
-	
+
 	private final String vendibleType = VendibleType.PRODUCTO.toString();
-	
+
 	@PostMapping(VendiblesControllersUrls.SAVE_PRODUCT)
 	public ResponseEntity<ProductoDTO> save(@RequestBody @Valid Producto producto,
-			@RequestParam(required = true) Long proveedorId) throws Exception {
+			@RequestParam(required = false) Long proveedorId) throws VendibleAlreadyExistsException, UserNotFoundException {
 		Producto addedProducto = (Producto) vendibleService.save(producto, vendibleType, proveedorId);
-		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre(),
-				addedProducto.getPrecio(),
-				addedProducto.getDescripcion(),
-				addedProducto.getImagesUrl(),
-				addedProducto.getProveedores(),
-				addedProducto.getStock());
+		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre());
 		return new ResponseEntity<ProductoDTO>(productoDTO, HttpStatus.CREATED);
 	}
-	
+
 	@PutMapping(VendiblesControllersUrls.MODIFY_PRODUCT)
-	public ResponseEntity<ProductoDTO> update(@RequestBody ProductoDTO productoDTO,
-			@PathVariable("vendibleId") Long vendibleId) throws Exception {
-		String dtoFullClassName = ProductoDTO.class.getPackage().getName() + ".ProductoDTO"; 
-		String entityFullClassName = Producto.class.getPackage().getName() + ".Producto"; 
-		Producto producto = (Producto) vendibleService.update(productoDTO, vendibleId, dtoFullClassName, entityFullClassName, vendibleType);
-		ProductoDTO updatedProductoDTO = new ProductoDTO(producto.getNombre(),
-				producto.getPrecio(),
-				producto.getDescripcion(),
-				producto.getImagesUrl(),
-				producto.getProveedores(),
-				producto.getStock());
+	public ResponseEntity<ProductoDTO> update(@RequestBody @Valid VendibleUpdateDTO body,
+			@PathVariable("vendibleId") Long vendibleId) throws VendibleNotFoundException {
+		Producto producto = (Producto) vendibleService.update(body.getNombre(), vendibleId, vendibleType);
+		ProductoDTO updatedProductoDTO = new ProductoDTO(producto.getNombre());
 		return new ResponseEntity<ProductoDTO>(updatedProductoDTO, HttpStatus.OK);
 	}
-	
+
 	@GetMapping(VendiblesControllersUrls.GET_PRODUCT)
-	public ResponseEntity<List<ProductoDTO>> findByNombre(@RequestParam @NotBlank String nombre) {
-		return new ResponseEntity<List<ProductoDTO>>(this.productoService.findByNombreAsc(nombre), HttpStatus.OK);
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre) {
+		return new ResponseEntity<VendiblesResponseDTO>(this.productoService.findByNombreAsc(nombre), HttpStatus.OK);
 	}
 }

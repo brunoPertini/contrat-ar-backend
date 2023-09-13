@@ -6,22 +6,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
+import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
+import com.contractar.microserviciocommons.exceptions.VendibleUpdateException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Usuario;
+import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
 import jakarta.validation.Valid;
 
@@ -29,6 +36,9 @@ import jakarta.validation.Valid;
 public class UsuarioController {
 	@Autowired
 	private UsuarioService usuarioService;
+	
+	@Autowired
+	private ProveedorVendibleService proveedorVendibleService;
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -37,7 +47,7 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_PROVEEDOR)
-	public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) {
+	public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
 		Proveedor createdUsuario = usuarioService.createProveedor(usuario);
 		return new ResponseEntity<Proveedor>(createdUsuario, HttpStatus.CREATED);
 	}
@@ -76,10 +86,24 @@ public class UsuarioController {
 		return new ResponseEntity(HttpStatusCode.valueOf(responseStatus));
 	}
 
-	@PatchMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId)
+	@PostMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+	public ResponseEntity<Void> addVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
+			@RequestBody @Valid ProveedorVendible proveedorVendible)
 			throws VendibleBindingException, VendibleAlreadyBindedException {
-		usuarioService.addVendible(proveedorId, vendibleId);
+		usuarioService.addVendible(vendibleId, proveedorId, proveedorVendible);
+		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
+	}
+	
+	@DeleteMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+	public ResponseEntity<Void> unBindVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) throws VendibleNotFoundException {
+		proveedorVendibleService.unBindVendible(vendibleId, proveedorId);
+		return new ResponseEntity<Void>(HttpStatusCode.valueOf(204));
+	}
+	
+	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
+	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId,
+			@PathVariable Long proveedorId, @Valid @RequestBody ProveedorVendibleUpdateDTO body) throws VendibleNotFoundException, VendibleUpdateException {
+		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
 }

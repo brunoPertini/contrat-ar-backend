@@ -1,13 +1,18 @@
 package com.contractar.microserviciocommons.dto;
 
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 
 public class ServicioDTO extends VendibleDTO {
-	public ServicioDTO(String nombre, int precio, String descripcion, List<String> imagesUrl,
-			List<Proveedor> proveedores) {
-		super(nombre, precio, descripcion, imagesUrl, proveedores);
+	public ServicioDTO(String nombre) {
+		super(nombre, new LinkedHashSet<ProveedorVendibleDTO>());
+	}
+
+	public ServicioDTO(String nombre, Set<ProveedorVendibleDTO> proveedores) {
+		super(nombre, proveedores);
 	}
 
 }

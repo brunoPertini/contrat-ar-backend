@@ -12,8 +12,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.contractar.microserviciocommons.dto.VendibleDTO;
 import com.contractar.microserviciocommons.dto.ServicioDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;

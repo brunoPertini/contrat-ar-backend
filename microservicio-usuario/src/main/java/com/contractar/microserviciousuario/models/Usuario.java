@@ -11,14 +11,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
-import com.contractar.microserviciocommons.usuarios.UserDetailsDeserializer;
+import com.contractar.microserviciocommons.usuarios.serialization.UserDetailsDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
@@ -31,7 +31,7 @@ import jakarta.validation.constraints.*;
 public class Usuario extends User implements Serializable {
 	private static final long serialVersionUID = -1655979560902202392L;
 
-	@Id
+	@jakarta.persistence.Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
@@ -65,6 +65,19 @@ public class Usuario extends User implements Serializable {
 
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
+	}
+	
+	public Usuario(String name, String surname, String email, boolean isActive, Point location,
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
+		super(name + surname, password, false, true, true, true, authorities);
+		this.name = name;
+		this.surname = surname;
+		this.email = email;
+		this.isActive = isActive;
+		this.location = location;
+		this.birthDate = birthDate;
+		this.password = password;
+		this.role = role;
 	}
 
 	public Usuario(Long id, String name, String surname, String email, boolean isActive, Point location,

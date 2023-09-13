@@ -1,6 +1,9 @@
 package com.contractar.microserviciocommons.constants.controllers;
 
 public class VendiblesControllersUrls {
+	
+	public static final String GET_VENDIBLE = "/vendible";
+	
 	public static final String GET_SERVICE = "/service";
 	
 	public static final String SAVE_SERVICE = "/service";

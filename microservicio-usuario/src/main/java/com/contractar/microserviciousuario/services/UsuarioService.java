@@ -1,28 +1,29 @@
 package com.contractar.microserviciousuario.services;
 
 import java.util.Optional;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Role;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.repository.ClienteRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
+import com.contractar.microserviciousuario.repository.RoleRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
-import com.contractar.microserviciocommons.constants.RolesNames;
+import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
-import com.contractar.microserviciocommons.proveedores.ProveedorHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 
@@ -38,33 +39,30 @@ public class UsuarioService {
 	private ClienteRepository clienteRepository;
 
 	@Autowired
+	private RoleRepository roleRepository;
+
+	@Autowired
 	private RestTemplate httpClient;
+
+	@Autowired
+	private ProveedorVendibleService proveedorVendibleService;
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
-
-	private String setFinalRole(ProveedorType proveedorType) {
-		Optional<ProveedorType> proveedorTypeOptional = Optional.ofNullable(proveedorType);
-
-		if (!proveedorTypeOptional.isPresent()) {
-			return RolesNames.CLIENTE;
-		}
-
-		return proveedorType.equals(ProveedorType.PRODUCTOS) ? RolesNames.PROVEEDOR_PRODUCTOS
-				: RolesNames.PROVEEDOR_SERVICIOS;
-	}
 
 	public Usuario create(Usuario usuario) {
 		return usuarioRepository.save(usuario);
 	}
 
-	public Proveedor createProveedor(Proveedor proveedor) {
-		ProveedorType proveedorType = proveedor.getProveedorType();
-		Set<Vendible> parsedVendibles = (Set<Vendible>) ProveedorHelper.parseVendibles(proveedor, proveedorType);
+	public Proveedor createProveedor(Proveedor proveedor) throws UserCreationException {
+		String roleName = "PROVEEDOR_" + proveedor.getProveedorType().toString();
+		Optional<Role> roleOpt = roleRepository.findByNombre(roleName);
+		if (roleOpt.isPresent()) {
+			proveedor.setRole(roleOpt.get());
+			return proveedorRepository.save(proveedor);
+		}
+		throw new UserCreationException();
 
-		proveedor.setVendibles(parsedVendibles);
-		proveedor.setRole(new Role(this.setFinalRole(proveedorType)));
-		return proveedorRepository.save(proveedor);
 	}
 
 	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
@@ -72,7 +70,8 @@ public class UsuarioService {
 	}
 
 	public Cliente createCliente(Cliente cliente) {
-		cliente.setRole(new Role(this.setFinalRole(null)));
+		Role clienteRole = roleRepository.findByNombre(RolesValues.CLIENTE.toString()).get();
+		cliente.setRole(clienteRole);
 		return clienteRepository.save(cliente);
 	}
 
@@ -103,18 +102,25 @@ public class UsuarioService {
 		throw new UserNotFoundException();
 	}
 
-	public void addVendible(Long proveedorId, Long vendibleId)
+	public void addVendible(Long vendibleId, Long proveedorId, ProveedorVendible proveedorVendible)
 			throws VendibleBindingException, VendibleAlreadyBindedException {
-		String getVendibleTypeUrl = microservicioVendibleUrl
-				+ VendiblesControllersUrls.GET_VENDIBLE_TYPE.replace("{vendibleId}", vendibleId.toString());
-		Optional<String> vendibleTypeOpt = Optional
-				.ofNullable(httpClient.getForObject(getVendibleTypeUrl, String.class));
+
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microservicioVendibleUrl)
+				.path(VendiblesControllersUrls.GET_VENDIBLE).queryParam("vendibleId", vendibleId);
+
+		String getVendibleUrl = builder.toUriString();
+
+		Optional<Vendible> vendibleOpt = Optional.ofNullable(httpClient.getForObject(getVendibleUrl, Vendible.class));
 		Optional<Proveedor> proveedorOpt = proveedorRepository.findById(proveedorId);
 
-		boolean vendibleExists = vendibleTypeOpt.isPresent() && !vendibleTypeOpt.get().equals("");
-
-		if (vendibleExists && proveedorOpt.isPresent()) {
+		if (vendibleOpt.isPresent() && proveedorOpt.isPresent()) {
 			String proveedorType = proveedorOpt.get().getProveedorType().toString();
+
+			String getVendibleTypeUrl = microservicioVendibleUrl
+					+ VendiblesControllersUrls.GET_VENDIBLE_TYPE.replace("{vendibleId}", vendibleId.toString());
+			Optional<String> vendibleTypeOpt = Optional
+					.ofNullable(httpClient.getForObject(getVendibleTypeUrl, String.class));
+
 			String vendibleType = vendibleTypeOpt.get();
 
 			boolean typesMatch = vendibleType.equalsIgnoreCase(VendibleType.PRODUCTO.toString())
@@ -124,7 +130,10 @@ public class UsuarioService {
 
 			if (typesMatch) {
 				try {
-					proveedorRepository.addVendible(proveedorId, vendibleId);
+					Vendible toBindVendible = vendibleOpt.get();
+					toBindVendible.setId(vendibleId);
+					proveedorVendibleService.bindVendibleToProveedor(toBindVendible, proveedorOpt.get(),
+							proveedorVendible);
 				} catch (DataIntegrityViolationException e) {
 					throw new VendibleAlreadyBindedException();
 				}

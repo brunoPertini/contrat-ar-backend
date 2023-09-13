@@ -1,26 +1,29 @@
 package com.contractar.microserviciovendible.services;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
-import com.contractar.microserviciocommons.dto.VendibleDTO;
+import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
@@ -45,41 +48,48 @@ public class VendibleService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId) throws Exception {
+	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
+			throws VendibleAlreadyExistsException, UserNotFoundException {
 		try {
-			ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString())
-					? ProveedorType.SERVICIOS
-					: ProveedorType.PRODUCTOS;
-			
-			  UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microServicioUsuarioUrl)
-		                .path(UsersControllerUrls.GET_PROVEEDOR)
-		                .queryParam("id", proveedorId)
-		                .queryParam("proveedorType", proveedorType);
+			Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
+					? this.servicioRepository.save(vendible)
+					: productoRepository.save(vendible);
 
-		    String usuarioExistsUrl = builder.toUriString();
+			boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
 
+			if (proveedorId != null && hasVendibleToLink) {
+				ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString())
+						? ProveedorType.SERVICIOS
+						: ProveedorType.PRODUCTOS;
 
-			ResponseEntity<Void> getUsuarioResponse = restTemplate.getForEntity(usuarioExistsUrl, Void.class);
+				UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microServicioUsuarioUrl)
+						.path(UsersControllerUrls.GET_PROVEEDOR).queryParam("id", proveedorId)
+						.queryParam("proveedorType", proveedorType);
 
-			if (getUsuarioResponse.getStatusCode().is2xxSuccessful()) {
-				Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
-						? this.servicioRepository.save(vendible)
-						: productoRepository.save(vendible);
-				if (addedVendible != null) {
+				String usuarioExistsUrl = builder.toUriString();
+
+				ResponseEntity<Void> getUsuarioResponse = restTemplate.getForEntity(usuarioExistsUrl, Void.class);
+
+				if (getUsuarioResponse.getStatusCode().is2xxSuccessful()) {
+
 					String addVendibleUrl = microServicioUsuarioUrl
 							+ UsersControllerUrls.PROVEEDOR_VENDIBLE.replace("{proveedorId}", proveedorId.toString())
 									.replace("{vendibleId}", addedVendible.getId().toString());
 
-					ResponseEntity<Void> addVendibleResponse = restTemplate.exchange(addVendibleUrl, HttpMethod.PATCH,
-							null, Void.class);
+					ProveedorVendible pv = (ProveedorVendible) vendible.getProveedoresVendibles().toArray()[0];
+
+					ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv,
+							Void.class);
 
 					return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
 
+				} else {
+					throw new UserNotFoundException();
 				}
-				throw new Exception("Unknown error");
-			} else {
-				throw new UserNotFoundException();
 			}
+
+			return addedVendible;
+
 		} catch (Exception e) {
 			if (e instanceof DataIntegrityViolationException) {
 				throw new VendibleAlreadyExistsException();
@@ -90,32 +100,24 @@ public class VendibleService {
 	}
 
 	@Transactional
-	public Vendible update(VendibleDTO vendible, Long vendibleId, String concreteVendibleDTOClass,
-			String entityFullClassName, String vendibleType) throws Exception {
+	public Vendible update(String nombre, Long vendibleId, String vendibleType) throws VendibleNotFoundException {
 		Optional<Vendible> toUpdateVendibleOpt = vendibleRepository.findById(vendibleId);
 		if (toUpdateVendibleOpt.isPresent()) {
 			String vendibleRealType = this.getVendibleTypeById(vendibleId);
-			
+
 			if (!vendibleRealType.equalsIgnoreCase(vendibleType)) {
 				throw new VendibleNotFoundException();
 			}
-			
+
 			Vendible toUpdateVendible = toUpdateVendibleOpt.get();
 
-			try {
-				ReflectionHelper.applySetterFromExistingFields(vendible, toUpdateVendible, concreteVendibleDTOClass,
-						entityFullClassName);
+			toUpdateVendible.setNombre(nombre);
 
-				Vendible updatedVendible = vendibleType.equals(VendibleType.SERVICIO.toString())
-						? servicioRepository.save(toUpdateVendible)
-						: productoRepository.save(toUpdateVendible);
+			Vendible updatedVendible = vendibleType.equals(VendibleType.SERVICIO.toString())
+					? servicioRepository.save(toUpdateVendible)
+					: productoRepository.save(toUpdateVendible);
 
-				return updatedVendible;
-
-			} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
-					| InvocationTargetException e) {
-				throw new Exception("Reflection exception throwed");
-			}
+			return updatedVendible;
 		}
 
 		throw new VendibleNotFoundException();
@@ -123,19 +125,41 @@ public class VendibleService {
 
 	public void deleteById(Long id) throws VendibleNotFoundException {
 		try {
-			vendibleRepository.deleteAllProvedoresAndVendiblesRelations(id);
 			vendibleRepository.deleteById(id);
 		} catch (EmptyResultDataAccessException ex) {
 			throw new VendibleNotFoundException();
 		}
 	}
-	
-	public Optional<Vendible> findById(Long VendibleId) {
-		return this.vendibleRepository.findById(VendibleId);
+
+	public VendibleDTO findById(Long vendibleId) throws VendibleNotFoundException {
+		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
+		if (vendibleOpt.isPresent()) {
+			Vendible vendible = vendibleOpt.get();
+			VendibleDTO vendibleDTO = new VendibleDTO(vendible.getId(), vendible.getNombre());
+
+			Set<ProveedorVendibleDTO> proveedoresVendibles = vendible.getProveedoresVendibles().stream()
+					.map(proveedorVendible -> {
+						Proveedor proveedor = proveedorVendible.getProveedor();
+						ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(vendible.getNombre(),
+								proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
+								new ProveedorDTO(proveedor));
+						return proveedorVendibleDTO;
+					}).collect(Collectors.toSet());
+
+			vendibleDTO.setProveedores(proveedoresVendibles);
+			return vendibleDTO;
+		}
+		throw new VendibleNotFoundException();
 	}
-	
+
 	public String getVendibleTypeById(Long vendibleId) {
-		Optional<Vendible> vendibleOpt = findById(vendibleId);
-		return vendibleOpt.isPresent() ? vendibleRepository.getVendibleTypeById(vendibleId) : "";
+		try {
+			findById(vendibleId);
+			return vendibleRepository.getVendibleTypeById(vendibleId);
+		} catch (VendibleNotFoundException e) {
+			return "";
+		}
+
 	}
 }

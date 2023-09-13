@@ -1,11 +1,12 @@
 package com.contractar.microserviciovendible.services;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.contractar.microserviciocommons.dto.ServicioDTO;
+
+import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
+import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
 
 @Service
@@ -13,14 +14,14 @@ public class ServicioService {
 	@Autowired
 	private ServicioRepository servicioRepository;
 
-	public List<ServicioDTO> findByNombreAsc(String nombre) {
-		try {
-			return this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream()
-					.map(servicio -> new ServicioDTO(servicio.getNombre(), servicio.getPrecio(),
-							servicio.getDescripcion(), servicio.getImagesUrl(), servicio.getProveedores()))
-					.collect(Collectors.toList());
-		} catch (Exception e) {
-			throw e;
-		}
+	public VendiblesResponseDTO findByNombreAsc(String nombre) {
+		VendiblesResponseDTO response = new VendiblesResponseDTO();
+		this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream().forEach(servicio -> {
+			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(response,
+					servicio);
+			response.getVendibles().addAll(proveedoresVendibles);
+		});
+
+		return response;
 	}
 }

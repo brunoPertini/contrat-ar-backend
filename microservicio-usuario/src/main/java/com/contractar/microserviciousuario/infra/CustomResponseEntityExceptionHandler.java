@@ -24,7 +24,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
 	}
 
-	@ExceptionHandler(value = { VendibleBindingException.class, VendibleAlreadyBindedException.class })
+	@ExceptionHandler(value = { VendibleBindingException.class,
+			VendibleAlreadyBindedException.class,
+			VendibleNotFoundException.class,
+			VendibleAlreadyExistsException.class})
 	public ResponseEntity<Object> handleVendibleOperationsExceptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),

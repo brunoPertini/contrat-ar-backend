@@ -10,23 +10,22 @@ import org.springframework.security.core.GrantedAuthority;
 
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciocommons.usuarios.serialization.ProveedorDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
 @PrimaryKeyJoinColumn(name = "proveedorId")
+@JsonDeserialize(using = ProveedorDeserializer.class)
 public class Proveedor extends Usuario {
 
 	private static final long serialVersionUID = -7439587233032181786L;
@@ -38,39 +37,37 @@ public class Proveedor extends Usuario {
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private PlanType plan;
-	
+
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private ProveedorType proveedorType;
 
-	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, targetEntity = Vendible.class)
-	@JoinTable(name = "proveedores_vendibles",
-	joinColumns=@JoinColumn(name="proveedor_id"),
-	inverseJoinColumns = @JoinColumn(name="vendible_id"))
-	private Set<Vendible> vendibles;
-	
+	@OneToMany(mappedBy = "proveedor", fetch = FetchType.LAZY, orphanRemoval = true)
+	private Set<ProveedorVendible> vendibles;
+
 	public Proveedor() {
 		super();
 	}
 
-	public Set<Vendible> getVendibles() {
+	public Set<ProveedorVendible> getVendibles() {
 		return vendibles;
 	}
 
-	public void setVendibles(Set<Vendible> vendibles) {
+	public void setVendibles(Set<ProveedorVendible> vendibles) {
 		this.vendibles = vendibles;
 	}
 
-	public Proveedor(Long id, String name, String surname, String email, boolean isActive,Point location,
-			String dni, String password, PlanType plan, Set<Vendible> vendibles, LocalDate birthDate,
-			List<GrantedAuthority> authorities, Role role) {
-		super(id, name, surname, email, isActive, location, birthDate, password, authorities, role);
+	public Proveedor(String name, String surname, String email, boolean isActive, Point location, String dni,
+			String password, PlanType plan, Set<ProveedorVendible> vendibles, LocalDate birthDate,
+			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType) {
+		super(name, surname, email, isActive, location, birthDate, password, authorities, role);
 		this.dni = dni;
 		this.plan = plan;
+		this.proveedorType = proveedorType;
 		if (vendibles != null) {
 			this.vendibles = vendibles;
 		} else {
-			this.vendibles = new LinkedHashSet<Vendible>();
+			this.vendibles = new LinkedHashSet<ProveedorVendible>();
 		}
 	}
 
@@ -89,7 +86,7 @@ public class Proveedor extends Usuario {
 	public void setPlan(PlanType plan) {
 		this.plan = plan;
 	}
-	
+
 	public ProveedorType getProveedorType() {
 		return proveedorType;
 	}
