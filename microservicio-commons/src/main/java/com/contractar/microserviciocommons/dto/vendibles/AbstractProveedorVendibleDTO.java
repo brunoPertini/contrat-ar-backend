@@ -4,13 +4,13 @@ public abstract class AbstractProveedorVendibleDTO {
 	private String vendibleNombre;
 
 	private String descripcion;
-	
+
 	private int precio;
-	
+
 	private String imagenUrl;
-	
+
 	private int stock;
-	
+
 	public AbstractProveedorVendibleDTO(String vendibleNombre, String descripcion, int precio, String imagenUrl,
 			int stock) {
 		this.vendibleNombre = vendibleNombre;
@@ -30,7 +30,7 @@ public abstract class AbstractProveedorVendibleDTO {
 	public void setVendibleNombre(String vendibleNombre) {
 		this.vendibleNombre = vendibleNombre;
 	}
-	
+
 	public String getDescripcion() {
 		return descripcion;
 	}
@@ -62,5 +62,5 @@ public abstract class AbstractProveedorVendibleDTO {
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
-	
+
 }

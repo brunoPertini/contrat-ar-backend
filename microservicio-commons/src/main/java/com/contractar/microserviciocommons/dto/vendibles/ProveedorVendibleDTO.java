@@ -2,9 +2,9 @@ package com.contractar.microserviciocommons.dto.vendibles;
 
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 
-public class ProveedorVendibleDTO extends AbstractProveedorVendibleDTO{
+public class ProveedorVendibleDTO extends AbstractProveedorVendibleDTO {
 	private ProveedorDTO proveedor;
-	
+
 	public ProveedorVendibleDTO() {
 		super();
 	}

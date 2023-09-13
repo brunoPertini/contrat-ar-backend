@@ -20,6 +20,7 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
@@ -36,32 +37,32 @@ public class UsuarioService {
 
 	@Autowired
 	private ClienteRepository clienteRepository;
-	
+
 	@Autowired
 	private RoleRepository roleRepository;
 
 	@Autowired
 	private RestTemplate httpClient;
-	
+
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
-	
+
 	public Usuario create(Usuario usuario) {
 		return usuarioRepository.save(usuario);
 	}
 
-	public Proveedor createProveedor(Proveedor proveedor) throws Exception {
+	public Proveedor createProveedor(Proveedor proveedor) throws UserCreationException {
 		String roleName = "PROVEEDOR_" + proveedor.getProveedorType().toString();
 		Optional<Role> roleOpt = roleRepository.findByNombre(roleName);
 		if (roleOpt.isPresent()) {
 			proveedor.setRole(roleOpt.get());
 			return proveedorRepository.save(proveedor);
 		}
-		throw new Exception("Rol de usuario invalido");
-		
+		throw new UserCreationException();
+
 	}
 
 	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
@@ -103,25 +104,23 @@ public class UsuarioService {
 
 	public void addVendible(Long vendibleId, Long proveedorId, ProveedorVendible proveedorVendible)
 			throws VendibleBindingException, VendibleAlreadyBindedException {
-		
+
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microservicioVendibleUrl)
-                .path(VendiblesControllersUrls.GET_VENDIBLE)
-                .queryParam("vendibleId", vendibleId);
-		
+				.path(VendiblesControllersUrls.GET_VENDIBLE).queryParam("vendibleId", vendibleId);
+
 		String getVendibleUrl = builder.toUriString();
-    
 
 		Optional<Vendible> vendibleOpt = Optional.ofNullable(httpClient.getForObject(getVendibleUrl, Vendible.class));
 		Optional<Proveedor> proveedorOpt = proveedorRepository.findById(proveedorId);
 
 		if (vendibleOpt.isPresent() && proveedorOpt.isPresent()) {
 			String proveedorType = proveedorOpt.get().getProveedorType().toString();
-			
+
 			String getVendibleTypeUrl = microservicioVendibleUrl
 					+ VendiblesControllersUrls.GET_VENDIBLE_TYPE.replace("{vendibleId}", vendibleId.toString());
 			Optional<String> vendibleTypeOpt = Optional
 					.ofNullable(httpClient.getForObject(getVendibleTypeUrl, String.class));
-			
+
 			String vendibleType = vendibleTypeOpt.get();
 
 			boolean typesMatch = vendibleType.equalsIgnoreCase(VendibleType.PRODUCTO.toString())
@@ -133,8 +132,7 @@ public class UsuarioService {
 				try {
 					Vendible toBindVendible = vendibleOpt.get();
 					toBindVendible.setId(vendibleId);
-					proveedorVendibleService.bindVendibleToProveedor(toBindVendible,
-							proveedorOpt.get(),
+					proveedorVendibleService.bindVendibleToProveedor(toBindVendible, proveedorOpt.get(),
 							proveedorVendible);
 				} catch (DataIntegrityViolationException e) {
 					throw new VendibleAlreadyBindedException();

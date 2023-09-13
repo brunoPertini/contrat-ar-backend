@@ -11,16 +11,16 @@ import com.contractar.microserviciovendible.models.Vendible;
 
 public final class VendibleHelper {
 
-	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response, Vendible vendible) {
-		return vendible.getProveedoresVendibles().stream()
-				.map(proveedorVendible -> {
-					Proveedor proveedor = proveedorVendible.getProveedor();
-					SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(
-							vendible.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
-							proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
-					response.getProveedores().add(new ProveedorDTO(proveedor));
-					return proveedorVendibleDTO;
-				}).collect(Collectors.toSet());
+	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
+			Vendible vendible) {
+		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
+			Proveedor proveedor = proveedorVendible.getProveedor();
+			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(
+					vendible.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
+			response.getProveedores().add(new ProveedorDTO(proveedor));
+			return proveedorVendibleDTO;
+		}).collect(Collectors.toSet());
 	}
 
 }

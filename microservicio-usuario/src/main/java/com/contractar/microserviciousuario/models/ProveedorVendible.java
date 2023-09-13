@@ -15,38 +15,40 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  * 
- * Maps the relation between Proveedor and Vendible entities. Many Proveedores can do a Vendible. However, each one
- * may do it with a different description, price, image, and so on.
+ * Maps the relation between Proveedor and Vendible entities. Many Proveedores
+ * can do a Vendible. However, each one may do it with a different description,
+ * price, image, and so on.
  */
 @Entity
-public class ProveedorVendible implements Serializable{
+public class ProveedorVendible implements Serializable {
 	private static final long serialVersionUID = -2724448122568231385L;
 
 	@EmbeddedId
 	private ProveedorVendibleId id;
-	
+
 	@NotNull
 	private int precio;
 
 	@NotBlank
 	private String descripcion;
-	
+
 	private String imagenUrl;
-	
+
 	private int stock;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("vendibleId")
 	@JoinColumn(name = "vendible_id")
 	private Vendible vendible;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("proveedorId")
 	@JoinColumn(name = "proveedor_id")
 	private Proveedor proveedor;
-	
-	public ProveedorVendible() {}
-	
+
+	public ProveedorVendible() {
+	}
+
 	public ProveedorVendible(ProveedorVendibleId id, @NotNull int precio, @NotBlank String descripcion,
 			String imagenUrl, int stock, Vendible vendible, Proveedor proveedor) {
 		this.id = id;

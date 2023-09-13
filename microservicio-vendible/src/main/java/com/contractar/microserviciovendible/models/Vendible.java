@@ -20,24 +20,24 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="vendible_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
-public class Vendible implements Serializable{
+public class Vendible implements Serializable {
 
 	private static final long serialVersionUID = -6708815378872073493L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="vendible_id")
+	@Column(name = "vendible_id")
 	private Long id;
 
 	@Column(unique = true)
 	@NotBlank
 	private String nombre;
-	
+
 	@OneToMany(mappedBy = "vendible", fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<ProveedorVendible> proveedoresVendibles;
-	 
+
 	public String getNombre() {
 		return nombre;
 	}
@@ -52,17 +52,17 @@ public class Vendible implements Serializable{
 
 	public void setId(Long id) {
 		this.id = id;
-	} 
+	}
 
 	public Vendible() {
 		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendible>();
 	}
-	
+
 	public Vendible(String nombre) {
 		this.nombre = nombre;
 		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendible>();
 	}
-	
+
 	public Vendible(String nombre, Set<ProveedorVendible> proveedoresVendibles) {
 		this.nombre = nombre;
 		this.proveedoresVendibles = proveedoresVendibles;

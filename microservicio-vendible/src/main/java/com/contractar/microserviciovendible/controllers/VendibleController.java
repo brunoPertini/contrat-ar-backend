@@ -18,7 +18,7 @@ import com.contractar.microserviciovendible.services.VendibleService;
 public class VendibleController {
 	@Autowired
 	private VendibleService vendibleService;
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE)
 	public ResponseEntity<VendibleDTO> getVendibleByParam(@RequestParam(required = false) Long vendibleId) {
@@ -29,13 +29,13 @@ public class VendibleController {
 			return new ResponseEntity(HttpStatusCode.valueOf(404));
 		}
 	}
-	
+
 	@DeleteMapping(VendiblesControllersUrls.DELETE_VENDIBLE)
 	public ResponseEntity<Void> deleteById(@PathVariable("vendibleId") Long id) throws VendibleNotFoundException {
 		vendibleService.deleteById(id);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(204));
 	}
-	
+
 	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_TYPE)
 	public ResponseEntity<String> getVendibleType(@PathVariable("vendibleId") Long id) {
 		return new ResponseEntity<String>(vendibleService.getVendibleTypeById(id), HttpStatusCode.valueOf(200));

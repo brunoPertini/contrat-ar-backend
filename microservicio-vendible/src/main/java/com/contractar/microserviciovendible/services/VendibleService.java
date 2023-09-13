@@ -48,7 +48,8 @@ public class VendibleService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId) throws Exception {
+	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
+			throws VendibleAlreadyExistsException, UserNotFoundException {
 		try {
 			Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
 					? this.servicioRepository.save(vendible)
@@ -71,20 +72,17 @@ public class VendibleService {
 
 				if (getUsuarioResponse.getStatusCode().is2xxSuccessful()) {
 
-					if (addedVendible != null) {
-						String addVendibleUrl = microServicioUsuarioUrl + UsersControllerUrls.PROVEEDOR_VENDIBLE
-								.replace("{proveedorId}", proveedorId.toString())
-								.replace("{vendibleId}", addedVendible.getId().toString());
+					String addVendibleUrl = microServicioUsuarioUrl
+							+ UsersControllerUrls.PROVEEDOR_VENDIBLE.replace("{proveedorId}", proveedorId.toString())
+									.replace("{vendibleId}", addedVendible.getId().toString());
 
-						ProveedorVendible pv = (ProveedorVendible) vendible.getProveedoresVendibles().toArray()[0];
+					ProveedorVendible pv = (ProveedorVendible) vendible.getProveedoresVendibles().toArray()[0];
 
-						ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv,
-								Void.class);
+					ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv,
+							Void.class);
 
-						return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
+					return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
 
-					}
-					throw new Exception("Unknown error");
 				} else {
 					throw new UserNotFoundException();
 				}
@@ -102,7 +100,7 @@ public class VendibleService {
 	}
 
 	@Transactional
-	public Vendible update(String nombre, Long vendibleId, String vendibleType) throws Exception {
+	public Vendible update(String nombre, Long vendibleId, String vendibleType) throws VendibleNotFoundException {
 		Optional<Vendible> toUpdateVendibleOpt = vendibleRepository.findById(vendibleId);
 		if (toUpdateVendibleOpt.isPresent()) {
 			String vendibleRealType = this.getVendibleTypeById(vendibleId);

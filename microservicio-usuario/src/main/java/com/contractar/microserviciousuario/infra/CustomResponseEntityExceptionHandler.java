@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
+import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
@@ -23,7 +24,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
 	}
 
-	@ExceptionHandler(value = { VendibleBindingException.class, VendibleAlreadyBindedException.class, VendibleNotFoundException.class })
+	@ExceptionHandler(value = { VendibleBindingException.class,
+			VendibleAlreadyBindedException.class,
+			VendibleNotFoundException.class,
+			VendibleAlreadyExistsException.class})
 	public ResponseEntity<Object> handleVendibleOperationsExceptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),

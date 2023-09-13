@@ -15,6 +15,9 @@ import com.contractar.microserviciocommons.constants.controllers.VendiblesContro
 import com.contractar.microserviciocommons.dto.ServicioDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
+import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
+import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciovendible.models.Servicio;
 import com.contractar.microserviciovendible.services.ServicioService;
@@ -27,27 +30,28 @@ import jakarta.validation.constraints.NotBlank;
 public class ServicioController {
 	@Autowired
 	private ServicioService servicioService;
-	
+
 	@Autowired
 	private VendibleService vendibleService;
-	
+
 	private final String vendibleType = VendibleType.SERVICIO.toString();
-	
+
 	@PostMapping(VendiblesControllersUrls.SAVE_SERVICE)
 	public ResponseEntity<ServicioDTO> save(@RequestBody @Valid Servicio servicio,
-			@RequestParam(required = false) Long proveedorId) throws Exception {
+			@RequestParam(required = false) Long proveedorId) throws VendibleAlreadyExistsException, UserNotFoundException {
 		Servicio addedServicio = (Servicio) vendibleService.save(servicio, vendibleType, proveedorId);
 		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre());
 		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.CREATED);
 	}
-	
+
 	@PutMapping(VendiblesControllersUrls.MODIFY_SERVICE)
-	public ResponseEntity<ServicioDTO> update(@RequestBody VendibleUpdateDTO body, @PathVariable("vendibleId") Long vendibleId) throws Exception {
+	public ResponseEntity<ServicioDTO> update(@RequestBody VendibleUpdateDTO body,
+			@PathVariable("vendibleId") Long vendibleId) throws VendibleNotFoundException {
 		Servicio servicio = (Servicio) vendibleService.update(body.getNombre(), vendibleId, vendibleType);
 		ServicioDTO updatedProductoDTO = new ServicioDTO(servicio.getNombre());
 		return new ResponseEntity<ServicioDTO>(updatedProductoDTO, HttpStatus.OK);
 	}
-	
+
 	@GetMapping(VendiblesControllersUrls.GET_SERVICE)
 	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre) {
 		return new ResponseEntity<VendiblesResponseDTO>(this.servicioService.findByNombreAsc(nombre), HttpStatus.OK);

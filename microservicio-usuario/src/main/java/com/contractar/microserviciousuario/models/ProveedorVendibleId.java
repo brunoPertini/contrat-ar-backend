@@ -12,7 +12,6 @@ public class ProveedorVendibleId implements Serializable{
 	}
 	
 	public ProveedorVendibleId(Long proveedorId, Long vendibleId) {
-		super();
 		this.proveedorId = proveedorId;
 		this.vendibleId = vendibleId;
 	}

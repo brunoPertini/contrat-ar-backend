@@ -22,14 +22,15 @@ public class UserDetailsDeserializer extends UserDeserializer {
 		JsonNode node = jsonParser.getCodec().readTree(jsonParser);
 
 		List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-		
+
 		setCommonUserInfo(node, grantedAuthorities);
 
 		Role role = Optional.ofNullable(node.get("role")).isPresent()
 				? new Role((node.get("role").get("nombre").asText()))
 				: null;
 
-		Usuario usuario = new Usuario(null, name, surname, email, true, location, birthDate, password, grantedAuthorities,role);
+		Usuario usuario = new Usuario(null, name, surname, email, true, location, birthDate, password,
+				grantedAuthorities, role);
 
 		return usuario;
 	}

@@ -16,24 +16,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class ProveedorDTO extends UsuarioDTO {
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		
-        if (obj == null || getClass() != obj.getClass()) return false;
-        
-		ProveedorDTO dto = (ProveedorDTO) obj;
-		if (this.getId() != null) {
-			return this.getId() == dto.getId();	
-		}
-		return this.getEmail() != dto.getEmail();
-	}
-	
-	@Override	
-    public int hashCode() {
-        return Objects.hash(this.getId(), this.getEmail());
-    }
-
 	@NotBlank
 	private String dni;
 
@@ -44,8 +26,9 @@ public class ProveedorDTO extends UsuarioDTO {
 	@JsonIgnore
 	@NotNull
 	private ProveedorType proveedorType;
-	
-	public ProveedorDTO() {}
+
+	public ProveedorDTO() {
+	}
 
 	public ProveedorDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate, Role role,
 			Point location, String dni, PlanType plan, ProveedorType proveedorType) {
@@ -54,15 +37,10 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.plan = plan;
 		this.proveedorType = proveedorType;
 	}
-	
+
 	public ProveedorDTO(Proveedor proveedor) {
-		super(proveedor.getname(),
-				proveedor.getsurname(),
-				proveedor.getEmail(),
-				proveedor.isActive(), 
-				proveedor.getBirthDate(),
-				proveedor.getRole(),
-				proveedor.getlocation());
+		super(proveedor.getname(), proveedor.getsurname(), proveedor.getEmail(), proveedor.isActive(),
+				proveedor.getBirthDate(), proveedor.getRole(), proveedor.getlocation());
 		this.plan = proveedor.getPlan();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent((id) -> {
@@ -92,5 +70,25 @@ public class ProveedorDTO extends UsuarioDTO {
 
 	public void setProveedorType(ProveedorType proveedorType) {
 		this.proveedorType = proveedorType;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+
+		ProveedorDTO dto = (ProveedorDTO) obj;
+		if (this.getId() != null) {
+			return this.getId() == dto.getId();
+		}
+		return this.getEmail() != dto.getEmail();
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.getId(), this.getEmail());
 	}
 }

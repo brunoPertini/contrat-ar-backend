@@ -16,14 +16,14 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @SuppressWarnings("rawtypes")
-public abstract class UserDeserializer extends JsonDeserializer{
+public abstract class UserDeserializer extends JsonDeserializer {
 	protected String name;
 	protected String surname;
 	protected String password;
 	protected String email;
 	protected LocalDate birthDate;
 	protected Point location;
-	
+
 	protected void setCommonUserInfo(JsonNode node, List<GrantedAuthority> grantedAuthorities) throws IOException {
 		name = node.get("name").asText();
 		surname = node.get("surname").asText();
@@ -40,10 +40,10 @@ public abstract class UserDeserializer extends JsonDeserializer{
 				grantedAuthorities.add(new SimpleGrantedAuthority(authority.asText()));
 			}
 		}
-		
+
 		double x = node.get("location").get("x").asDouble();
-        double y = node.get("location").get("y").asDouble();        
-        location =  new GeometryFactory().createPoint(new Coordinate(x, y));
+		double y = node.get("location").get("y").asDouble();
+		location = new GeometryFactory().createPoint(new Coordinate(x, y));
 
 	}
 }

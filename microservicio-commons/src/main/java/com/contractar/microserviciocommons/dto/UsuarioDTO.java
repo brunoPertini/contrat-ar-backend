@@ -10,42 +10,33 @@ import com.contractar.microserviciousuario.models.Role;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 /**
- * Class to serialize user info that is not needed to handle session. Others DTOs should inherit from this, as it contains common info.
+ * Class to serialize user info that is not needed to handle session. Others
+ * DTOs should inherit from this, as it contains common info.
  *
  */
 public class UsuarioDTO {
 	private Long id;
-	
-	@NotBlank
+
 	private String name;
-	@NotBlank
 	private String surname;
-	@NotBlank
 	private String email;
-	
+
 	private boolean isActive;
-	
-	@NotNull
+
 	private LocalDate birthDate;
 
-	@OneToOne
-	@JoinColumn(name = "role")
 	private Role role;
-	
+
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
-	
-	public UsuarioDTO() {}
 
-	public UsuarioDTO(@NotBlank String name, @NotBlank String surname, @NotBlank String email, boolean isActive,
-			@NotNull LocalDate birthDate, Role role, Point location) {
+	public UsuarioDTO() {
+	}
+
+	public UsuarioDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate, Role role,
+			Point location) {
 		super();
 		this.name = name;
 		this.surname = surname;

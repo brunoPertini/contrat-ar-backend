@@ -18,7 +18,8 @@ public class ProductoService {
 	public VendiblesResponseDTO findByNombreAsc(String nombre) {
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
 		this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream().forEach(producto -> {
-			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(response, producto);
+			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(response,
+					producto);
 			response.getVendibles().addAll(proveedoresVendibles);
 		});
 
