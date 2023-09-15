@@ -23,7 +23,6 @@ public class UbicacionSerializer extends StdSerializer<Point> {
     @Override
     public void serialize(Point point, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();
-        jsonGenerator.writeStringField("type", "Point");
         jsonGenerator.writeFieldName("coordinates");
         serializeCoordinates(point.getCoordinate(), jsonGenerator);
         jsonGenerator.writeEndObject();

@@ -44,6 +44,8 @@ public class Proveedor extends Usuario {
 
 	@OneToMany(mappedBy = "proveedor", fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<ProveedorVendible> vendibles;
+	
+	private String fotoPerfilUrl;
 
 	public Proveedor() {
 		super();
@@ -93,6 +95,14 @@ public class Proveedor extends Usuario {
 
 	public void setProveedorType(ProveedorType proveedorType) {
 		this.proveedorType = proveedorType;
+	}
+	
+	public String getFotoPerfilUrl() {
+		return fotoPerfilUrl;
+	}
+
+	public void setFotoPerfilUrl(String fotoPerfilUrl) {
+		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
 
 }

@@ -26,6 +26,8 @@ public class ProveedorDTO extends UsuarioDTO {
 	@JsonIgnore
 	@NotNull
 	private ProveedorType proveedorType;
+	
+	private String fotoPerfilUrl;
 
 	public ProveedorDTO() {
 	}
@@ -42,6 +44,7 @@ public class ProveedorDTO extends UsuarioDTO {
 		super(proveedor.getname(), proveedor.getsurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getRole(), proveedor.getlocation());
 		this.plan = proveedor.getPlan();
+		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent((id) -> {
 			this.setId(id);
@@ -70,6 +73,14 @@ public class ProveedorDTO extends UsuarioDTO {
 
 	public void setProveedorType(ProveedorType proveedorType) {
 		this.proveedorType = proveedorType;
+	}
+	
+	public String getFotoPerfilUrl() {
+		return fotoPerfilUrl;
+	}
+
+	public void setFotoPerfilUrl(String fotoPerfilUrl) {
+		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
 	
 	@Override
