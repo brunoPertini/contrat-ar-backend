@@ -20,7 +20,9 @@ public class ProductoService {
 		this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream().forEach(producto -> {
 			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(response,
 					producto);
-			response.getVendibles().put(producto.getNombre(), proveedoresVendibles);
+			if (proveedoresVendibles.size() > 0) {
+				response.getVendibles().put(producto.getNombre(), proveedoresVendibles);
+			}
 		});
 
 		return response;
