@@ -23,6 +23,8 @@ public class ProductoService {
 			if (proveedoresVendibles.size() > 0) {
 				response.getVendibles().put(producto.getNombre(), proveedoresVendibles);
 			}
+			
+			VendibleHelper.addCategoriaToResponse(producto, response);
 		});
 
 		return response;

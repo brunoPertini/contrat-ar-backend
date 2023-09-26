@@ -10,6 +10,8 @@ public abstract class AbstractProveedorVendibleDTO {
 	private String imagenUrl;
 
 	private int stock;
+	
+	private Long vendibleCategoryId;
 
 	public AbstractProveedorVendibleDTO(String vendibleNombre, String descripcion, int precio, String imagenUrl,
 			int stock) {
@@ -61,6 +63,14 @@ public abstract class AbstractProveedorVendibleDTO {
 
 	public void setStock(int stock) {
 		this.stock = stock;
+	}
+	
+	public Long getVendibleCategoryId() {
+		return vendibleCategoryId;
+	}
+
+	public void setVendibleCategoryId(Long vendibleCategoryId) {
+		this.vendibleCategoryId = vendibleCategoryId;
 	}
 
 }

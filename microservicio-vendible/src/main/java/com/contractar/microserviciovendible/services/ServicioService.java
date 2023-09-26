@@ -22,6 +22,8 @@ public class ServicioService {
 			if (proveedoresVendibles.size() > 0) {
 				response.getVendibles().put(servicio.getNombre(), proveedoresVendibles);
 			}
+
+			VendibleHelper.addCategoriaToResponse(servicio, response);
 		});
 
 		return response;
