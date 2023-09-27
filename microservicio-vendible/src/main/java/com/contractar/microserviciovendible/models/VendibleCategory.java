@@ -10,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 @Entity
-public class VendibleCategory {
+public class VendibleCategory implements Comparable<VendibleCategory>{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -76,5 +76,21 @@ public class VendibleCategory {
 	@Override
 	public int hashCode() {
 		return Objects.hash(this.getId(), this.getName());
+	}
+
+	/**
+	 * If the current category is c's parent, then its lower than c.
+	 */
+	@Override
+	public int compareTo(VendibleCategory c) {
+		if (this.getId() == c.getId()) {
+			return 0;
+		}
+		
+		if (this.getId() == c.getParent().getId()) {
+			return -1;
+		}
+		
+		return 1;
 	}
 }

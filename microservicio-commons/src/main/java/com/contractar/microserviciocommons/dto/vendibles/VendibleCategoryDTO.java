@@ -1,5 +1,7 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
+import java.util.Objects;
+
 public class VendibleCategoryDTO {
 	private Long id;
 	private String name;
@@ -36,6 +38,26 @@ public class VendibleCategoryDTO {
 
 	public void setParentId(Long parentId) {
 		this.parentId = parentId;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+
+		VendibleCategoryDTO category = (VendibleCategoryDTO) obj;
+		if (this.getId() != null) {
+			return this.getId() == category.getId();
+		}
+		return this.getName() != category.getName();
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.getId(), this.getName());
 	}
 
 }

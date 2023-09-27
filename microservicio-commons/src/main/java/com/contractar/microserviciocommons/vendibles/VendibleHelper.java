@@ -10,6 +10,7 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleCategoryDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciovendible.models.VendibleCategory;
 
 public final class VendibleHelper {
 
@@ -30,11 +31,27 @@ public final class VendibleHelper {
 		}).collect(Collectors.toSet());
 	}
 	
-	public static void addCategoriaToResponse(Vendible vendible, VendiblesResponseDTO response) {
+	/**
+	 * If vendible has a category, its added to the node in response. Given that each Vendible is meant to have a meaningful category,
+	 * the less abstract as it's possible, the method will also look for the vendible category parents and add them, so they're presented 
+	 * to the frontend to enhance the search.
+	 */
+	public static void addCategoriasToResponse(Vendible vendible, VendiblesResponseDTO response) {
+		// TODO: No agregar a response. Agregarlo a un SET aparte de VendibleCategory, y despues iterar sobre el set ordenado para parsear cada elemento a un DTO
 		Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
-			Long parentId = Optional.ofNullable(category.getParent()).isPresent() ? category.getParent().getId() : null;
-			VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(), category.getName(), parentId);
+			Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
+			Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
+			VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(),category.getName(), parentId);
 			response.getCategorias().add(dto);
+			while (parentOpt.isPresent()) {
+				VendibleCategory parent = parentOpt.get();
+				Long parentParentId = Optional.ofNullable(parent.getParent()).isPresent() ? parent.getParent().getId() : null;
+				VendibleCategoryDTO parentDTO = new VendibleCategoryDTO(parent.getId(),
+						parent.getName(),
+						parentParentId);				
+				response.getCategorias().add(dto);
+				parentOpt = Optional.ofNullable(parent.getParent());
+			}
 		});
 	}
 
