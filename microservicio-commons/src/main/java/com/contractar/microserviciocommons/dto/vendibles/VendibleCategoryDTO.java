@@ -2,7 +2,9 @@ package com.contractar.microserviciocommons.dto.vendibles;
 
 import java.util.Objects;
 
-public class VendibleCategoryDTO {
+import com.contractar.microserviciovendible.models.VendibleCategory;
+
+public class VendibleCategoryDTO implements Comparable<VendibleCategoryDTO>{
 	private Long id;
 	private String name;
 	private Long parentId;
@@ -58,6 +60,22 @@ public class VendibleCategoryDTO {
 	@Override
 	public int hashCode() {
 		return Objects.hash(this.getId(), this.getName());
+	}
+	
+	/**
+	 * If the current category is c's parent, then its lower than c.
+	 */
+	@Override
+	public int compareTo(VendibleCategoryDTO c) {
+		if (this.getId() == c.getId()) {
+			return 0;
+		}
+		
+		if (this.getId() == c.getParentId()) {
+			return -1;
+		}
+		
+		return 1;
 	}
 
 }

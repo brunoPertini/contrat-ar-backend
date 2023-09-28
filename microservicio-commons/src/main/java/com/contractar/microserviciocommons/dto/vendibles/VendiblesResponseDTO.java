@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 
@@ -15,7 +16,7 @@ public class VendiblesResponseDTO {
 	public VendiblesResponseDTO() {
 		this.vendibles = new LinkedHashMap<String, Set<SimplifiedProveedorVendibleDTO>>();
 		this.proveedores = new LinkedHashSet<ProveedorDTO>();
-		this.categorias = new LinkedHashSet<VendibleCategoryDTO>();
+		this.categorias = new TreeSet<VendibleCategoryDTO>();
 	}
 
 	public VendiblesResponseDTO(Map<String, Set<SimplifiedProveedorVendibleDTO>>vendibles, Set<ProveedorDTO> proveedores) {

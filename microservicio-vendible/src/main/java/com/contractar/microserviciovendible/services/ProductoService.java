@@ -24,7 +24,7 @@ public class ProductoService {
 				response.getVendibles().put(producto.getNombre(), proveedoresVendibles);
 			}
 			
-			VendibleHelper.addCategoriaToResponse(producto, response);
+			VendibleHelper.addCategoriasToResponse(producto, response);
 		});
 
 		return response;

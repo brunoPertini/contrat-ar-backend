@@ -23,7 +23,7 @@ public class ServicioService {
 				response.getVendibles().put(servicio.getNombre(), proveedoresVendibles);
 			}
 
-			VendibleHelper.addCategoriaToResponse(servicio, response);
+			VendibleHelper.addCategoriasToResponse(servicio, response);
 		});
 
 		return response;

@@ -37,8 +37,8 @@ public final class VendibleHelper {
 	 * to the frontend to enhance the search.
 	 */
 	public static void addCategoriasToResponse(Vendible vendible, VendiblesResponseDTO response) {
-		// TODO: No agregar a response. Agregarlo a un SET aparte de VendibleCategory, y despues iterar sobre el set ordenado para parsear cada elemento a un DTO
 		Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
+			
 			Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
 			Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
 			VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(),category.getName(), parentId);
@@ -49,7 +49,7 @@ public final class VendibleHelper {
 				VendibleCategoryDTO parentDTO = new VendibleCategoryDTO(parent.getId(),
 						parent.getName(),
 						parentParentId);				
-				response.getCategorias().add(dto);
+				response.getCategorias().add(parentDTO);
 				parentOpt = Optional.ofNullable(parent.getParent());
 			}
 		});
