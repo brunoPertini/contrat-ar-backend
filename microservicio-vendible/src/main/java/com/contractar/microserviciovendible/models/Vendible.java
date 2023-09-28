@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -37,6 +38,17 @@ public class Vendible implements Serializable {
 
 	@OneToMany(mappedBy = "vendible", fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<ProveedorVendible> proveedoresVendibles;
+	
+	@OneToOne
+	private VendibleCategory category;
+
+	public VendibleCategory getCategory() {
+		return category;
+	}
+
+	public void setCategory(VendibleCategory category) {
+		this.category = category;
+	}
 
 	public String getNombre() {
 		return nombre;

@@ -4,16 +4,19 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 
 public class VendiblesResponseDTO {
 	private Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles;
 	private Set<ProveedorDTO> proveedores;
-	
+	private Set<VendibleCategoryDTO> categorias;
+
 	public VendiblesResponseDTO() {
 		this.vendibles = new LinkedHashMap<String, Set<SimplifiedProveedorVendibleDTO>>();
 		this.proveedores = new LinkedHashSet<ProveedorDTO>();
+		this.categorias = new TreeSet<VendibleCategoryDTO>();
 	}
 
 	public VendiblesResponseDTO(Map<String, Set<SimplifiedProveedorVendibleDTO>>vendibles, Set<ProveedorDTO> proveedores) {
@@ -32,5 +35,12 @@ public class VendiblesResponseDTO {
 	}
 	public void setProveedores(Set<ProveedorDTO> proveedores) {
 		this.proveedores = proveedores;
+	}
+	public Set<VendibleCategoryDTO> getCategorias() {
+		return categorias;
+	}
+
+	public void setCategorias(Set<VendibleCategoryDTO> categorias) {
+		this.categorias = categorias;
 	}
 }
