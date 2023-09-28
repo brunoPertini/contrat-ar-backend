@@ -1,5 +1,6 @@
 package com.contractar.microserviciovendible.models;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
@@ -10,7 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
 @Entity
-public class VendibleCategory{
+public class VendibleCategory implements Serializable{
+	private static final long serialVersionUID = 7730485531522553692L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -70,7 +73,7 @@ public class VendibleCategory{
 		if (this.getId() != null) {
 			return this.getId() == category.getId();
 		}
-		return this.getName() != category.getName();
+		return this.getName() == category.getName();
 	}
 
 	@Override

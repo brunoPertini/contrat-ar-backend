@@ -54,7 +54,7 @@ public class VendibleCategoryDTO implements Comparable<VendibleCategoryDTO>{
 		if (this.getId() != null) {
 			return this.getId() == category.getId();
 		}
-		return this.getName() != category.getName();
+		return this.getName() == category.getName();
 	}
 
 	@Override
