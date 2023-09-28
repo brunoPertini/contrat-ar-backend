@@ -22,7 +22,7 @@ public final class VendibleHelper {
 					vendible.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
 			response.getProveedores().add(new ProveedorDTO(proveedor));
-			
+
 			Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
 				proveedorVendibleDTO.setVendibleCategoryId(category.getId());
 			});
@@ -30,25 +30,26 @@ public final class VendibleHelper {
 			return proveedorVendibleDTO;
 		}).collect(Collectors.toSet());
 	}
-	
+
 	/**
-	 * If vendible has a category, its added to the node in response. Given that each Vendible is meant to have a meaningful category,
-	 * the less abstract as it's possible, the method will also look for the vendible category parents and add them, so they're presented 
-	 * to the frontend to enhance the search.
+	 * If vendible has a category, its added to the node in response. Given that
+	 * each Vendible is meant to have a meaningful category, the less abstract as
+	 * it's possible, the method will also look for the vendible category parents
+	 * and add them, so they're presented to the frontend to enhance the search.
 	 */
 	public static void addCategoriasToResponse(Vendible vendible, VendiblesResponseDTO response) {
 		Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
-			
+
 			Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
 			Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
-			VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(),category.getName(), parentId);
+			VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(), category.getName(), parentId);
 			response.getCategorias().add(dto);
 			while (parentOpt.isPresent()) {
 				VendibleCategory parent = parentOpt.get();
-				Long parentParentId = Optional.ofNullable(parent.getParent()).isPresent() ? parent.getParent().getId() : null;
-				VendibleCategoryDTO parentDTO = new VendibleCategoryDTO(parent.getId(),
-						parent.getName(),
-						parentParentId);				
+				Long parentParentId = Optional.ofNullable(parent.getParent()).isPresent() ? parent.getParent().getId()
+						: null;
+				VendibleCategoryDTO parentDTO = new VendibleCategoryDTO(parent.getId(), parent.getName(),
+						parentParentId);
 				response.getCategorias().add(parentDTO);
 				parentOpt = Optional.ofNullable(parent.getParent());
 			}
