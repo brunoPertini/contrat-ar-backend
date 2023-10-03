@@ -32,34 +32,7 @@ public class ProductoService {
 			VendibleHelper.addCategoriasToResponse(producto, response);
 		});
 
-		Comparator<VendibleCategoryDTO> comparator = (c1, c2) -> {
-			boolean someHasNullParentId = c1.getParentId() == null || c2.getParentId() == null;
-			
-			if (!someHasNullParentId) {
-				if (c1.getId().equals(c2.getParentId())) {
-					return -1;
-				} else if (c2.getId().equals(c1.getParentId())){
-					return 1;
-				} else {
-					return 1;
-				}
-			} else {
-				boolean bothHaveNullParentId = c1.getParentId() == null && c2.getParentId() == null;
-				
-				if (bothHaveNullParentId) {
-					return 1;
-				} else {
-					if (c1.getParentId() == null && c2.getParentId() != null) {
-						return -1;
-					} else {
-						return 1;
-					}
-				}
-				
-			}
-		};
-
-		Set<VendibleCategoryDTO> orderedCategories = new TreeSet<VendibleCategoryDTO>(comparator);
+		Set<VendibleCategoryDTO> orderedCategories = new TreeSet<VendibleCategoryDTO>(response);
 		response.getCategorias().forEach(c -> {
 			Set<String> oldNames = orderedCategories.stream().map(cat -> cat.getName()).collect(Collectors.toSet());
 			System.out.println("Estado actual: " + oldNames);

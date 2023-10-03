@@ -8,6 +8,9 @@ public class VendibleCategoryDTO{
 	private Long parentId;
 
 	public VendibleCategoryDTO() {
+		this.id = null;
+		this.name = "";
+		this.parentId = null;
 	}
 
 	public VendibleCategoryDTO(Long id, String name, Long parentId) {
