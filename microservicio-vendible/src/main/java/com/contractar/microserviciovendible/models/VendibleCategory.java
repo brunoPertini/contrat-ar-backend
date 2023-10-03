@@ -3,6 +3,8 @@ package com.contractar.microserviciovendible.models;
 import java.io.Serializable;
 import java.util.Objects;
 
+import com.contractar.microserviciocommons.dto.vendibles.VendibleCategoryDTO;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -69,11 +71,11 @@ public class VendibleCategory implements Serializable{
 		if (obj == null || getClass() != obj.getClass())
 			return false;
 
-		VendibleCategory category = (VendibleCategory) obj;
+		VendibleCategoryDTO category = (VendibleCategoryDTO) obj;
 		if (this.getId() != null) {
-			return this.getId() == category.getId();
+			return this.getId().equals(category.getId());
 		}
-		return this.getName() == category.getName();
+		return this.getName().equals(category.getName());
 	}
 
 	@Override

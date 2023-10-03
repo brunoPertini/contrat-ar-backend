@@ -44,6 +44,7 @@ public final class VendibleHelper {
 			Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
 			VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(), category.getName(), parentId);
 			response.getCategorias().add(dto);
+				
 			while (parentOpt.isPresent()) {
 				VendibleCategory parent = parentOpt.get();
 				Long parentParentId = Optional.ofNullable(parent.getParent()).isPresent() ? parent.getParent().getId()
