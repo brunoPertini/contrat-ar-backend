@@ -1,4 +1,4 @@
-package com.contractar.microserviciocommons.dto.vendibles;
+package com.contractar.microserviciocommons.dto.vendibles.category;
 
 import java.util.Objects;
 

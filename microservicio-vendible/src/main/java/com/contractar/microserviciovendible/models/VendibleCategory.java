@@ -3,7 +3,7 @@ package com.contractar.microserviciovendible.models;
 import java.io.Serializable;
 import java.util.Objects;
 
-import com.contractar.microserviciocommons.dto.vendibles.VendibleCategoryDTO;
+import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
