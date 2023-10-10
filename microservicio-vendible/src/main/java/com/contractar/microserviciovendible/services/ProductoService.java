@@ -26,20 +26,6 @@ public class ProductoService {
 
 			VendibleHelper.addCategoriasToResponse(producto, response);
 		});
-		
-		/*
-		 * System.out.println("Categorias sin ordenar");
-		 * response.getCategorias().forEach(c -> System.out.println(c.getName()));
-		 * 
-		 * Set<VendibleCategoryDTO> orderedCategories = new
-		 * TreeSet<VendibleCategoryDTO>(response);
-		 * response.getCategorias().forEach(category -> {
-		 * System.out.println("Elemento a agregar: " + category.getName());
-		 * orderedCategories.add(category); System.out.println("Estado actual: ");
-		 * orderedCategories.forEach(c -> { System.out.println(c.getName()); }); });
-		 * 
-		 * response.setCategorias(orderedCategories);
-		 */
 		return response;
 	}
 

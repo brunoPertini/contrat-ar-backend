@@ -56,11 +56,11 @@ public class VendibleCategoryDTO{
 		boolean canCompareParents = this.getParentId() != null && category.getParentId() != null;
 		boolean areMainFieldsEqual = this.getId().equals(category.getId()) && this.getName().equals(category.getName());
 		
-		return  canCompareParents ? canCompareParents && areMainFieldsEqual : areMainFieldsEqual;
+		return  canCompareParents ? this.getParentId().equals(category.getParentId()) && areMainFieldsEqual : areMainFieldsEqual;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.getId(), this.getName(), this.getParentId());
+		return Objects.hash(this.getId());
 	}
 }

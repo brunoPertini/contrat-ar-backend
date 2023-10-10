@@ -1,30 +1,30 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
+import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
 
 public class VendiblesResponseDTO {
 	private Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles;
 	private Set<ProveedorDTO> proveedores;
-	private List<CategoryHierarchy> categorias;
+	private Map<VendibleCategoryDTO, CategoryHierarchy> categorias;
 
 	public VendiblesResponseDTO() {
 		this.vendibles = new LinkedHashMap<String, Set<SimplifiedProveedorVendibleDTO>>();
 		this.proveedores = new LinkedHashSet<ProveedorDTO>();
-		this.categorias = new ArrayList<CategoryHierarchy>();
+		this.categorias = new HashMap<VendibleCategoryDTO, CategoryHierarchy>();
 	}
 
 	public VendiblesResponseDTO(Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles,
 			Set<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
 		this.proveedores = proveedores;
-		this.categorias = new ArrayList<CategoryHierarchy>();
+		this.categorias = new HashMap<VendibleCategoryDTO, CategoryHierarchy>();
 	}
 
 	public Map<String, Set<SimplifiedProveedorVendibleDTO>> getVendibles() {
@@ -43,11 +43,11 @@ public class VendiblesResponseDTO {
 		this.proveedores = proveedores;
 	}
 
-	public List<CategoryHierarchy> getCategorias() {
+	public Map<VendibleCategoryDTO, CategoryHierarchy> getCategorias() {
 		return categorias;
 	}
 
-	public void setCategorias(List<CategoryHierarchy> categorias) {
+	public void setCategorias(Map<VendibleCategoryDTO, CategoryHierarchy> categorias) {
 		this.categorias = categorias;
 	}
 }
