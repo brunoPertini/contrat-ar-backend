@@ -19,6 +19,9 @@ import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.models.VendibleCategory;
 
 public final class VendibleHelper {
+	private static VendibleCategoryDTO currentArrayCategory;
+	private static VendibleCategoryDTO nextArrayCategory;
+
 	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
 			Vendible vendible) {
 		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
@@ -45,7 +48,7 @@ public final class VendibleHelper {
 	public static void addCategoriasToResponse(Vendible vendible, VendiblesResponseDTO response) {
 		Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
 			List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
-			
+
 			// Filling array with each Vendible category
 			Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
 			Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
@@ -61,70 +64,83 @@ public final class VendibleHelper {
 				toAddCategories.add(parentDTO);
 				parentOpt = Optional.ofNullable(parent.getParent());
 			}
-					
-			VendibleCategoryDTO rootCategory = toAddCategories.get(toAddCategories.size()-1);
-			VendibleCategoryDTO firstCategory = toAddCategories.get(0);
-			
+
+			VendibleCategoryDTO rootCategory = toAddCategories.get(toAddCategories.size() - 1);
 			boolean isMainCategoryInTree = response.getCategorias().containsKey(rootCategory);
 
 			if (!isMainCategoryInTree) {
-				Optional<Long> expectedParentIdOpt = Optional.ofNullable(rootCategory.getParentId());
-				boolean isCategoryWithoutHierachy = expectedParentIdOpt.isEmpty();
-				
-				if (isCategoryWithoutHierachy) {
-					response.getCategorias().put(rootCategory, new CategoryHierarchy(rootCategory));
-				} else {
-					// Have to construct the hierachy
-					Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
-					CategoryHierarchy currentHierarchy = null;
-					CategoryHierarchy nextHierarchy = null;
-					VendibleCategoryDTO currentElement = rootCategory;
-					
-					while(iterator.hasNext()) {
-						Long expectedParentId = expectedParentIdOpt.get();
-						LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet<CategoryHierarchy>();
-						
-						// Processing hierachy
-						while(iterator.hasNext() && currentElement.getParentId().equals(expectedParentId)) {
-							children.add(new CategoryHierarchy(currentElement));
-							currentElement = iterator.next();
-						}
-						
-						currentHierarchy = new CategoryHierarchy(currentElement, children);
-						nextHierarchy = new CategoryHierarchy(iterator.hasNext() ? iterator.next() : currentElement);
-						nextHierarchy.getChildren().add(currentHierarchy);
-						expectedParentIdOpt = Optional.ofNullable(currentElement.getParentId());
+				// Have to construct the hierachy
+				Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
+				VendibleCategoryDTO firstCategory = iterator.next();
+				Optional<Long> expectedParentIdOpt = Optional.ofNullable(firstCategory.getParentId());
+
+				CategoryHierarchy currentHierarchy = null;
+				CategoryHierarchy nextHierarchy = null;
+				VendibleCategoryDTO currentElement = firstCategory;
+
+				while (iterator.hasNext()) {
+					LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet<CategoryHierarchy>();
+
+					// Processing hierachy
+					while (iterator.hasNext() && expectedParentIdOpt.isPresent()
+							&& currentElement.getParentId().equals(expectedParentIdOpt.get())) {
+						children.add(new CategoryHierarchy(currentElement));
+						currentElement = iterator.next();
 					}
-					
-					response.getCategorias().put(nextHierarchy.getRoot(), nextHierarchy);
-					
+
+					currentHierarchy = new CategoryHierarchy(currentElement, children);
+
+					if (iterator.hasNext()) {
+						nextHierarchy = new CategoryHierarchy(iterator.next());
+						nextHierarchy.getChildren().add(currentHierarchy);
+						response.getCategorias().put(nextHierarchy.getRoot(), nextHierarchy);
+					} else {
+						response.getCategorias().put(currentHierarchy.getRoot(), currentHierarchy);
+					}
+
+					expectedParentIdOpt = Optional.ofNullable(currentElement.getParentId());
 				}
 			} else {
 				Collections.reverse(toAddCategories);
-				Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
+				int i = 0;
 				CategoryHierarchy currentHierarchy = response.getCategorias().get(toAddCategories.get(0));
 				boolean canContinueOverTree = true;
-				VendibleCategoryDTO current = toAddCategories.get(0);
-				
-				while(iterator.hasNext() && currentHierarchy.getRoot().equals(current) && canContinueOverTree) {
-			        current = iterator.next();
-			        int childrenIndex =  
-			        		currentHierarchy
-			        		.getChildren()
-			        		.indexOf(currentHierarchy
-			        		.getChildren()
-			        		.stream()
-			        		.filter(h -> h.getRoot().equals(current))
-			        		.findFirst());
-			        canContinueOverTree = childrenIndex != -1;
-			        if (canContinueOverTree) {
-			        	currentHierarchy = currentHierarchy.children[childrenIndex];
-			        } else {
-			            //
-			        }
-			    }
+
+				while (i < toAddCategories.size()) {
+					boolean arrayNextElementExists = false;
+
+					try {
+						nextArrayCategory = toAddCategories.get(i + 1);
+						arrayNextElementExists = nextArrayCategory != null;
+					} catch (IndexOutOfBoundsException e) {
+						arrayNextElementExists = false;
+						nextArrayCategory = null;
+					}
+
+					Optional<CategoryHierarchy> nextToProcess = !arrayNextElementExists ? Optional.empty()
+							: currentHierarchy
+							.getChildren()
+							.stream()
+							.filter(h -> h.getRoot().equals(nextArrayCategory))
+							.findFirst();
+
+					canContinueOverTree = nextToProcess.isPresent();
+
+					if (canContinueOverTree) {
+						currentHierarchy = nextToProcess.get();
+					} else {
+						if (nextArrayCategory != null) {
+							CategoryHierarchy nextHierachy = new CategoryHierarchy(nextArrayCategory);
+							currentHierarchy.getChildren().add(nextHierachy);
+							currentHierarchy = nextHierachy;
+						}
+					}
+
+					i = i + 1;
+				}
+
 			}
-			
+
 		});
 	}
 
