@@ -19,7 +19,6 @@ import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.models.VendibleCategory;
 
 public final class VendibleHelper {
-	private static VendibleCategoryDTO currentArrayCategory;
 	private static VendibleCategoryDTO nextArrayCategory;
 
 	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
@@ -66,7 +65,7 @@ public final class VendibleHelper {
 			}
 
 			VendibleCategoryDTO rootCategory = toAddCategories.get(toAddCategories.size() - 1);
-			boolean isMainCategoryInTree = response.getCategorias().containsKey(rootCategory);
+			boolean isMainCategoryInTree = response.getCategorias().containsKey(rootCategory.getName());
 
 			if (!isMainCategoryInTree) {
 				// Have to construct the hierachy
@@ -93,9 +92,9 @@ public final class VendibleHelper {
 					if (iterator.hasNext()) {
 						nextHierarchy = new CategoryHierarchy(iterator.next());
 						nextHierarchy.getChildren().add(currentHierarchy);
-						response.getCategorias().put(nextHierarchy.getRoot(), nextHierarchy);
+						response.getCategorias().put(nextHierarchy.getRoot().getName(), nextHierarchy);
 					} else {
-						response.getCategorias().put(currentHierarchy.getRoot(), currentHierarchy);
+						response.getCategorias().put(currentHierarchy.getRoot().getName(), currentHierarchy);
 					}
 
 					expectedParentIdOpt = Optional.ofNullable(currentElement.getParentId());
@@ -103,7 +102,7 @@ public final class VendibleHelper {
 			} else {
 				Collections.reverse(toAddCategories);
 				int i = 0;
-				CategoryHierarchy currentHierarchy = response.getCategorias().get(toAddCategories.get(0));
+				CategoryHierarchy currentHierarchy = response.getCategorias().get(toAddCategories.get(0).getName());
 				boolean canContinueOverTree = true;
 
 				while (i < toAddCategories.size()) {
@@ -117,7 +116,7 @@ public final class VendibleHelper {
 						nextArrayCategory = null;
 					}
 
-					Optional<CategoryHierarchy> nextToProcess = !arrayNextElementExists ? Optional.empty()
+					Optional<CategoryHierarchy> nextToProcess = !arrayNextElementExists || currentHierarchy == null ? Optional.empty()
 							: currentHierarchy
 							.getChildren()
 							.stream()
@@ -129,7 +128,7 @@ public final class VendibleHelper {
 					if (canContinueOverTree) {
 						currentHierarchy = nextToProcess.get();
 					} else {
-						if (nextArrayCategory != null) {
+						if (nextArrayCategory != null && currentHierarchy!= null) {
 							CategoryHierarchy nextHierachy = new CategoryHierarchy(nextArrayCategory);
 							currentHierarchy.getChildren().add(nextHierachy);
 							currentHierarchy = nextHierachy;

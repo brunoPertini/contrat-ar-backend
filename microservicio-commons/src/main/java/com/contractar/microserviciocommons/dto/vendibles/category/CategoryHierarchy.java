@@ -3,6 +3,10 @@ package com.contractar.microserviciocommons.dto.vendibles.category;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.contractar.microserviciocommons.vendibles.CategoriasSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+@JsonSerialize(using = CategoriasSerializer.class)
 public class CategoryHierarchy{
 
 	private VendibleCategoryDTO root;
