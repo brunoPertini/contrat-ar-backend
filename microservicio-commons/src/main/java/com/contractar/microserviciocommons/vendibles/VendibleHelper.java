@@ -13,6 +13,7 @@ import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
+import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy.CategoryHierachyDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Vendible;
@@ -77,24 +78,37 @@ public final class VendibleHelper {
 				CategoryHierarchy nextHierarchy = null;
 				VendibleCategoryDTO currentElement = firstCategory;
 
+				CategoryHierachyDTO currentHierachyDTO;
+				CategoryHierachyDTO nextHierachyDTO;
+
 				while (iterator.hasNext()) {
 					LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet<CategoryHierarchy>();
+					LinkedHashSet<CategoryHierachyDTO> childrenDtos = new LinkedHashSet<CategoryHierachyDTO>();
 
 					// Processing hierachy
 					while (iterator.hasNext() && expectedParentIdOpt.isPresent()
 							&& currentElement.getParentId().equals(expectedParentIdOpt.get())) {
 						children.add(new CategoryHierarchy(currentElement));
+						childrenDtos.add(new CategoryHierachyDTO(currentElement.getName()));
 						currentElement = iterator.next();
 					}
 
 					currentHierarchy = new CategoryHierarchy(currentElement, children);
 
+					currentHierachyDTO = new CategoryHierachyDTO(currentElement.getName(), childrenDtos);
+
 					if (iterator.hasNext()) {
 						nextHierarchy = new CategoryHierarchy(iterator.next());
 						nextHierarchy.getChildren().add(currentHierarchy);
+
+						nextHierachyDTO = new CategoryHierachyDTO(iterator.next().getName());
+						nextHierachyDTO.getChildren().add(currentHierachyDTO);
+
 						response.getCategorias().put(nextHierarchy.getRoot().getName(), nextHierarchy);
+						response.getCategoriasVendibles().put(nextHierarchy.getRoot().getName(), currentHierachyDTO);
 					} else {
 						response.getCategorias().put(currentHierarchy.getRoot().getName(), currentHierarchy);
+						response.getCategoriasVendibles().put(currentHierarchy.getRoot().getName(), currentHierachyDTO);
 					}
 
 					expectedParentIdOpt = Optional.ofNullable(currentElement.getParentId());
@@ -103,6 +117,9 @@ public final class VendibleHelper {
 				Collections.reverse(toAddCategories);
 				int i = 0;
 				CategoryHierarchy currentHierarchy = response.getCategorias().get(toAddCategories.get(0).getName());
+				CategoryHierachyDTO currentHierachyDTO = response.getCategoriasVendibles()
+						.get(toAddCategories.get(0).getName());
+
 				boolean canContinueOverTree = true;
 
 				while (i < toAddCategories.size()) {
@@ -116,22 +133,31 @@ public final class VendibleHelper {
 						nextArrayCategory = null;
 					}
 
-					Optional<CategoryHierarchy> nextToProcess = !arrayNextElementExists || currentHierarchy == null ? Optional.empty()
-							: currentHierarchy
-							.getChildren()
-							.stream()
-							.filter(h -> h.getRoot().equals(nextArrayCategory))
-							.findFirst();
+					Optional<CategoryHierarchy> nextToProcess = !arrayNextElementExists || currentHierarchy == null
+							? Optional.empty()
+							: currentHierarchy.getChildren().stream().filter(h -> h.getRoot().equals(nextArrayCategory))
+									.findFirst();
+
+					Optional<CategoryHierachyDTO> nextToProcessDTO = !arrayNextElementExists
+							|| currentHierachyDTO == null ? Optional.empty()
+									: currentHierachyDTO.getChildren().stream()
+											.filter(h -> h.getRoot().equals(nextArrayCategory.getName())).findFirst();
 
 					canContinueOverTree = nextToProcess.isPresent();
 
 					if (canContinueOverTree) {
 						currentHierarchy = nextToProcess.get();
+						currentHierachyDTO = nextToProcessDTO.get();
 					} else {
-						if (nextArrayCategory != null && currentHierarchy!= null) {
+						if (nextArrayCategory != null && currentHierarchy != null) {
 							CategoryHierarchy nextHierachy = new CategoryHierarchy(nextArrayCategory);
+							CategoryHierachyDTO nextHierachyDTO = new CategoryHierachyDTO(nextArrayCategory.getName());
+
 							currentHierarchy.getChildren().add(nextHierachy);
 							currentHierarchy = nextHierachy;
+
+							currentHierachyDTO.getChildren().add(nextHierachyDTO);
+							currentHierachyDTO = nextHierachyDTO;
 						}
 					}
 
