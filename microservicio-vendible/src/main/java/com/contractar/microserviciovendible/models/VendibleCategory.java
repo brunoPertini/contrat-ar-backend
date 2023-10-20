@@ -71,9 +71,9 @@ public class VendibleCategory implements Serializable{
 
 		VendibleCategory category = (VendibleCategory) obj;
 		if (this.getId() != null) {
-			return this.getId() == category.getId();
+			return this.getId().equals(category.getId());
 		}
-		return this.getName() == category.getName();
+		return this.getName().equals(category.getName());
 	}
 
 	@Override

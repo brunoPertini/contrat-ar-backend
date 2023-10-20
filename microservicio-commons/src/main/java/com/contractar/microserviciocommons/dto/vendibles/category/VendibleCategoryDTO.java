@@ -1,15 +1,16 @@
-package com.contractar.microserviciocommons.dto.vendibles;
+package com.contractar.microserviciocommons.dto.vendibles.category;
 
 import java.util.Objects;
 
-import com.contractar.microserviciovendible.models.VendibleCategory;
-
-public class VendibleCategoryDTO implements Comparable<VendibleCategoryDTO>{
+public class VendibleCategoryDTO{
 	private Long id;
 	private String name;
 	private Long parentId;
 
 	public VendibleCategoryDTO() {
+		this.id = null;
+		this.name = "";
+		this.parentId = null;
 	}
 
 	public VendibleCategoryDTO(Long id, String name, Long parentId) {
@@ -49,33 +50,17 @@ public class VendibleCategoryDTO implements Comparable<VendibleCategoryDTO>{
 
 		if (obj == null || getClass() != obj.getClass())
 			return false;
-
+		
 		VendibleCategoryDTO category = (VendibleCategoryDTO) obj;
-		if (this.getId() != null) {
-			return this.getId() == category.getId();
-		}
-		return this.getName() == category.getName();
+		
+		boolean canCompareParents = this.getParentId() != null && category.getParentId() != null;
+		boolean areMainFieldsEqual = this.getId().equals(category.getId()) && this.getName().equals(category.getName());
+		
+		return  canCompareParents ? this.getParentId().equals(category.getParentId()) && areMainFieldsEqual : areMainFieldsEqual;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.getId(), this.getName());
+		return Objects.hash(this.getId());
 	}
-	
-	/**
-	 * If the current category is c's parent, then its lower than c.
-	 */
-	@Override
-	public int compareTo(VendibleCategoryDTO c) {
-		if (this.getId() == c.getId()) {
-			return 0;
-		}
-		
-		if (this.getId() == c.getParentId()) {
-			return -1;
-		}
-		
-		return 1;
-	}
-
 }

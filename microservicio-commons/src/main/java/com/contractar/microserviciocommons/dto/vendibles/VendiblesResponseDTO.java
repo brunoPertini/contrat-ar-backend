@@ -1,46 +1,52 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
 
 public class VendiblesResponseDTO {
 	private Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles;
 	private Set<ProveedorDTO> proveedores;
-	private Set<VendibleCategoryDTO> categorias;
-
+	private Map<String, CategoryHierarchy> categorias;
+	
 	public VendiblesResponseDTO() {
 		this.vendibles = new LinkedHashMap<String, Set<SimplifiedProveedorVendibleDTO>>();
 		this.proveedores = new LinkedHashSet<ProveedorDTO>();
-		this.categorias = new TreeSet<VendibleCategoryDTO>();
+		this.categorias = new HashMap<String, CategoryHierarchy>();
 	}
 
-	public VendiblesResponseDTO(Map<String, Set<SimplifiedProveedorVendibleDTO>>vendibles, Set<ProveedorDTO> proveedores) {
+	public VendiblesResponseDTO(Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles,
+			Set<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
 		this.proveedores = proveedores;
+		this.categorias = new HashMap<String, CategoryHierarchy>();
 	}
-	
+
 	public Map<String, Set<SimplifiedProveedorVendibleDTO>> getVendibles() {
 		return vendibles;
 	}
+
 	public void setVendibles(Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles) {
 		this.vendibles = vendibles;
 	}
+
 	public Set<ProveedorDTO> getProveedores() {
 		return proveedores;
 	}
+
 	public void setProveedores(Set<ProveedorDTO> proveedores) {
 		this.proveedores = proveedores;
 	}
-	public Set<VendibleCategoryDTO> getCategorias() {
+
+	public Map<String, CategoryHierarchy> getCategorias() {
 		return categorias;
 	}
 
-	public void setCategorias(Set<VendibleCategoryDTO> categorias) {
+	public void setCategorias(Map<String, CategoryHierarchy> categorias) {
 		this.categorias = categorias;
 	}
 }

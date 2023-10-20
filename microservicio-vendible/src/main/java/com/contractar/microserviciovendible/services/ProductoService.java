@@ -15,7 +15,7 @@ public class ProductoService {
 	@Autowired
 	private ProductoRepository productoRepository;
 
-	public VendiblesResponseDTO findByNombreAsc(String nombre) {
+	public VendiblesResponseDTO findByNombreAsc(String nombre) { 
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
 		this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre).stream().forEach(producto -> {
 			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(response,
@@ -23,10 +23,9 @@ public class ProductoService {
 			if (proveedoresVendibles.size() > 0) {
 				response.getVendibles().put(producto.getNombre(), proveedoresVendibles);
 			}
-			
+
 			VendibleHelper.addCategoriasToResponse(producto, response);
 		});
-
 		return response;
 	}
 
