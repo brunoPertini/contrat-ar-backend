@@ -13,7 +13,6 @@ import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
-import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy.CategoryHierachyDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciovendible.models.Vendible;
@@ -22,103 +21,86 @@ import com.contractar.microserviciovendible.models.VendibleCategory;
 public final class VendibleHelper {
 	private static VendibleCategoryDTO nextArrayCategory;
 
-	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
-			Vendible vendible) {
-		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
-			Proveedor proveedor = proveedorVendible.getProveedor();
-			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(
-					vendible.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
-					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
-			response.getProveedores().add(new ProveedorDTO(proveedor));
+	private static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
+		List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
 
-			Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
-				proveedorVendibleDTO.setVendibleCategoryId(category.getId());
-			});
+		// Filling array with each Vendible category
+		Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
+		Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
+		VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(), category.getName(), parentId);
+		toAddCategories.add(dto);
 
-			return proveedorVendibleDTO;
-		}).collect(Collectors.toSet());
+		while (parentOpt.isPresent()) {
+			VendibleCategory parent = parentOpt.get();
+			Long parentParentId = Optional.ofNullable(parent.getParent()).isPresent() ? parent.getParent().getId()
+					: null;
+			VendibleCategoryDTO parentDTO = new VendibleCategoryDTO(parent.getId(), parent.getName(), parentParentId);
+			toAddCategories.add(parentDTO);
+			parentOpt = Optional.ofNullable(parent.getParent());
+		}
+
+		return toAddCategories;
+	}
+
+	private static void createAndInsertCategoryHierachy(VendiblesResponseDTO response,
+			List<VendibleCategoryDTO> toAddCategories) {
+		// Have to construct the hierachy
+		Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
+		VendibleCategoryDTO firstCategory = iterator.next();
+		Optional<Long> expectedParentIdOpt = Optional.ofNullable(firstCategory.getParentId());
+
+		CategoryHierarchy currentHierarchy = null;
+		CategoryHierarchy nextHierarchy = null;
+		VendibleCategoryDTO currentElement = firstCategory;
+
+		while (iterator.hasNext()) {
+			LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet<CategoryHierarchy>();
+
+			// Processing hierachy
+			while (iterator.hasNext() && expectedParentIdOpt.isPresent()
+					&& currentElement.getParentId().equals(expectedParentIdOpt.get())) {
+				children.add(new CategoryHierarchy(currentElement));
+				currentElement = iterator.next();
+			}
+
+			currentHierarchy = new CategoryHierarchy(currentElement, children);
+
+			if (iterator.hasNext()) {
+				nextHierarchy = new CategoryHierarchy(iterator.next());
+				nextHierarchy.getChildren().add(currentHierarchy);
+
+				response.getCategorias().put(nextHierarchy.getRoot().getName(), nextHierarchy);
+			} else {
+				response.getCategorias().put(currentHierarchy.getRoot().getName(), currentHierarchy);
+			}
+
+			expectedParentIdOpt = Optional.ofNullable(currentElement.getParentId());
+		}
 	}
 
 	/**
-	 * If vendible has a category, its pushed to the node in response. Given that
+	 * If vendible has a category, it's pushed to the node in response. Given that
 	 * each Vendible is meant to have a meaningful category, the less abstract as
 	 * it's possible, the method will also look for the vendible category parents
 	 * and add them, so they're presented to the frontend to enhance the search.
 	 */
 	public static void addCategoriasToResponse(Vendible vendible, VendiblesResponseDTO response) {
 		Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
-			List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
-
-			// Filling array with each Vendible category
-			Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
-			Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
-			VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(), category.getName(), parentId);
-			toAddCategories.add(dto);
-
-			while (parentOpt.isPresent()) {
-				VendibleCategory parent = parentOpt.get();
-				Long parentParentId = Optional.ofNullable(parent.getParent()).isPresent() ? parent.getParent().getId()
-						: null;
-				VendibleCategoryDTO parentDTO = new VendibleCategoryDTO(parent.getId(), parent.getName(),
-						parentParentId);
-				toAddCategories.add(parentDTO);
-				parentOpt = Optional.ofNullable(parent.getParent());
-			}
+			List<VendibleCategoryDTO> toAddCategories = fetchHierachyForCategory(category);
 
 			VendibleCategoryDTO rootCategory = toAddCategories.get(toAddCategories.size() - 1);
 			boolean isMainCategoryInTree = response.getCategorias().containsKey(rootCategory.getName());
 
 			if (!isMainCategoryInTree) {
-				// Have to construct the hierachy
-				Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
-				VendibleCategoryDTO firstCategory = iterator.next();
-				Optional<Long> expectedParentIdOpt = Optional.ofNullable(firstCategory.getParentId());
-
-				CategoryHierarchy currentHierarchy = null;
-				CategoryHierarchy nextHierarchy = null;
-				VendibleCategoryDTO currentElement = firstCategory;
-
-				CategoryHierachyDTO currentHierachyDTO;
-				CategoryHierachyDTO nextHierachyDTO;
-
-				while (iterator.hasNext()) {
-					LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet<CategoryHierarchy>();
-					LinkedHashSet<CategoryHierachyDTO> childrenDtos = new LinkedHashSet<CategoryHierachyDTO>();
-
-					// Processing hierachy
-					while (iterator.hasNext() && expectedParentIdOpt.isPresent()
-							&& currentElement.getParentId().equals(expectedParentIdOpt.get())) {
-						children.add(new CategoryHierarchy(currentElement));
-						childrenDtos.add(new CategoryHierachyDTO(currentElement.getName()));
-						currentElement = iterator.next();
-					}
-
-					currentHierarchy = new CategoryHierarchy(currentElement, children);
-
-					currentHierachyDTO = new CategoryHierachyDTO(currentElement.getName(), childrenDtos);
-
-					if (iterator.hasNext()) {
-						nextHierarchy = new CategoryHierarchy(iterator.next());
-						nextHierarchy.getChildren().add(currentHierarchy);
-
-						nextHierachyDTO = new CategoryHierachyDTO(iterator.next().getName());
-						nextHierachyDTO.getChildren().add(currentHierachyDTO);
-
-						response.getCategorias().put(nextHierarchy.getRoot().getName(), nextHierarchy);
-						response.getCategoriasVendibles().put(nextHierarchy.getRoot().getName(), currentHierachyDTO);
-					} else {
-						response.getCategorias().put(currentHierarchy.getRoot().getName(), currentHierarchy);
-						response.getCategoriasVendibles().put(currentHierarchy.getRoot().getName(), currentHierachyDTO);
-					}
-
-					expectedParentIdOpt = Optional.ofNullable(currentElement.getParentId());
-				}
+				createAndInsertCategoryHierachy(response, toAddCategories);
 			} else {
+				// If the main category of the Vendible to be inserted exists, it means that a new CategoryHierachy has to be inserted under it.
+				// This walks through all the category array. While the category exists (the current in the array is a child of the current in the tree),
+				// The algorithm processes the next element at both structures. Once it finds a category in the array that isn't a child of current node in the tree,
+				// it is inserted as one.
 				Collections.reverse(toAddCategories);
 				int i = 0;
 				CategoryHierarchy currentHierarchy = response.getCategorias().get(toAddCategories.get(0).getName());
-				CategoryHierachyDTO currentHierachyDTO = response.getCategoriasVendibles()
-						.get(toAddCategories.get(0).getName());
 
 				boolean canContinueOverTree = true;
 
@@ -138,26 +120,17 @@ public final class VendibleHelper {
 							: currentHierarchy.getChildren().stream().filter(h -> h.getRoot().equals(nextArrayCategory))
 									.findFirst();
 
-					Optional<CategoryHierachyDTO> nextToProcessDTO = !arrayNextElementExists
-							|| currentHierachyDTO == null ? Optional.empty()
-									: currentHierachyDTO.getChildren().stream()
-											.filter(h -> h.getRoot().equals(nextArrayCategory.getName())).findFirst();
-
 					canContinueOverTree = nextToProcess.isPresent();
 
 					if (canContinueOverTree) {
 						currentHierarchy = nextToProcess.get();
-						currentHierachyDTO = nextToProcessDTO.get();
 					} else {
 						if (nextArrayCategory != null && currentHierarchy != null) {
 							CategoryHierarchy nextHierachy = new CategoryHierarchy(nextArrayCategory);
-							CategoryHierachyDTO nextHierachyDTO = new CategoryHierachyDTO(nextArrayCategory.getName());
 
 							currentHierarchy.getChildren().add(nextHierachy);
 							currentHierarchy = nextHierachy;
 
-							currentHierachyDTO.getChildren().add(nextHierachyDTO);
-							currentHierachyDTO = nextHierachyDTO;
 						}
 					}
 
@@ -167,6 +140,23 @@ public final class VendibleHelper {
 			}
 
 		});
+	}
+	
+	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
+			Vendible vendible) {
+		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
+			Proveedor proveedor = proveedorVendible.getProveedor();
+			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(
+					vendible.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
+			response.getProveedores().add(new ProveedorDTO(proveedor));
+
+			Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
+				proveedorVendibleDTO.setVendibleCategoryId(category.getId());
+			});
+
+			return proveedorVendibleDTO;
+		}).collect(Collectors.toSet());
 	}
 
 }

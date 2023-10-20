@@ -3,8 +3,14 @@ package com.contractar.microserviciocommons.dto.vendibles.category;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({"root", "children"})
 public class CategoryHierarchy {
 
+	@JsonIgnore
 	private VendibleCategoryDTO root;
 	private Set<CategoryHierarchy> children;
 
@@ -38,36 +44,10 @@ public class CategoryHierarchy {
 	public void setChildren(Set<CategoryHierarchy> children) {
 		this.children = children;
 	}
-
-	public static class CategoryHierachyDTO {
-		private String root;
-		private Set<CategoryHierachyDTO> children;
-
-		public CategoryHierachyDTO(String root, Set<CategoryHierachyDTO> children) {
-			this.root = root;
-			this.children = children;
-		}
-
-		public CategoryHierachyDTO(String root) {
-			this.root = root;
-			this.children = new LinkedHashSet<CategoryHierachyDTO>();
-		}
-
-		public String getRoot() {
-			return root;
-		}
-
-		public void setRoot(String root) {
-			this.root = root;
-		}
-
-		public Set<CategoryHierachyDTO> getChildren() {
-			return children;
-		}
-
-		public void setChildren(Set<CategoryHierachyDTO> children) {
-			this.children = children;
-		}
+	
+	@JsonProperty("root")
+	public String getRootName() {
+		return root.getName();
 	}
 
 }
