@@ -8,6 +8,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({"root", "children"})
+/**
+ * 
+ *   This class organizes categories following this criteria: 
+ * - Each hierarchy is made of a root element and a set of children, which are also hierarchies.
+ * - The root of the hierarchy is that node which category's parent doesn't exist.
+ * - The nodes without children are the "leaf nodes" of the entire hierarchy. 
+ */
 public class CategoryHierarchy {
 
 	@JsonIgnore

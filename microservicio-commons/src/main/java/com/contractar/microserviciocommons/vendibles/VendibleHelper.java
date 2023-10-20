@@ -21,10 +21,14 @@ import com.contractar.microserviciovendible.models.VendibleCategory;
 public final class VendibleHelper {
 	private static VendibleCategoryDTO nextArrayCategory;
 
+	/**
+	 * 
+	 * @param category
+	 * @return the category hierachy as a List, starting from itself to the highest one, i.e., that without parent (
+	 */
 	private static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
 		List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
 
-		// Filling array with each Vendible category
 		Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
 		Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
 		VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(), category.getName(), parentId);
@@ -42,9 +46,14 @@ public final class VendibleHelper {
 		return toAddCategories;
 	}
 
+	/**
+	 * Receives ordered categories in descending order for inserting them as a new 
+	 * hierachy, where the root element is the first element of the array.
+	 * @param response
+	 * @param toAddCategories
+	 */
 	private static void createAndInsertCategoryHierachy(VendiblesResponseDTO response,
 			List<VendibleCategoryDTO> toAddCategories) {
-		// Have to construct the hierachy
 		Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
 		VendibleCategoryDTO firstCategory = iterator.next();
 		Optional<Long> expectedParentIdOpt = Optional.ofNullable(firstCategory.getParentId());
@@ -56,7 +65,6 @@ public final class VendibleHelper {
 		while (iterator.hasNext()) {
 			LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet<CategoryHierarchy>();
 
-			// Processing hierachy
 			while (iterator.hasNext() && expectedParentIdOpt.isPresent()
 					&& currentElement.getParentId().equals(expectedParentIdOpt.get())) {
 				children.add(new CategoryHierarchy(currentElement));
