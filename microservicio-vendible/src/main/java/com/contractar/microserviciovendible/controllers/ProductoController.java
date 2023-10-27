@@ -53,7 +53,8 @@ public class ProductoController {
 	}
 
 	@GetMapping(VendiblesControllersUrls.GET_PRODUCT)
-	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre) {
-		return new ResponseEntity<VendiblesResponseDTO>(this.productoService.findByNombreAsc(nombre), HttpStatus.OK);
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre,
+			@RequestParam(required = false) String categoryName) {
+		return new ResponseEntity<VendiblesResponseDTO>(this.productoService.findByNombreAsc(nombre, categoryName), HttpStatus.OK);
 	}
 }

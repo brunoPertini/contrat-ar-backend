@@ -25,8 +25,10 @@ import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciovendible.models.VendibleCategory;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
+import com.contractar.microserviciovendible.repository.VendibleCategoryRepository;
 import com.contractar.microserviciovendible.repository.VendibleRepository;
 
 import jakarta.transaction.Transactional;
@@ -41,6 +43,9 @@ public class VendibleService {
 
 	@Autowired
 	private ProductoRepository productoRepository;
+	
+	@Autowired
+	private VendibleCategoryRepository vendibleCategoryRepository;
 
 	@Value("${microservicio-usuario.url}")
 	private String microServicioUsuarioUrl;
@@ -161,5 +166,10 @@ public class VendibleService {
 			return "";
 		}
 
+	}
+	
+	public VendibleCategory findCategoryByName(String name) {
+		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByName(name);
+		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 }
