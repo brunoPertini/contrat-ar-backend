@@ -16,11 +16,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
@@ -30,6 +33,7 @@ import com.contractar.microserviciovendible.repository.ProductoRepository;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
 import com.contractar.microserviciovendible.repository.VendibleCategoryRepository;
 import com.contractar.microserviciovendible.repository.VendibleRepository;
+import com.contractar.microserviciovendible.services.resolvers.VendibleFetchingMethodResolver;
 
 import jakarta.transaction.Transactional;
 
@@ -171,5 +175,21 @@ public class VendibleService {
 	public VendibleCategory findCategoryByName(String name) {
 		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByName(name);
 		return valueOpt.isPresent() ? valueOpt.get() : null;
+	}
+	
+	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName, VendibleFetchingMethodResolver repositoryMethodResolver) { 
+		VendiblesResponseDTO response = new VendiblesResponseDTO();
+		
+		repositoryMethodResolver
+		.getFindByNombreRepositoryMethod(nombre, categoryName)
+		.get().stream().forEach(vendible -> {
+			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(response, vendible);
+			if (proveedoresVendibles.size() > 0) {
+				response.getVendibles().put(vendible.getNombre(), proveedoresVendibles);
+				VendibleHelper.addCategoriasToResponse(vendible, response);
+			}
+		});
+
+		return response;
 	}
 }

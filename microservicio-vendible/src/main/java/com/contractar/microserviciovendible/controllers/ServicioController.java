@@ -20,8 +20,8 @@ import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsExcep
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciovendible.models.Servicio;
-import com.contractar.microserviciovendible.services.ServicioService;
 import com.contractar.microserviciovendible.services.VendibleService;
+import com.contractar.microserviciovendible.services.resolvers.ServicioFetchingMethodResolver;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -29,10 +29,10 @@ import jakarta.validation.constraints.NotBlank;
 @Controller
 public class ServicioController {
 	@Autowired
-	private ServicioService servicioService;
-
-	@Autowired
 	private VendibleService vendibleService;
+	
+	@Autowired
+	private ServicioFetchingMethodResolver servicioFetchingMethodResolver;
 
 	private final String vendibleType = VendibleType.SERVICIO.toString();
 
@@ -53,7 +53,10 @@ public class ServicioController {
 	}
 
 	@GetMapping(VendiblesControllersUrls.GET_SERVICE)
-	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre) {
-		return new ResponseEntity<VendiblesResponseDTO>(this.servicioService.findByNombreAsc(nombre), HttpStatus.OK);
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre,
+			@RequestParam(required = false) String categoryName) {
+		return new ResponseEntity<VendiblesResponseDTO>(this.vendibleService.findByNombreAsc(nombre,
+				categoryName,
+				servicioFetchingMethodResolver), HttpStatus.OK);
 	}
 }

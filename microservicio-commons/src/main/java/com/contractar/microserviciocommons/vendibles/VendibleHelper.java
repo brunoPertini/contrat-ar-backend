@@ -55,35 +55,17 @@ public final class VendibleHelper {
 	private static void createAndInsertCategoryHierachy(VendiblesResponseDTO response,
 			List<VendibleCategoryDTO> toAddCategories) {
 		Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
-		VendibleCategoryDTO firstCategory = iterator.next();
-		Optional<Long> expectedParentIdOpt = Optional.ofNullable(firstCategory.getParentId());
 
-		CategoryHierarchy currentHierarchy = null;
-		CategoryHierarchy nextHierarchy = null;
-		VendibleCategoryDTO currentElement = firstCategory;
+		VendibleCategoryDTO currentElement = iterator.next();
+		CategoryHierarchy currentHierarchy = new CategoryHierarchy(currentElement);
 
 		while (iterator.hasNext()) {
-			LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet<CategoryHierarchy>();
-
-			while (iterator.hasNext() && expectedParentIdOpt.isPresent()
-					&& currentElement.getParentId().equals(expectedParentIdOpt.get())) {
-				children.add(new CategoryHierarchy(currentElement));
-				currentElement = iterator.next();
-			}
-
+			currentElement = iterator.next();
+			LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet(Set.of(currentHierarchy));
 			currentHierarchy = new CategoryHierarchy(currentElement, children);
-
-			if (iterator.hasNext()) {
-				nextHierarchy = new CategoryHierarchy(iterator.next());
-				nextHierarchy.getChildren().add(currentHierarchy);
-
-				response.getCategorias().put(nextHierarchy.getRoot().getName(), nextHierarchy);
-			} else {
-				response.getCategorias().put(currentHierarchy.getRoot().getName(), currentHierarchy);
-			}
-
-			expectedParentIdOpt = Optional.ofNullable(currentElement.getParentId());
 		}
+		
+		response.getCategorias().put(currentHierarchy.getRoot().getName(), currentHierarchy);
 	}
 
 	/**
