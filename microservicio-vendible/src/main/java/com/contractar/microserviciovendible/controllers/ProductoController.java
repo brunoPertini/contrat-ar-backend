@@ -20,8 +20,8 @@ import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsExcep
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import com.contractar.microserviciovendible.models.Producto;
-import com.contractar.microserviciovendible.services.ProductoService;
 import com.contractar.microserviciovendible.services.VendibleService;
+import com.contractar.microserviciovendible.services.resolvers.ProductoFetchingMethodResolver;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -30,9 +30,9 @@ import jakarta.validation.constraints.NotBlank;
 public class ProductoController {
 	@Autowired
 	private VendibleService vendibleService;
-
+	
 	@Autowired
-	private ProductoService productoService;
+	private ProductoFetchingMethodResolver productoFetchingMethodResolver;
 
 	private final String vendibleType = VendibleType.PRODUCTO.toString();
 
@@ -53,7 +53,8 @@ public class ProductoController {
 	}
 
 	@GetMapping(VendiblesControllersUrls.GET_PRODUCT)
-	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre) {
-		return new ResponseEntity<VendiblesResponseDTO>(this.productoService.findByNombreAsc(nombre), HttpStatus.OK);
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre,
+			@RequestParam(required = false) String category) {
+		return new ResponseEntity<VendiblesResponseDTO>(this.vendibleService.findByNombreAsc(nombre, category, productoFetchingMethodResolver), HttpStatus.OK);
 	}
 }
