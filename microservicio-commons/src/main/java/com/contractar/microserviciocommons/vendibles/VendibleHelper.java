@@ -26,7 +26,7 @@ public final class VendibleHelper {
 	 * @param category
 	 * @return the category hierachy as a List, starting from itself to the highest one, i.e., that without parent
 	 */
-	private static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
+	public static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
 		List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
 
 		Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());

@@ -40,4 +40,6 @@ public class VendibleController {
 	public ResponseEntity<String> getVendibleType(@PathVariable("vendibleId") Long id) {
 		return new ResponseEntity<String>(vendibleService.getVendibleTypeById(id), HttpStatusCode.valueOf(200));
 	}
+	
+	// TODO: agregar endpoint para obtener la categoria de un vendible
 }

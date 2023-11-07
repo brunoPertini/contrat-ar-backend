@@ -1,12 +1,14 @@
 package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleUpdateException;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
@@ -14,12 +16,16 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
+import com.contractar.microserviciousuario.repository.customrepositories.ProveedorVendibleCustomRepositoryImpl;
 import com.contractar.microserviciovendible.models.Vendible;
 
 @Service
 public class ProveedorVendibleService {
 	@Autowired
 	private ProveedorVendibleRepository repository;
+	
+	@Autowired
+	private ProveedorVendibleCustomRepositoryImpl proveedorVendibleCustomRepository;
 
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) {
@@ -55,4 +61,9 @@ public class ProveedorVendibleService {
 			throw new VendibleUpdateException();
 		}
 	}
+	
+	public List<SimplifiedVendibleDTO> getProveedorVendiblesInfo(Long proveedorId) {
+		return proveedorVendibleCustomRepository.getProveedorVendiblesInfo(proveedorId);
+	}
+	
 }
