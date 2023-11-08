@@ -47,6 +47,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] productosUrls = {"/product/**"};
 	
 	private final String[] servicesUrls = {"/service/**"};
+	
+	private final String[] proveedorUrls = {"/proveedor/**"};
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -107,6 +109,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(productosUrls).hasAuthority("PROVEEDOR_PRODUCTOS") //TODO: ver porque rompe si no pongo el harcodeo
 				.antMatchers(HttpMethod.POST, servicesUrls).hasAuthority("PROVEEDOR_SERVICIOS")
 				.antMatchers(HttpMethod.POST,vendiblesUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
+				.antMatchers(proveedorUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
