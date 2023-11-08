@@ -28,7 +28,7 @@ public class SimplifiedVendibleDTO extends AbstractProveedorVendibleDTO {
 		this.vendibleId = vendibleId;
 	}
 
-	public List<String> getCategoryName() {
+	public List<String> getCategoryNames() {
 		return categoryNames;
 	}
 

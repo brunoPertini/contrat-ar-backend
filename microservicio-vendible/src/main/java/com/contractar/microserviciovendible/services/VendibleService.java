@@ -1,5 +1,6 @@
 package com.contractar.microserviciovendible.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -175,6 +176,16 @@ public class VendibleService {
 	public VendibleCategory findCategoryByName(String name) {
 		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByName(name);
 		return valueOpt.isPresent() ? valueOpt.get() : null;
+	}
+	
+	public List<String> getCategoryHierachy(String categoryName) {
+		VendibleCategory category = vendibleCategoryRepository.findByName(categoryName)
+				.map(c -> c)
+				.orElseGet(() -> null);
+		return VendibleHelper.fetchHierachyForCategory(category)
+				.stream()
+				.map(cat -> cat.getName())
+				.collect(Collectors.toList());
 	}
 	
 	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName, VendibleFetchingMethodResolver repositoryMethodResolver) { 

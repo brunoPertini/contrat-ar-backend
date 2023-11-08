@@ -1,12 +1,18 @@
 package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
+import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
@@ -26,6 +32,12 @@ public class ProveedorVendibleService {
 	
 	@Autowired
 	private ProveedorVendibleCustomRepositoryImpl proveedorVendibleCustomRepository;
+	
+	@Autowired
+	private RestTemplate httpClient;
+	
+	@Value("${microservicio-vendible.url}")
+	private String SERVICIO_USUARIO_URL;
 
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) {
@@ -62,8 +74,32 @@ public class ProveedorVendibleService {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public List<SimplifiedVendibleDTO> getProveedorVendiblesInfo(Long proveedorId) {
-		return proveedorVendibleCustomRepository.getProveedorVendiblesInfo(proveedorId);
+		List<Object[]> results = proveedorVendibleCustomRepository.getProveedorVendiblesInfo(proveedorId);
+		
+		List<SimplifiedVendibleDTO> simplifiedVendibleDTOs = new ArrayList<SimplifiedVendibleDTO>();
+
+		for (Object[] result : results) {
+			SimplifiedVendibleDTO simplifiedVendibleDTO = new SimplifiedVendibleDTO();
+			
+			String categoryName = (String) result[4];
+			
+			String getVendibleHierachyStringUrl = (SERVICIO_USUARIO_URL + VendiblesControllersUrls.GET_CATEGORY_HIERACHY)
+					.replace("{categoryName}", UriUtils.encodePathSegment(categoryName, "UTF-8"));
+						
+			List<String> categoryNames = httpClient.getForObject(getVendibleHierachyStringUrl, List.class);
+			simplifiedVendibleDTO.setVendibleId((Long) result[0]);
+			simplifiedVendibleDTO.setVendibleNombre((String) result[1]);
+			simplifiedVendibleDTO.setDescripcion((String) result[2]);
+			simplifiedVendibleDTO.setImagenUrl((String) result[3]);
+			simplifiedVendibleDTO.setCategoryNames(categoryNames);
+
+			simplifiedVendibleDTOs.add(simplifiedVendibleDTO);
+		}
+
+		return simplifiedVendibleDTOs;
+
 	}
 	
 }
