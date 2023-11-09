@@ -71,7 +71,7 @@ public class UsuarioController {
 			@RequestParam(required = false) Long id) throws UserNotFoundException {
 		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id);
 
-		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getname(), usuario.getsurname(),
+		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getname(), usuario.getsurname(),
 				usuario.getEmail(), usuario.isActive(), usuario.getlocation(), usuario.getPassword(),
 				new ArrayList<SimpleGrantedAuthority>(), usuario.getRole());
 		return new ResponseEntity<UsuarioOauthDTO>(usuarioOauthDTO, HttpStatus.OK);
