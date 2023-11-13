@@ -15,7 +15,9 @@ import org.springframework.web.util.UriUtils;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleEntityDTO;
 import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
+import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.services.VendibleService;
 
 @Controller
@@ -50,4 +52,12 @@ public class VendibleController {
 		String decodedCategory = UriUtils.decode(categoryName, "UTF-8");
 		return new ResponseEntity<List<String>>(vendibleService.getCategoryHierachy(decodedCategory), HttpStatus.OK);
 	}
+	
+	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_BY_ID)
+	public ResponseEntity<VendibleEntityDTO> getVendibleById(@PathVariable("vendibleId") Long vendibleId) throws VendibleNotFoundException {
+		Vendible vendible = vendibleService.findVendibleEntityById(vendibleId);
+		return new ResponseEntity<VendibleEntityDTO>(new VendibleEntityDTO(vendible.getNombre(),
+				vendible.getCategory()), HttpStatus.OK);
+	}
+	
 }

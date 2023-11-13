@@ -16,8 +16,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
-import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -139,6 +139,11 @@ public class VendibleService {
 		} catch (EmptyResultDataAccessException ex) {
 			throw new VendibleNotFoundException();
 		}
+	}
+	
+	public Vendible findVendibleEntityById(Long vendibleId) throws VendibleNotFoundException {
+		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
+		return vendibleOpt.map(vendible -> vendible).orElseThrow(() -> new VendibleNotFoundException());
 	}
 
 	public VendibleDTO findById(Long vendibleId) throws VendibleNotFoundException {

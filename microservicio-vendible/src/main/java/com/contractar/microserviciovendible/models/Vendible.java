@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 
 import jakarta.persistence.Column;
@@ -23,7 +24,7 @@ import jakarta.validation.constraints.NotBlank;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
-public class Vendible implements Serializable {
+public class Vendible implements Serializable, CategorizableObject {
 
 	private static final long serialVersionUID = -6708815378872073493L;
 
@@ -42,10 +43,12 @@ public class Vendible implements Serializable {
 	@OneToOne
 	private VendibleCategory category;
 
+	@Override
 	public VendibleCategory getCategory() {
 		return category;
 	}
 
+	@Override
 	public void setCategory(VendibleCategory category) {
 		this.category = category;
 	}

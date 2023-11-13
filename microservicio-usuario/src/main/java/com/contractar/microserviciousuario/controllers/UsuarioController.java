@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
-import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;

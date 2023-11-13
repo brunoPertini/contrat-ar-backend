@@ -12,15 +12,14 @@ public class ProveedorVendibleCustomRepositoryImpl implements ProveedorVendibleC
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	public ProveedorVendibleCustomRepositoryImpl() {
-		// TODO Auto-generated constructor stub
-	}
+	public ProveedorVendibleCustomRepositoryImpl() {}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<Object[]> getProveedorVendiblesInfo(Long proveedorId) {
 		final String queryString = "SELECT pv.vendible_id as vendibleId, v.nombre as vendibleNombre,pv.descripcion as descripcion,"
-				+ "pv.imagen_url as imagenUrl, vc.name as categoryName " + "FROM proveedor_vendible pv "
+				+ "pv.imagen_url as imagenUrl, vc.name as categoryName, pv.precio as precio, pv.stock as stock " 
+				+ "FROM proveedor_vendible pv "
 				+ "INNER JOIN vendible v ON (pv.vendible_id = v.vendible_id) "
 				+ "INNER JOIN vendible_category vc ON (v.category_id = vc.id) " + "WHERE(pv.proveedor_id = ?1)";
 
