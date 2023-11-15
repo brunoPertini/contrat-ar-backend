@@ -9,7 +9,6 @@ public class VendibleEntityDTO implements CategorizableObject {
 	public VendibleEntityDTO() {}
 
 	public VendibleEntityDTO(String nombre, VendibleCategory category) {
-		super();
 		this.nombre = nombre;
 		this.category = category;
 	}

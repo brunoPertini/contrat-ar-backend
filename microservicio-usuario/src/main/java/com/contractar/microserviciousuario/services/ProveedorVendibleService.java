@@ -103,8 +103,6 @@ public class ProveedorVendibleService {
 
 			List<String> categoryNames = httpClient.getForObject(getVendibleHierachyStringUrl, List.class);
 			
-			System.out.println(getVendibleStringUrl);
-
 			VendibleEntityDTO vendible = httpClient.getForObject(getVendibleStringUrl, VendibleEntityDTO.class);
 
 			simplifiedVendibleDTO.setVendibleId(vendibleId);
