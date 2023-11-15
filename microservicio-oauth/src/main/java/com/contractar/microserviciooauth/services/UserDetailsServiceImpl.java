@@ -58,6 +58,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			String userRole = userDetails.getRole().getNombre();
 			String indexPage = Optional.ofNullable(IndexPagesRoutes.getAllRoutes().get(userRole))
 					.orElseGet(() -> IndexPagesRoutes.getAllRoutes().get("DEFAULT"));
+			claims.put("id", userDetails.getId());
 			claims.put("role", userRole);
 			claims.put("name", userDetails.getName());
 			claims.put("surname", userDetails.getSurname());

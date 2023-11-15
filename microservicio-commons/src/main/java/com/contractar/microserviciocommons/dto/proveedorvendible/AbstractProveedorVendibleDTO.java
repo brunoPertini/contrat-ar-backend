@@ -1,4 +1,4 @@
-package com.contractar.microserviciocommons.dto.vendibles;
+package com.contractar.microserviciocommons.dto.proveedorvendible;
 
 public abstract class AbstractProveedorVendibleDTO {
 	private String vendibleNombre;

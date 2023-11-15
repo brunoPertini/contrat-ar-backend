@@ -1,4 +1,4 @@
-package com.contractar.microserviciocommons.dto.vendibles;
+package com.contractar.microserviciocommons.dto.proveedorvendible;
 
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 

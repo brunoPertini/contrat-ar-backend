@@ -10,7 +10,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
+import com.contractar.microserviciocommons.dto.vendibles.CategorizableVendiblesResponse;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
 import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
@@ -26,7 +28,7 @@ public final class VendibleHelper {
 	 * @param category
 	 * @return the category hierachy as a List, starting from itself to the highest one, i.e., that without parent
 	 */
-	private static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
+	public static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
 		List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
 
 		Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
@@ -52,7 +54,7 @@ public final class VendibleHelper {
 	 * @param response
 	 * @param toAddCategories
 	 */
-	private static void createAndInsertCategoryHierachy(VendiblesResponseDTO response,
+	private static void createAndInsertCategoryHierachy(CategorizableVendiblesResponse response,
 			List<VendibleCategoryDTO> toAddCategories) {
 		Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
 
@@ -74,7 +76,7 @@ public final class VendibleHelper {
 	 * it's possible, the method will also look for the vendible category parents
 	 * and add them, so they're presented to the frontend to enhance the search.
 	 */
-	public static void addCategoriasToResponse(Vendible vendible, VendiblesResponseDTO response) {
+	public static void addCategoriasToResponse(CategorizableObject vendible, CategorizableVendiblesResponse response) {
 		Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
 			List<VendibleCategoryDTO> toAddCategories = fetchHierachyForCategory(category);
 

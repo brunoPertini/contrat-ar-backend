@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
-import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
@@ -71,7 +71,7 @@ public class UsuarioController {
 			@RequestParam(required = false) Long id) throws UserNotFoundException {
 		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id);
 
-		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getname(), usuario.getsurname(),
+		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getname(), usuario.getsurname(),
 				usuario.getEmail(), usuario.isActive(), usuario.getlocation(), usuario.getPassword(),
 				new ArrayList<SimpleGrantedAuthority>(), usuario.getRole());
 		return new ResponseEntity<UsuarioOauthDTO>(usuarioOauthDTO, HttpStatus.OK);

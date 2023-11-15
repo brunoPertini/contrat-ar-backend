@@ -1,5 +1,6 @@
 package com.contractar.microserviciovendible.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,8 +16,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendibleDTO;
-import com.contractar.microserviciocommons.dto.vendibles.SimplifiedProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -139,6 +140,11 @@ public class VendibleService {
 			throw new VendibleNotFoundException();
 		}
 	}
+	
+	public Vendible findVendibleEntityById(Long vendibleId) throws VendibleNotFoundException {
+		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
+		return vendibleOpt.map(vendible -> vendible).orElseThrow(() -> new VendibleNotFoundException());
+	}
 
 	public VendibleDTO findById(Long vendibleId) throws VendibleNotFoundException {
 		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
@@ -175,6 +181,16 @@ public class VendibleService {
 	public VendibleCategory findCategoryByName(String name) {
 		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByName(name);
 		return valueOpt.isPresent() ? valueOpt.get() : null;
+	}
+	
+	public List<String> getCategoryHierachy(String categoryName) {
+		VendibleCategory category = vendibleCategoryRepository.findByName(categoryName)
+				.map(c -> c)
+				.orElseGet(() -> null);
+		return VendibleHelper.fetchHierachyForCategory(category)
+				.stream()
+				.map(cat -> cat.getName())
+				.collect(Collectors.toList());
 	}
 	
 	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName, VendibleFetchingMethodResolver repositoryMethodResolver) { 

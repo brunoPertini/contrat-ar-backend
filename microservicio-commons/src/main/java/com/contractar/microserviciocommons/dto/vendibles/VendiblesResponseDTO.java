@@ -6,9 +6,10 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
 
-public class VendiblesResponseDTO {
+public class VendiblesResponseDTO implements CategorizableVendiblesResponse{
 	private Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles;
 	private Set<ProveedorDTO> proveedores;
 	private Map<String, CategoryHierarchy> categorias;
@@ -42,10 +43,12 @@ public class VendiblesResponseDTO {
 		this.proveedores = proveedores;
 	}
 
+	@Override
 	public Map<String, CategoryHierarchy> getCategorias() {
 		return categorias;
 	}
 
+	@Override
 	public void setCategorias(Map<String, CategoryHierarchy> categorias) {
 		this.categorias = categorias;
 	}

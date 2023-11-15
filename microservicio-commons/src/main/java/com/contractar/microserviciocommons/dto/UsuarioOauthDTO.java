@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.locationtech.jts.geom.Point;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -14,6 +13,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 public class UsuarioOauthDTO extends User {
 	private static final long serialVersionUID = -5145570701186883068L;
+	
+	private Long id;
+	
 	private String name;
 
 	private String surname;
@@ -31,9 +33,10 @@ public class UsuarioOauthDTO extends User {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 	}
 
-	public UsuarioOauthDTO(String name, String surname, String email, boolean isActive, Point location, String password,
+	public UsuarioOauthDTO(Long id, String name, String surname, String email, boolean isActive, Point location, String password,
 			List<SimpleGrantedAuthority> authorities, Role role) {
 		super(name + surname, password, false, true, true, true, authorities);
+		this.id = id;
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
@@ -88,6 +91,14 @@ public class UsuarioOauthDTO extends User {
 
 	public void setRole(Role role) {
 		this.role = role;
+	}
+	
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 }
