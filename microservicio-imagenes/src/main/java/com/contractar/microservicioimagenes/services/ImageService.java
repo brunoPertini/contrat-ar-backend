@@ -1,4 +1,4 @@
-package com.contractar.microservicioimages.services;
+package com.contractar.microservicioimagenes.services;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
@@ -15,22 +16,34 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.contractar.microservicioimagenes.exceptions.ImageUploadException;
+
 @Service
 public class ImageService {
 
 	@Value("${cdn.location.dev}")
 	private String cdnBaseUrl;
 
-	private String findImageType(String input) {
-		int indiceUltimoSlash = input.lastIndexOf('/');
+	private final String[] acceptedFormats = { "jpg", "jpeg", "png" };
 
-		if (indiceUltimoSlash != -1 && indiceUltimoSlash < input.length() - 1) {
-			return input.substring(indiceUltimoSlash + 1);
+	private String findImageType(String input) {
+		int lastSlashIndex = input.lastIndexOf('/');
+
+		if (lastSlashIndex != -1 && lastSlashIndex < input.length() - 1) {
+			return input.substring(lastSlashIndex + 1);
 		} else {
 			return "";
 		}
 	}
 
+	/**
+	 * Crops image to aspect ratio 1:1
+	 * 
+	 * @param originalBytes
+	 * @param imageFileType
+	 * @return
+	 * @throws IOException
+	 */
 	private byte[] cropToSquare(byte[] originalBytes, String imageFileType) throws IOException {
 		ByteArrayInputStream originalInputStream = new ByteArrayInputStream(originalBytes);
 		BufferedImage originalImage = ImageIO.read(originalInputStream);
@@ -48,8 +61,8 @@ public class ImageService {
 		g.dispose();
 
 		ByteArrayOutputStream croppedOutputStream = new ByteArrayOutputStream();
-				
-		ImageIO.write(croppedImage, "jpeg", croppedOutputStream);
+
+		ImageIO.write(croppedImage, imageFileType, croppedOutputStream);
 
 		return croppedOutputStream.toByteArray();
 	}
@@ -69,26 +82,29 @@ public class ImageService {
 		return filePath;
 	}
 
-	public String saveProveedorVendibleImage(MultipartFile file, Long proveedorId, String vendibleName) {
-		if (!file.isEmpty()) {
-			try {
-				final String UPLOAD_DIR = cdnBaseUrl + File.separator + "proveedores" + File.separator
-						+ proveedorId.toString() + File.separator + vendibleName;
-				byte[] bytes = file.getBytes();
-				
-				String imageFileType = findImageType(file.getContentType());
+	public String saveProveedorVendibleImage(MultipartFile file, Long proveedorId, String vendibleName)
+			throws IOException, ImageUploadException {
+		try {
+			final String UPLOAD_DIR = cdnBaseUrl + File.separator + "proveedores" + File.separator
+					+ proveedorId.toString() + File.separator + vendibleName;
+			byte[] bytes = file.getBytes();
 
-				byte[] croppedBytes = cropToSquare(bytes, imageFileType);
+			String imageFileType = findImageType(file.getContentType());
 
-				String filePath = saveImageToFile(croppedBytes, file.getOriginalFilename(), UPLOAD_DIR);
+			boolean isAcceptedFormat = Arrays.stream(acceptedFormats).anyMatch(format -> format.equals(imageFileType));
 
-				return filePath;
-
-			} catch (Exception e) {
-				return "Error al procesar la imagen.";
+			if (!isAcceptedFormat) {
+				throw new ImageUploadException("");
 			}
-		} else {
-			return "Por favor, selecciona un archivo.";
+
+			byte[] croppedBytes = cropToSquare(bytes, imageFileType);
+
+			String filePath = saveImageToFile(croppedBytes, file.getOriginalFilename(), UPLOAD_DIR);
+
+			return filePath;
+
+		} catch (IOException e) {
+			throw e;
 		}
 	}
 
