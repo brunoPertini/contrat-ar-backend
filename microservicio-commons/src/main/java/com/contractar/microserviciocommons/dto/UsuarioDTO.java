@@ -37,7 +37,6 @@ public class UsuarioDTO {
 
 	public UsuarioDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate, Role role,
 			Point location) {
-		super();
 		this.name = name;
 		this.surname = surname;
 		this.email = email;

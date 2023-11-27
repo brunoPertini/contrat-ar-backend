@@ -94,12 +94,17 @@ public class UsuarioService {
 		throw new UserNotFoundException();
 	}
 
-	public Usuario findById(Long id) throws UserNotFoundException {
+	public Usuario findById(Long id, boolean handleLoginExceptions) throws UserNotFoundException {
 		Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
 		if (usuarioOpt.isPresent()) {
 			return usuarioOpt.get();
 		}
-		throw new UserNotFoundException();
+		
+		if (handleLoginExceptions) {
+			throw new UserNotFoundException();
+		} else {
+			throw new UserNotFoundException("Usuario no encontrado");
+		}
 	}
 
 	public void addVendible(Long vendibleId, Long proveedorId, ProveedorVendible proveedorVendible)
