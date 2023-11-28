@@ -4,6 +4,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -20,10 +21,12 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
+import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 
@@ -49,6 +52,9 @@ public class UsuarioService {
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
+	
+	@Value("${openstreet-api.url}")
+	private String openStreetAPIUrl;
 
 	public Usuario create(Usuario usuario) {
 		return usuarioRepository.save(usuario);
@@ -147,6 +153,17 @@ public class UsuarioService {
 			}
 		} else {
 			throw new VendibleBindingException();
+		}
+	}
+	
+	public Object translateCoordinates(double latitude, double longitude) {
+		String baseUrl = openStreetAPIUrl+ "reverse?lat="+latitude+"&lon="+longitude+"&format=json";
+		try {
+			return httpClient.getForObject(baseUrl, Object.class);
+		} catch (Exception e) {
+			CustomException castedException = (CustomException) e;
+			return new ExceptionFactory().getResponseException(castedException.getMessage(),
+					HttpStatusCode.valueOf(castedException.getStatusCode()));
 		}
 	}
 }

@@ -110,6 +110,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, servicesUrls).hasAuthority("PROVEEDOR_SERVICIOS")
 				.antMatchers(HttpMethod.POST,vendiblesUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
 				.antMatchers(proveedorUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
+				.antMatchers("/geo/**").hasAnyAuthority("CLIENTE", "PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
