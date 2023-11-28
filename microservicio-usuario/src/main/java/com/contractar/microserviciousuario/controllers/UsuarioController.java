@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.dto.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -69,12 +70,25 @@ public class UsuarioController {
 	@GetMapping(UsersControllerUrls.GET_USUARIOS)
 	public ResponseEntity<UsuarioOauthDTO> findByParam(@RequestParam(required = false) String email,
 			@RequestParam(required = false) Long id) throws UserNotFoundException {
-		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id);
+		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id, true);
 
 		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getname(), usuario.getsurname(),
-				usuario.getEmail(), usuario.isActive(), usuario.getlocation(), usuario.getPassword(),
+				usuario.getEmail(), usuario.isActive(), usuario.getPassword(),
 				new ArrayList<SimpleGrantedAuthority>(), usuario.getRole());
 		return new ResponseEntity<UsuarioOauthDTO>(usuarioOauthDTO, HttpStatus.OK);
+	}
+	
+	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
+	public ResponseEntity<UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId) throws UserNotFoundException {
+		Usuario user = this.usuarioService.findById(userId, false);
+		return new ResponseEntity<UsuarioDTO>(new UsuarioDTO(user.getname(),
+				user.getsurname(),
+				user.getEmail(),
+				user.isActive(),
+				user.getBirthDate(),
+				user.getRole(),
+				user.getlocation())
+				, HttpStatus.OK);
 	}
 
 	@SuppressWarnings("rawtypes")

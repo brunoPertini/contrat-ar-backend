@@ -14,7 +14,6 @@ import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.serialization.UserDetailsDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

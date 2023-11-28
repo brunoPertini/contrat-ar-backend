@@ -10,6 +10,11 @@ public class UserNotFoundException extends CustomException{
 		super(message);
 		this.STATUS_CODE = 404;
 	}
+	
+	public UserNotFoundException(String message) {
+		super(message);
+		this.STATUS_CODE = 404;
+	}
 
 	public UserNotFoundException(String message, Throwable err) {
 		super(message, err);
