@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
@@ -119,5 +121,10 @@ public class UsuarioController {
 			@PathVariable Long proveedorId, @Valid @RequestBody ProveedorVendibleUpdateDTO body) throws VendibleNotFoundException, VendibleUpdateException {
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
+	}
+	
+	@GetMapping(GeoControllersUrls.TRANSLATE_COORDINATES)
+	public ResponseEntity<?> translateAddress(@RequestParam("latitude") double latitude, @RequestParam("longitude") double longitude) {
+		return new ResponseEntity<>(this.usuarioService.translateCoordinates(latitude, longitude), HttpStatus.OK);
 	}
 }
