@@ -23,6 +23,9 @@ public class ImageService {
 
 	@Value("${cdn.location.dev}")
 	private String cdnBaseUrl;
+	
+	@Value("${cdn.dir.dev}")
+	private String cdnDir;
 
 	private final String[] acceptedFormats = { "jpg", "jpeg", "png" };
 
@@ -67,7 +70,7 @@ public class ImageService {
 		return croppedOutputStream.toByteArray();
 	}
 
-	private String saveImageToFile(byte[] imageBytes, String fileName, String uploadDir) throws IOException {
+	private void saveImageToFile(byte[] imageBytes, String fileName, String uploadDir) throws IOException {
 		File directory = new File(uploadDir);
 		if (!directory.exists()) {
 			directory.mkdirs();
@@ -79,14 +82,14 @@ public class ImageService {
 			Files.copy(inputStream, new File(filePath).toPath(), StandardCopyOption.REPLACE_EXISTING);
 		}
 
-		return filePath;
 	}
 
 	public String saveProveedorVendibleImage(MultipartFile file, Long proveedorId, String vendibleName)
 			throws IOException, ImageUploadException {
 		try {
-			final String UPLOAD_DIR = cdnBaseUrl + File.separator + "proveedores" + File.separator
+			final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator
 					+ proveedorId.toString() + File.separator + vendibleName;
+			
 			byte[] bytes = file.getBytes();
 
 			String imageFileType = findImageType(file.getContentType());
@@ -98,8 +101,12 @@ public class ImageService {
 			}
 
 			byte[] croppedBytes = cropToSquare(bytes, imageFileType);
+			
+			String fileName = file.getOriginalFilename();
 
-			String filePath = saveImageToFile(croppedBytes, file.getOriginalFilename(), UPLOAD_DIR);
+			saveImageToFile(croppedBytes, fileName , cdnDir + UPLOAD_DIR_TEMPLATE);
+			
+			String filePath = cdnBaseUrl + File.separator + UPLOAD_DIR_TEMPLATE + File.separator + fileName;
 
 			return filePath;
 
