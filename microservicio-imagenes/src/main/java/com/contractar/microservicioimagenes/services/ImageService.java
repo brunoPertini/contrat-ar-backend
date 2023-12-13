@@ -104,7 +104,7 @@ public class ImageService {
 			
 			String fileName = file.getOriginalFilename();
 
-			saveImageToFile(croppedBytes, fileName , cdnDir + UPLOAD_DIR_TEMPLATE);
+			saveImageToFile(croppedBytes, fileName , cdnDir  + File.separator + UPLOAD_DIR_TEMPLATE);
 			
 			String filePath = cdnBaseUrl + File.separator + UPLOAD_DIR_TEMPLATE + File.separator + fileName;
 
