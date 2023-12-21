@@ -2,7 +2,13 @@ package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 
+import org.locationtech.jts.geom.Point;
+
+import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
+import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.contractar.microserviciovendible.models.Vendible;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -45,6 +51,10 @@ public class ProveedorVendible implements Serializable {
 	@MapsId("proveedorId")
 	@JoinColumn(name = "proveedor_id")
 	private Proveedor proveedor;
+	
+	@JsonDeserialize(using = UbicacionDeserializer.class)
+	@JsonSerialize(using = UbicacionSerializer.class)
+	private Point location;
 
 	public ProveedorVendible() {
 	}
@@ -114,5 +124,13 @@ public class ProveedorVendible implements Serializable {
 
 	public void setProveedor(Proveedor proveedor) {
 		this.proveedor = proveedor;
+	}
+	
+	public Point getLocation() {
+		return location;
+	}
+
+	public void setLocation(Point location) {
+		this.location = location;
 	}
 }
