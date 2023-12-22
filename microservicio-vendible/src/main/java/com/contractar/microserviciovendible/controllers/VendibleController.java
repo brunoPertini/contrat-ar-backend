@@ -16,7 +16,7 @@ import org.springframework.web.util.UriUtils;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleEntityDTO;
-import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.services.VendibleService;
 

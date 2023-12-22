@@ -38,6 +38,7 @@ public class ProveedorVendible implements Serializable {
 	@NotBlank
 	private String descripcion;
 
+	@NotBlank
 	private String imagenUrl;
 
 	private int stock;

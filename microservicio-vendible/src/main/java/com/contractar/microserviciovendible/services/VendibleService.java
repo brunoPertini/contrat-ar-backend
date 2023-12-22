@@ -21,8 +21,10 @@ import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProve
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
-import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
-import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
@@ -57,9 +59,12 @@ public class VendibleService {
 
 	@Autowired
 	private RestTemplate restTemplate;
+	
+	@Autowired
+	private SecurityHelper securityHelper;
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
-			throws VendibleAlreadyExistsException, UserNotFoundException {
+			throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
 		try {
 			Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
 					? this.servicioRepository.save(vendible)
@@ -68,6 +73,10 @@ public class VendibleService {
 			boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
 
 			if (proveedorId != null && hasVendibleToLink) {
+				ProveedorVendible firstPv = vendible.getProveedoresVendibles().toArray(new ProveedorVendible[0])[0];
+				if (!securityHelper.isResponseContentTypeValid(firstPv.getImagenUrl(), "image")) {
+					throw new CantCreateException();
+				}
 				ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString())
 						? ProveedorType.SERVICIOS
 						: ProveedorType.PRODUCTOS;
@@ -100,12 +109,11 @@ public class VendibleService {
 
 			return addedVendible;
 
-		} catch (Exception e) {
-			if (e instanceof DataIntegrityViolationException) {
-				throw new VendibleAlreadyExistsException();
-			} else {
-				throw e;
-			}
+		} catch (DataIntegrityViolationException e) {
+			throw new VendibleAlreadyExistsException();
+		}
+		catch (CantCreateException e) {
+			throw e;
 		}
 	}
 

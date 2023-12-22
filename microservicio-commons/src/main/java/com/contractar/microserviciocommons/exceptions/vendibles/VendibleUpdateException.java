@@ -1,4 +1,6 @@
-package com.contractar.microserviciocommons.exceptions;
+package com.contractar.microserviciocommons.exceptions.vendibles;
+
+import com.contractar.microserviciocommons.exceptions.CustomException;
 
 public class VendibleUpdateException extends CustomException{
 

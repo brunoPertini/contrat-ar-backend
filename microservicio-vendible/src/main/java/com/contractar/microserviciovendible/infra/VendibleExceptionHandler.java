@@ -15,9 +15,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.contractar.microserviciocommons.dto.ServicioDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.CustomException;
-import com.contractar.microserviciocommons.exceptions.VendibleAlreadyExistsException;
-import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
-import com.contractar.microserviciocommons.exceptions.VendibleUpdateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.infra.RequestsHelper;
 import jakarta.validation.ConstraintViolationException;
@@ -37,7 +38,7 @@ public class VendibleExceptionHandler extends ResponseEntityExceptionHandler {
 				
 	}
 	
-	@ExceptionHandler(value = { VendibleNotFoundException.class, VendibleAlreadyExistsException.class })
+	@ExceptionHandler(value = { VendibleNotFoundException.class, VendibleAlreadyExistsException.class, CantCreateException.class })
 	public ResponseEntity<Object> handleVendibleOperationsExceptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),
