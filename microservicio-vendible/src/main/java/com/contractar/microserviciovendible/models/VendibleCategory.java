@@ -57,6 +57,10 @@ public class VendibleCategory implements Serializable{
 		this.name = name;
 		this.parent = parent;
 	}
+	
+	public VendibleCategory(String name) {
+		this.name = name;
+	}
 
 	public VendibleCategory(String name, VendibleCategory parent) {
 		this.name = name;

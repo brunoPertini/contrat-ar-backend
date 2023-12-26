@@ -1,5 +1,7 @@
 package com.contractar.microserviciovendible.services;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,6 +22,8 @@ import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendib
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
+import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
+import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
@@ -50,7 +54,7 @@ public class VendibleService {
 
 	@Autowired
 	private ProductoRepository productoRepository;
-	
+
 	@Autowired
 	private VendibleCategoryRepository vendibleCategoryRepository;
 
@@ -59,16 +63,53 @@ public class VendibleService {
 
 	@Autowired
 	private RestTemplate restTemplate;
-	
+
 	@Autowired
 	private SecurityHelper securityHelper;
+
+	@Transactional
+	private VendibleCategory persistCategoryHierachy(VendibleCategory baseCategory) {
+		ArrayList<VendibleCategory> hierachy = new ArrayList<VendibleCategory>();
+		hierachy.add(baseCategory);
+
+		Optional<VendibleCategory> parentOpt = Optional.ofNullable(baseCategory.getParent());
+		while (parentOpt.isPresent()) {
+			VendibleCategory parent = parentOpt.get();
+			hierachy.add(parent);
+			parentOpt = Optional.ofNullable(parent.getParent());
+		}
+
+		Collections.reverse(hierachy);
+
+		boolean hierachyExists = vendibleCategoryRepository.hierachyExists(baseCategory.getId(),
+				hierachy.get(0).getId(), hierachy.get(1).getId());
+
+		if (!hierachyExists) {
+			hierachy.forEach(category -> {
+				vendibleCategoryRepository.save(category);
+			});
+			
+			return vendibleCategoryRepository.findByName(baseCategory.getName()).get();
+		} else {
+			return vendibleCategoryRepository.findByNameAndParent(baseCategory.getName(),
+					vendibleCategoryRepository.findByName(baseCategory.getParent().getName()));
+		}
+
+	}
+
+	@Transactional
+	private Vendible persistVendible(String vendibleType, Vendible vendible) {
+		return vendibleType.equals(VendibleType.SERVICIO.name()) ? this.servicioRepository.save(vendible)
+				: productoRepository.save(vendible);
+	}
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
 			throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
 		try {
-			Vendible addedVendible = vendibleType.equals(VendibleType.SERVICIO.name())
-					? this.servicioRepository.save(vendible)
-					: productoRepository.save(vendible);
+
+			VendibleCategory addedCategory = this.persistCategoryHierachy(vendible.getCategory());
+			vendible.setCategory(addedCategory);
+			Vendible addedVendible = this.persistVendible(vendibleType, vendible);
 
 			boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
 
@@ -111,8 +152,7 @@ public class VendibleService {
 
 		} catch (DataIntegrityViolationException e) {
 			throw new VendibleAlreadyExistsException();
-		}
-		catch (CantCreateException e) {
+		} catch (CantCreateException e) {
 			throw e;
 		}
 	}
@@ -148,7 +188,7 @@ public class VendibleService {
 			throw new VendibleNotFoundException();
 		}
 	}
-	
+
 	public Vendible findVendibleEntityById(Long vendibleId) throws VendibleNotFoundException {
 		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
 		return vendibleOpt.map(vendible -> vendible).orElseThrow(() -> new VendibleNotFoundException());
@@ -185,34 +225,32 @@ public class VendibleService {
 		}
 
 	}
-	
+
 	public VendibleCategory findCategoryByName(String name) {
 		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByName(name);
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
-	
+
 	public List<String> getCategoryHierachy(String categoryName) {
-		VendibleCategory category = vendibleCategoryRepository.findByName(categoryName)
-				.map(c -> c)
+		VendibleCategory category = vendibleCategoryRepository.findByName(categoryName).map(c -> c)
 				.orElseGet(() -> null);
-		return VendibleHelper.fetchHierachyForCategory(category)
-				.stream()
-				.map(cat -> cat.getName())
+		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())
 				.collect(Collectors.toList());
 	}
-	
-	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName, VendibleFetchingMethodResolver repositoryMethodResolver) { 
+
+	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName,
+			VendibleFetchingMethodResolver repositoryMethodResolver) {
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
-		
-		repositoryMethodResolver
-		.getFindByNombreRepositoryMethod(nombre, categoryName)
-		.get().stream().forEach(vendible -> {
-			Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(response, vendible);
-			if (proveedoresVendibles.size() > 0) {
-				response.getVendibles().put(vendible.getNombre(), proveedoresVendibles);
-				VendibleHelper.addCategoriasToResponse(vendible, response);
-			}
-		});
+
+		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryName).get().stream()
+				.forEach(vendible -> {
+					Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper
+							.getProveedoresVendibles(response, vendible);
+					if (proveedoresVendibles.size() > 0) {
+						response.getVendibles().put(vendible.getNombre(), proveedoresVendibles);
+						VendibleHelper.addCategoriasToResponse(vendible, response);
+					}
+				});
 
 		return response;
 	}
