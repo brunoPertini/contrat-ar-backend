@@ -15,8 +15,9 @@ import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendib
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleEntityDTO;
-import com.contractar.microserviciocommons.exceptions.VendibleNotFoundException;
-import com.contractar.microserviciocommons.exceptions.VendibleUpdateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
+import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -36,6 +37,9 @@ public class ProveedorVendibleService {
 
 	@Autowired
 	private RestTemplate httpClient;
+	
+	@Autowired
+	private SecurityHelper securityHelper;
 
 	@Value("${microservicio-vendible.url}")
 	private String SERVICIO_VENDIBLE_URL;
@@ -59,6 +63,10 @@ public class ProveedorVendibleService {
 
 	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData)
 			throws VendibleNotFoundException, VendibleUpdateException {
+		if (!securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
+			throw new VendibleUpdateException();
+		}
+		
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.repository.findById(id).orElseThrow(() -> new VendibleNotFoundException());
 

@@ -24,8 +24,8 @@ import com.contractar.microserviciocommons.constants.controllers.VendiblesContro
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
-import com.contractar.microserviciocommons.exceptions.VendibleAlreadyBindedException;
-import com.contractar.microserviciocommons.exceptions.VendibleBindingException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleType;

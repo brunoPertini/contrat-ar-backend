@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 public class VendibleCategory implements Serializable{
@@ -19,6 +20,7 @@ public class VendibleCategory implements Serializable{
 	private Long id;
 	
 	@Column(length = 200)
+	@NotBlank
 	private String name;
 	
 	@OneToOne(optional = true)
