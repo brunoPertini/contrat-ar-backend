@@ -22,8 +22,6 @@ import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendib
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
-import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
-import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
@@ -66,9 +64,12 @@ public class VendibleService {
 
 	@Autowired
 	private SecurityHelper securityHelper;
+	
+	private static final int CATEGORY_BOUND = 3;
+	
 
 	@Transactional
-	private VendibleCategory persistCategoryHierachy(VendibleCategory baseCategory) {
+	private VendibleCategory persistCategoryHierachy(VendibleCategory baseCategory) throws CantCreateException {
 		ArrayList<VendibleCategory> hierachy = new ArrayList<VendibleCategory>();
 		hierachy.add(baseCategory);
 
@@ -78,11 +79,20 @@ public class VendibleService {
 			hierachy.add(parent);
 			parentOpt = Optional.ofNullable(parent.getParent());
 		}
+		
+		if (hierachy.size() > CATEGORY_BOUND) {
+			throw new CantCreateException();
+		}
 
-		Collections.reverse(hierachy);
+		Collections.reverse(hierachy);		
+	
+		String firstParentName = 1 < hierachy.size() ? hierachy.get(1).getName() : null;
+		String secondParentName = 2 < hierachy.size() ? hierachy.get(2).getName() : null;
+		
 
-		boolean hierachyExists = vendibleCategoryRepository.hierachyExists(baseCategory.getId(),
-				hierachy.get(0).getId(), hierachy.get(1).getId());
+		boolean hierachyExists =  vendibleCategoryRepository.getHierachyCount(baseCategory.getName(),
+				firstParentName,
+				secondParentName) != 0;
 
 		if (!hierachyExists) {
 			hierachy.forEach(category -> {
@@ -91,8 +101,12 @@ public class VendibleService {
 			
 			return vendibleCategoryRepository.findByName(baseCategory.getName()).get();
 		} else {
-			return vendibleCategoryRepository.findByNameAndParent(baseCategory.getName(),
-					vendibleCategoryRepository.findByName(baseCategory.getParent().getName()));
+			boolean hasParent = baseCategory.getParent() != null;
+			String baseCategoryName = baseCategory.getName();
+			
+			return hasParent ? vendibleCategoryRepository.findByNameAndParent(baseCategoryName, 
+					vendibleCategoryRepository.findByName(baseCategory.getParent().getName()).get())
+					: vendibleCategoryRepository.findByName(baseCategoryName).get();
 		}
 
 	}
@@ -106,6 +120,11 @@ public class VendibleService {
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
 			throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
 		try {
+			
+			if (Optional.ofNullable(vendible.getCategory()).isEmpty()
+					|| Optional.ofNullable(vendible.getCategory().getName()).isEmpty()) {
+				throw new CantCreateException();
+			}
 
 			VendibleCategory addedCategory = this.persistCategoryHierachy(vendible.getCategory());
 			vendible.setCategory(addedCategory);
