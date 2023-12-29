@@ -65,6 +65,8 @@ public class VendibleService {
 	@Autowired
 	private SecurityHelper securityHelper;
 	
+	private VendibleCategory categoryParentAux;
+	
 	private static final int CATEGORY_BOUND = 3;
 	
 
@@ -84,29 +86,53 @@ public class VendibleService {
 			throw new CantCreateException();
 		}
 
+		// Reversing so later can be persisted in an order that respect the database constraints
 		Collections.reverse(hierachy);		
 	
+		String baseCategoryName = baseCategory.getName();
 		String firstParentName = 1 < hierachy.size() ? hierachy.get(1).getName() : null;
 		String secondParentName = 2 < hierachy.size() ? hierachy.get(2).getName() : null;
 		
+		boolean isLastParentEmpty = secondParentName == null;
+		
+		boolean shouldNotCheckForParents = firstParentName == null && isLastParentEmpty;
+		
+		if (shouldNotCheckForParents) {
+			Optional<VendibleCategory> baseCategoryOpt = vendibleCategoryRepository.findByNameIgnoreCase(baseCategory.getName());
+			if (baseCategoryOpt.isPresent()) {
+				return baseCategoryOpt.get();
+			}
+			return vendibleCategoryRepository.save(baseCategory);
+		}		 
 
 		boolean hierachyExists =  vendibleCategoryRepository.getHierachyCount(baseCategory.getName(),
 				firstParentName,
 				secondParentName) != 0;
 
 		if (!hierachyExists) {
+			categoryParentAux = null;
 			hierachy.forEach(category -> {
-				vendibleCategoryRepository.save(category);
+				Optional<VendibleCategory> categoryOpt = vendibleCategoryRepository.findByNameIgnoreCase(category.getName());
+				boolean isCategoryPersisted = categoryOpt.isPresent();
+				if (!isCategoryPersisted) {
+					category.setParent(categoryParentAux);
+					categoryParentAux = vendibleCategoryRepository.save(category);
+				} else {
+					// ACTUALIZAR PADRE DE CATEGORY CON CATEGORY_PARENT_AUX, Y ACTUALIZARLO EN LA BASE DE DATOS
+					categoryParentAux = categoryOpt.get();
+				}
 			});
 			
-			return vendibleCategoryRepository.findByName(baseCategory.getName()).get();
+			return vendibleCategoryRepository.findByNameIgnoreCase(baseCategoryName).get();
 		} else {
 			boolean hasParent = baseCategory.getParent() != null;
-			String baseCategoryName = baseCategory.getName();
 			
-			return hasParent ? vendibleCategoryRepository.findByNameAndParent(baseCategoryName, 
-					vendibleCategoryRepository.findByName(baseCategory.getParent().getName()).get())
-					: vendibleCategoryRepository.findByName(baseCategoryName).get();
+			return hasParent ? vendibleCategoryRepository.findByNameIgnoreCaseAndParentName(baseCategoryName,
+					baseCategory
+					.getParent()
+					.getName())
+					.get()
+					: vendibleCategoryRepository.findByNameIgnoreCase(baseCategoryName).get();
 		}
 
 	}
@@ -246,12 +272,12 @@ public class VendibleService {
 	}
 
 	public VendibleCategory findCategoryByName(String name) {
-		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByName(name);
+		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByNameIgnoreCase(name);
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 
 	public List<String> getCategoryHierachy(String categoryName) {
-		VendibleCategory category = vendibleCategoryRepository.findByName(categoryName).map(c -> c)
+		VendibleCategory category = vendibleCategoryRepository.findByNameIgnoreCase(categoryName).map(c -> c)
 				.orElseGet(() -> null);
 		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())
 				.collect(Collectors.toList());
