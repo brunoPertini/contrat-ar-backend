@@ -26,6 +26,7 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciocommons.helpers.StringHelper;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
@@ -90,10 +91,14 @@ public class VendibleService {
 		Collections.reverse(hierachy);		
 	
 		String baseCategoryName = baseCategory.getName();
-		String firstParentName = 1 < hierachy.size() ? hierachy.get(1).getName() : null;
-		String secondParentName = 2 < hierachy.size() ? hierachy.get(2).getName() : null;
 		
-		boolean isLastParentEmpty = secondParentName == null;
+		
+		int firstParentIndex;
+		int secondParentIndex;
+		
+		String firstParentName = firstParentIndex < hierachy.size() ? hierachy.get(firstParentIndex).getName() : null;
+		String secondParentName = secondParentIndex < hierachy.size() ? hierachy.get(secondParentIndex).getName() : null;
+		
 		
 		boolean shouldNotCheckForParents = firstParentName == null && isLastParentEmpty;
 		
@@ -101,7 +106,9 @@ public class VendibleService {
 			Optional<VendibleCategory> baseCategoryOpt = vendibleCategoryRepository.findByNameIgnoreCase(baseCategory.getName());
 			if (baseCategoryOpt.isPresent()) {
 				return baseCategoryOpt.get();
+				
 			}
+			baseCategory.setName(StringHelper.toUpperCamelCase(baseCategory.getName()));
 			return vendibleCategoryRepository.save(baseCategory);
 		}		 
 
@@ -112,28 +119,37 @@ public class VendibleService {
 		if (!hierachyExists) {
 			categoryParentAux = null;
 			hierachy.forEach(category -> {
-				Optional<VendibleCategory> categoryOpt = vendibleCategoryRepository.findByNameIgnoreCase(category.getName());
+				boolean categoryHasParent = category.getParent() != null;
+				Optional<VendibleCategory> categoryOpt = categoryHasParent ? 
+						vendibleCategoryRepository.findByNameIgnoreCaseAndParentName(category.getName(), category.getParent().getName())
+						: vendibleCategoryRepository.findByNameIgnoreCase(category.getName());
 				boolean isCategoryPersisted = categoryOpt.isPresent();
+				category.setName(StringHelper.toUpperCamelCase(category.getName()));
+				category.setParent(categoryParentAux);
+				
 				if (!isCategoryPersisted) {
-					category.setParent(categoryParentAux);
 					categoryParentAux = vendibleCategoryRepository.save(category);
 				} else {
-					// ACTUALIZAR PADRE DE CATEGORY CON CATEGORY_PARENT_AUX, Y ACTUALIZARLO EN LA BASE DE DATOS
-					categoryParentAux = categoryOpt.get();
+					boolean newCategoryHasDifferentParent = !categoryOpt.get()	
+							.getParent()
+							.equals(category.getParent());
+					
+					if (newCategoryHasDifferentParent) {
+						categoryParentAux = vendibleCategoryRepository.save(category);
+					}
 				}
 			});
 			
-			return vendibleCategoryRepository.findByNameIgnoreCase(baseCategoryName).get();
-		} else {
-			boolean hasParent = baseCategory.getParent() != null;
-			
-			return hasParent ? vendibleCategoryRepository.findByNameIgnoreCaseAndParentName(baseCategoryName,
-					baseCategory
-					.getParent()
-					.getName())
-					.get()
-					: vendibleCategoryRepository.findByNameIgnoreCase(baseCategoryName).get();
-		}
+		} 
+		
+		boolean hasParent = baseCategory.getParent() != null;
+		
+		return hasParent ? vendibleCategoryRepository.findByNameIgnoreCaseAndParentName(baseCategoryName,
+				baseCategory
+				.getParent()
+				.getName())
+				.get()
+				: vendibleCategoryRepository.findByNameIgnoreCase(baseCategoryName).get();
 
 	}
 
