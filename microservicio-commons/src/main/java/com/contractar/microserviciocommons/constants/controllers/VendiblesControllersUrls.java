@@ -23,4 +23,5 @@ public class VendiblesControllersUrls {
 	public static final String GET_VENDIBLE_TYPE = "/vendible/{vendibleId}/vendible_type";
 	
 	public static final String GET_CATEGORY_HIERACHY = "/vendible/category/{categoryName}";
+
 }

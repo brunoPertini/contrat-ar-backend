@@ -20,6 +20,7 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "vendible_type", discriminatorType = DiscriminatorType.STRING)
@@ -41,6 +42,7 @@ public class Vendible implements Serializable, CategorizableObject {
 	private Set<ProveedorVendible> proveedoresVendibles;
 	
 	@OneToOne
+	@NotNull
 	private VendibleCategory category;
 
 	@Override

@@ -34,7 +34,7 @@ public class VendibleCategory implements Serializable{
 		this.id = id;
 	}
 
-	public String getName() {
+	public String getName() {	
 		return name;
 	}
 
@@ -56,6 +56,10 @@ public class VendibleCategory implements Serializable{
 		this.id = id;
 		this.name = name;
 		this.parent = parent;
+	}
+	
+	public VendibleCategory(String name) {
+		this.name = name;
 	}
 
 	public VendibleCategory(String name, VendibleCategory parent) {
