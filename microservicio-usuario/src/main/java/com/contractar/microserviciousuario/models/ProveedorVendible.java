@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.contractar.microserviciovendible.models.Vendible;
@@ -12,6 +13,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -34,6 +37,10 @@ public class ProveedorVendible implements Serializable {
 
 	@NotNull
 	private int precio;
+	
+	@Enumerated(EnumType.STRING)
+	@NotNull
+	private PriceTypeValue tipoPrecio;
 
 	@NotBlank
 	private String descripcion;
@@ -61,7 +68,7 @@ public class ProveedorVendible implements Serializable {
 	}
 
 	public ProveedorVendible(ProveedorVendibleId id, @NotNull int precio, @NotBlank String descripcion,
-			String imagenUrl, int stock, Vendible vendible, Proveedor proveedor) {
+			String imagenUrl, int stock, Vendible vendible, Proveedor proveedor, PriceTypeValue tipoPrecio) {
 		this.id = id;
 		this.precio = precio;
 		this.descripcion = descripcion;
@@ -69,6 +76,7 @@ public class ProveedorVendible implements Serializable {
 		this.stock = stock;
 		this.vendible = vendible;
 		this.proveedor = proveedor;
+		this.tipoPrecio = tipoPrecio;
 	}
 
 	public ProveedorVendibleId getId() {
@@ -133,5 +141,13 @@ public class ProveedorVendible implements Serializable {
 
 	public void setLocation(Point location) {
 		this.location = location;
+	}
+	
+	public PriceTypeValue getTipoPrecio() {
+		return tipoPrecio;
+	}
+
+	public void setTipoPrecio(PriceTypeValue tipoPrecio) {
+		this.tipoPrecio = tipoPrecio;
 	}
 }
