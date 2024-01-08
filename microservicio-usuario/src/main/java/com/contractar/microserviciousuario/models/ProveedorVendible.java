@@ -11,6 +11,7 @@ import com.contractar.microserviciovendible.models.Vendible;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -63,6 +64,10 @@ public class ProveedorVendible implements Serializable {
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
+	
+	@NotNull
+	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
+	private boolean offersDelivery;
 
 	public ProveedorVendible() {
 	}
@@ -149,5 +154,13 @@ public class ProveedorVendible implements Serializable {
 
 	public void setTipoPrecio(PriceTypeValue tipoPrecio) {
 		this.tipoPrecio = tipoPrecio;
+	}
+	
+	public boolean getOffersDelivery() {
+		return offersDelivery;
+	}
+
+	public void setOffersDelivery(boolean offersDelivery) {
+		this.offersDelivery = offersDelivery;
 	}
 }

@@ -13,6 +13,8 @@ import com.contractar.microserviciovendible.models.Vendible;
 public interface VendibleRepository extends CrudRepository<Vendible, Long>{
 	public Optional<Vendible> findById(Long id);
 	
+	public Optional<Vendible> findByNombre(String nombre);
+	
 	@Query(value = "DELETE FROM proveedor_vendible WHERE vendible_id=:vendibleId", nativeQuery = true)
     @Modifying
     @Transactional

@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
-import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.helpers.StringHelper;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
@@ -176,7 +174,7 @@ public class VendibleService {
 	}
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
-			throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
+			throws UserNotFoundException, CantCreateException {
 		try {
 			
 			if (Optional.ofNullable(vendible.getCategory()).isEmpty()
@@ -186,8 +184,14 @@ public class VendibleService {
 
 			VendibleCategory addedCategory = this.persistCategoryHierachy(vendible.getCategory());
 			vendible.setCategory(addedCategory);
-			Vendible addedVendible = this.persistVendible(vendibleType, vendible);
-
+			Vendible addedVendible;
+			
+			try {
+				addedVendible = this.findVendibleEntityByNombre(vendible.getNombre());
+			} catch (VendibleNotFoundException e) {
+				addedVendible = this.persistVendible(vendibleType, vendible);
+			}
+			
 			boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
 
 			if (proveedorId != null && hasVendibleToLink) {
@@ -227,8 +231,6 @@ public class VendibleService {
 
 			return addedVendible;
 
-		} catch (DataIntegrityViolationException e) {
-			throw new VendibleAlreadyExistsException();
 		} catch (CantCreateException e) {
 			throw e;
 		}
@@ -270,7 +272,12 @@ public class VendibleService {
 		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
 		return vendibleOpt.map(vendible -> vendible).orElseThrow(() -> new VendibleNotFoundException());
 	}
-
+	
+	public Vendible findVendibleEntityByNombre(String nombre) throws VendibleNotFoundException {
+		Optional<Vendible> vendibleOpt = vendibleRepository.findByNombre(nombre);
+		return vendibleOpt.map(vendible -> vendible).orElseThrow(() -> new VendibleNotFoundException());
+	}
+	
 	public VendibleDTO findById(Long vendibleId) throws VendibleNotFoundException {
 		Optional<Vendible> vendibleOpt = vendibleRepository.findById(vendibleId);
 		if (vendibleOpt.isPresent()) {
