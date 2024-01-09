@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @Component
+@Deprecated
 public class ProveedorVendibleCustomRepositoryImpl implements ProveedorVendibleCustomRepository {
 
 	@PersistenceContext

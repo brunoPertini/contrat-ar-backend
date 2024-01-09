@@ -14,7 +14,6 @@ import com.contractar.microserviciocommons.constants.controllers.VendiblesContro
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
-import com.contractar.microserviciocommons.dto.vendibles.VendibleEntityDTO;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
@@ -24,16 +23,12 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
-import com.contractar.microserviciousuario.repository.customrepositories.ProveedorVendibleCustomRepositoryImpl;
 import com.contractar.microserviciovendible.models.Vendible;
 
 @Service
 public class ProveedorVendibleService {
 	@Autowired
 	private ProveedorVendibleRepository repository;
-
-	@Autowired
-	private ProveedorVendibleCustomRepositoryImpl proveedorVendibleCustomRepository;
 
 	@Autowired
 	private RestTemplate httpClient;
@@ -85,43 +80,28 @@ public class ProveedorVendibleService {
 
 	@SuppressWarnings("unchecked")
 	public ProveedorVendiblesResponseDTO getProveedorVendiblesInfo(Long proveedorId) {
-		List<Object[]> results = proveedorVendibleCustomRepository.getProveedorVendiblesInfo(proveedorId);
+		List<ProveedorVendible> results = repository.getProveedorVendibleInfo(proveedorId);
 
 		ProveedorVendiblesResponseDTO response = new ProveedorVendiblesResponseDTO();
 
-		for (Object[] result : results) {
+		for (ProveedorVendible pv: results) {
 			SimplifiedVendibleDTO simplifiedVendibleDTO = new SimplifiedVendibleDTO();
-
-			Long vendibleId = (Long) result[0];
-
-			String imagenUrl = (String) result[3];
-
-			String categoryName = (String) result[4];
-
-			int precio = (int) result[5];
-
-			int stock = (int) result[6];
 
 			String getVendibleHierachyStringUrl = (SERVICIO_VENDIBLE_URL
 					+ VendiblesControllersUrls.GET_CATEGORY_HIERACHY)
-					.replace("{categoryName}", UriUtils.encodePathSegment(categoryName, "UTF-8"));
-
-			String getVendibleStringUrl = (SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.GET_VENDIBLE_BY_ID)
-					.replace("{vendibleId}", UriUtils.encodePathSegment(vendibleId.toString(), "UTF-8"));
+					.replace("{categoryName}", UriUtils.encodePathSegment(pv.getCategory().getName(), "UTF-8"));
 
 			List<String> categoryNames = httpClient.getForObject(getVendibleHierachyStringUrl, List.class);
-			
-			VendibleEntityDTO vendible = httpClient.getForObject(getVendibleStringUrl, VendibleEntityDTO.class);
 
-			simplifiedVendibleDTO.setVendibleId(vendibleId);
-			simplifiedVendibleDTO.setVendibleNombre(vendible.getNombre());
-			simplifiedVendibleDTO.setDescripcion((String) result[2]);
-			simplifiedVendibleDTO.setImagenUrl(StringUtils.isEmpty(imagenUrl) ? null : imagenUrl);
+			simplifiedVendibleDTO.setVendibleId(pv.getVendible().getId());
+			simplifiedVendibleDTO.setVendibleNombre(pv.getVendible().getNombre());
+			simplifiedVendibleDTO.setDescripcion(pv.getDescripcion());
+			simplifiedVendibleDTO.setImagenUrl(StringUtils.isEmpty(pv.getImagenUrl()) ? null : pv.getImagenUrl());
 			simplifiedVendibleDTO.setCategoryNames(categoryNames);
-			simplifiedVendibleDTO.setPrecio(precio);
-			simplifiedVendibleDTO.setStock(stock);
+			simplifiedVendibleDTO.setPrecio(pv.getPrecio());
+			simplifiedVendibleDTO.setStock(pv.getStock());
 			
-			VendibleHelper.addCategoriasToResponse(vendible, response);
+			VendibleHelper.addCategoriasToResponse(pv, response);
 
 			response.getVendibles().add(simplifiedVendibleDTO);
 		}
