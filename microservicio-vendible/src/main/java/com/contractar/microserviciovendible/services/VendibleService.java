@@ -135,7 +135,6 @@ public class VendibleService {
 				boolean categoryHasParent = category.getParent() != null;
 				Optional<VendibleCategory> grandParentOpt = Optional.ofNullable(category.getParent())
 						.map(VendibleCategory::getParent);
-				;
 				Optional<VendibleCategory> categoryOpt = categoryHasParent
 						? Optional.ofNullable(vendibleCategoryRepository.findByHierarchy(category.getName(),
 								category.getParent().getName(),
