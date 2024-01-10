@@ -15,9 +15,7 @@ public class VendiblesControllersUrls {
 	public static final String MODIFY_PRODUCT = "/product/{vendibleId}";
 	
 	public static final String MODIFY_SERVICE = "/service/{vendibleId}";
-	
-	public static final String GET_VENDIBLE_BY_ID = "/vendible/{vendibleId}";
-	
+		
 	public static final String DELETE_VENDIBLE = "/vendible/{vendibleId}";
 	
 	public static final String GET_VENDIBLE_TYPE = "/vendible/{vendibleId}/vendible_type";

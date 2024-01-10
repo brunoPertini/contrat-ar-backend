@@ -5,12 +5,15 @@ import java.io.Serializable;
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
+import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciovendible.models.VendibleCategory;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,6 +22,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -29,7 +33,7 @@ import jakarta.validation.constraints.NotNull;
  * price, image, and so on.
  */
 @Entity
-public class ProveedorVendible implements Serializable {
+public class ProveedorVendible implements Serializable, CategorizableObject {
 	private static final long serialVersionUID = -2724448122568231385L;
 
 	@EmbeddedId
@@ -37,7 +41,7 @@ public class ProveedorVendible implements Serializable {
 
 	@NotNull
 	private int precio;
-	
+
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private PriceTypeValue tipoPrecio;
@@ -59,16 +63,25 @@ public class ProveedorVendible implements Serializable {
 	@MapsId("proveedorId")
 	@JoinColumn(name = "proveedor_id")
 	private Proveedor proveedor;
-	
+
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
+
+	@NotNull
+	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
+	private boolean offersDelivery;
+
+	@OneToOne
+	@NotNull
+	private VendibleCategory category;
 
 	public ProveedorVendible() {
 	}
 
 	public ProveedorVendible(ProveedorVendibleId id, @NotNull int precio, @NotBlank String descripcion,
-			String imagenUrl, int stock, Vendible vendible, Proveedor proveedor, PriceTypeValue tipoPrecio) {
+			String imagenUrl, int stock, Vendible vendible, Proveedor proveedor, PriceTypeValue tipoPrecio,
+			VendibleCategory category, boolean offersDelivery) {
 		this.id = id;
 		this.precio = precio;
 		this.descripcion = descripcion;
@@ -77,6 +90,8 @@ public class ProveedorVendible implements Serializable {
 		this.vendible = vendible;
 		this.proveedor = proveedor;
 		this.tipoPrecio = tipoPrecio;
+		this.category = category;
+		this.offersDelivery = offersDelivery;
 	}
 
 	public ProveedorVendibleId getId() {
@@ -134,7 +149,7 @@ public class ProveedorVendible implements Serializable {
 	public void setProveedor(Proveedor proveedor) {
 		this.proveedor = proveedor;
 	}
-	
+
 	public Point getLocation() {
 		return location;
 	}
@@ -142,7 +157,7 @@ public class ProveedorVendible implements Serializable {
 	public void setLocation(Point location) {
 		this.location = location;
 	}
-	
+
 	public PriceTypeValue getTipoPrecio() {
 		return tipoPrecio;
 	}
@@ -150,4 +165,23 @@ public class ProveedorVendible implements Serializable {
 	public void setTipoPrecio(PriceTypeValue tipoPrecio) {
 		this.tipoPrecio = tipoPrecio;
 	}
+
+	public boolean getOffersDelivery() {
+		return offersDelivery;
+	}
+
+	public void setOffersDelivery(boolean offersDelivery) {
+		this.offersDelivery = offersDelivery;
+	}
+
+	@Override
+	public VendibleCategory getCategory() {
+		return category;
+	}
+
+	@Override
+	public void setCategory(VendibleCategory category) {
+		this.category = category;
+	}
+
 }

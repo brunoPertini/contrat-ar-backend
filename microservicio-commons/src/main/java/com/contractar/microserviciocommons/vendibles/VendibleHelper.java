@@ -143,9 +143,7 @@ public final class VendibleHelper {
 					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
 			response.getProveedores().add(new ProveedorDTO(proveedor));
 
-			Optional.ofNullable(vendible.getCategory()).ifPresent(category -> {
-				proveedorVendibleDTO.setVendibleCategoryId(category.getId());
-			});
+			proveedorVendibleDTO.setVendibleCategoryId(proveedorVendible.getCategory().getId());
 
 			return proveedorVendibleDTO;
 		}).collect(Collectors.toSet());
