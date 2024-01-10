@@ -41,7 +41,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 
 	@NotNull
 	private int precio;
-	
+
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private PriceTypeValue tipoPrecio;
@@ -63,15 +63,15 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	@MapsId("proveedorId")
 	@JoinColumn(name = "proveedor_id")
 	private Proveedor proveedor;
-	
+
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
-	
+
 	@NotNull
 	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
 	private boolean offersDelivery;
-	
+
 	@OneToOne
 	@NotNull
 	private VendibleCategory category;
@@ -149,7 +149,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	public void setProveedor(Proveedor proveedor) {
 		this.proveedor = proveedor;
 	}
-	
+
 	public Point getLocation() {
 		return location;
 	}
@@ -157,7 +157,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	public void setLocation(Point location) {
 		this.location = location;
 	}
-	
+
 	public PriceTypeValue getTipoPrecio() {
 		return tipoPrecio;
 	}
@@ -165,7 +165,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	public void setTipoPrecio(PriceTypeValue tipoPrecio) {
 		this.tipoPrecio = tipoPrecio;
 	}
-	
+
 	public boolean getOffersDelivery() {
 		return offersDelivery;
 	}
@@ -173,7 +173,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	public void setOffersDelivery(boolean offersDelivery) {
 		this.offersDelivery = offersDelivery;
 	}
-	
+
 	@Override
 	public VendibleCategory getCategory() {
 		return category;
