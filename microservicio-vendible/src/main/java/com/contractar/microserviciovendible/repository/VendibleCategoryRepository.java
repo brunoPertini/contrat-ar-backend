@@ -17,8 +17,8 @@ public interface VendibleCategoryRepository extends Repository<VendibleCategory,
 	Optional<VendibleCategory> findByNameIgnoreCaseAndParentName(String name, String parent);
 	
 	   @Query("SELECT vc FROM VendibleCategory vc "
-	            + "JOIN vc.parent p1 "
-	            + "JOIN p1.parent p2 "
+	            + "LEFT JOIN vc.parent p1 "
+	            + "LEFT JOIN p1.parent p2 "
 	            + "WHERE vc.name = :categoryName "
 	            + "AND (:parentName IS NULL OR p1.name = :parentName) "
 	            + "AND (:grandparentName IS NULL OR p2.name = :grandparentName)")

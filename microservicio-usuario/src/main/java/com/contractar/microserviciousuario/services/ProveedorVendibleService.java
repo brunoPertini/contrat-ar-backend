@@ -88,10 +88,11 @@ public class ProveedorVendibleService {
 			SimplifiedVendibleDTO simplifiedVendibleDTO = new SimplifiedVendibleDTO();
 
 			String getVendibleHierachyStringUrl = (SERVICIO_VENDIBLE_URL
-					+ VendiblesControllersUrls.GET_CATEGORY_HIERACHY)
-					.replace("{categoryName}", UriUtils.encodePathSegment(pv.getCategory().getName(), "UTF-8"));
+					+ VendiblesControllersUrls.GET_CATEGORY_HIERACHY);
 
-			List<String> categoryNames = httpClient.getForObject(getVendibleHierachyStringUrl, List.class);
+			List<String> categoryNames = pv.getCategory() != null ? 
+					httpClient.postForObject(getVendibleHierachyStringUrl, pv.getCategory(), List.class)
+					: List.of();
 
 			simplifiedVendibleDTO.setVendibleId(pv.getVendible().getId());
 			simplifiedVendibleDTO.setVendibleNombre(pv.getVendible().getNombre());
