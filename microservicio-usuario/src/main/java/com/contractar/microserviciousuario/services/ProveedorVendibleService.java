@@ -8,12 +8,12 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
@@ -40,10 +40,14 @@ public class ProveedorVendibleService {
 	private String SERVICIO_VENDIBLE_URL;
 
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
-			ProveedorVendible proveedorVendible) {
+			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
+		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
+		if (repository.findById(id).isPresent())  {
+			throw new VendibleAlreadyBindedException();
+		}
 		proveedorVendible.setProveedor(proveedor);
 		proveedorVendible.setVendible(vendible);
-		proveedorVendible.setId(new ProveedorVendibleId(proveedor.getId(), vendible.getId()));
+		proveedorVendible.setId(id);
 		return repository.save(proveedorVendible);
 	}
 
