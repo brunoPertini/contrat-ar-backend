@@ -311,11 +311,22 @@ public class VendibleService {
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 
-	public List<String> getCategoryHierachy(String categoryName) {
-		VendibleCategory category = vendibleCategoryRepository.findByNameIgnoreCase(categoryName).map(c -> c)
-				.orElseGet(() -> null);
+	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {
+		String baseCategoryName = baseCategory.getName();
+		String firstParentName = Optional.ofNullable(baseCategory.getParent()).map(parent -> parent.getName())
+				.orElse(null);
+
+		String grandParentName = firstParentName != null
+				? Optional.ofNullable(baseCategory.getParent().getParent()).map(grandParent -> grandParent.getName())
+						.orElse(null)
+				: null;
+
+		VendibleCategory category = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
+				grandParentName);
+
 		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())
 				.collect(Collectors.toList());
+
 	}
 
 	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName,
