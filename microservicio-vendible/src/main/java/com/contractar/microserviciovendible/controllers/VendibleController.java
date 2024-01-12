@@ -22,6 +22,8 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFound
 import com.contractar.microserviciovendible.models.VendibleCategory;
 import com.contractar.microserviciovendible.services.VendibleService;
 
+import jakarta.validation.Valid;
+
 @Controller
 public class VendibleController {
 	@Autowired
@@ -50,8 +52,7 @@ public class VendibleController {
 	}
 	
 	@PostMapping(VendiblesControllersUrls.GET_CATEGORY_HIERACHY)
-	public ResponseEntity<List<String>> getVendibleCategoryHierachy(@RequestBody VendibleCategory body) {
-		// String decodedCategory = UriUtils.decode(categoryName, "UTF-8");
+	public ResponseEntity<List<String>> getVendibleCategoryHierachy(@RequestBody @Valid VendibleCategory body) {
 		return new ResponseEntity<List<String>>(vendibleService.getCategoryHierachy(body), HttpStatus.OK);
 	}
 	
