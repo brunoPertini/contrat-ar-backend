@@ -1,5 +1,6 @@
 package com.contractar.microserviciovendible.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,8 @@ public interface VendibleCategoryRepository extends Repository<VendibleCategory,
 	Optional<VendibleCategory> findByNameIgnoreCase(String name);
 	
 	Optional<VendibleCategory> findByNameIgnoreCaseAndParentName(String name, String parent);
+	
+	List<VendibleCategory> findALlByNameIgnoreCase(String name);
 	
 	   @Query("SELECT vc FROM VendibleCategory vc "
 	            + "LEFT JOIN vc.parent p1 "

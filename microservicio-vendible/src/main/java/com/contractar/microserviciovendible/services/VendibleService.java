@@ -321,8 +321,27 @@ public class VendibleService {
 						.orElse(null)
 				: null;
 
-		VendibleCategory category = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
-				grandParentName);
+		boolean hasCompleteHierachy = firstParentName != null && grandParentName != null;
+		boolean hasParent = firstParentName != null;
+		
+		VendibleCategory category;
+		
+		if (hasCompleteHierachy) {
+			category = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
+					grandParentName);
+		}
+		
+		if (hasParent) {
+			category = vendibleCategoryRepository.findByNameIgnoreCaseAndParentName(baseCategoryName, firstParentName)
+					.get();
+		} else {
+			List<VendibleCategory> matchedByNameCategories = vendibleCategoryRepository.findALlByNameIgnoreCase(baseCategoryName);
+			category = matchedByNameCategories.stream()
+					.filter(c -> c.getName().equals(baseCategoryName) && c.getParent() == null)
+					.findFirst()
+					.get();
+		}
+		
 
 		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())
 				.collect(Collectors.toList());
