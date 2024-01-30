@@ -28,6 +28,10 @@ public interface VendibleCategoryRepository extends Repository<VendibleCategory,
 	    VendibleCategory findByHierarchy(@Param("categoryName") String categoryName,
 	                                     @Param("parentName") String parentName,
 	                                     @Param("grandparentName") String grandparentName);
+	   
+	   Optional<VendibleCategory> findByParentName(String parentName);
+	   
+	   
 	
     
 }

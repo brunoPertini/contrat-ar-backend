@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"root", "children"})
+@JsonPropertyOrder({"root", "rootId", "children"})
 /**
  * 
  *   This class organizes categories following this criteria: 
@@ -55,6 +55,11 @@ public class CategoryHierarchy {
 	@JsonProperty("root")
 	public String getRootName() {
 		return root.getName();
+	}
+	
+	@JsonProperty("rootId")
+	public Long getRootId() {
+		return root.getId();
 	}
 
 }
