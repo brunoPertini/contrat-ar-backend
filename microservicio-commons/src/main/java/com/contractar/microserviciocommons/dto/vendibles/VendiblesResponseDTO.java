@@ -1,10 +1,13 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
@@ -12,19 +15,19 @@ import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierar
 public class VendiblesResponseDTO implements CategorizableVendiblesResponse{
 	private Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles;
 	private Set<ProveedorDTO> proveedores;
-	private Map<String, CategoryHierarchy> categorias;
+	private MultiValueMap<String, CategoryHierarchy> categorias;
 	
 	public VendiblesResponseDTO() {
-		this.vendibles = new LinkedHashMap<String, Set<SimplifiedProveedorVendibleDTO>>();
-		this.proveedores = new LinkedHashSet<ProveedorDTO>();
-		this.categorias = new HashMap<String, CategoryHierarchy>();
+		this.vendibles = new LinkedHashMap<>();
+		this.proveedores = new LinkedHashSet<>();
+		this.categorias = new LinkedMultiValueMap<>();
 	}
 
 	public VendiblesResponseDTO(Map<String, Set<SimplifiedProveedorVendibleDTO>> vendibles,
 			Set<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
 		this.proveedores = proveedores;
-		this.categorias = new HashMap<String, CategoryHierarchy>();
+		this.categorias = new LinkedMultiValueMap<>();
 	}
 
 	public Map<String, Set<SimplifiedProveedorVendibleDTO>> getVendibles() {
@@ -44,12 +47,12 @@ public class VendiblesResponseDTO implements CategorizableVendiblesResponse{
 	}
 
 	@Override
-	public Map<String, CategoryHierarchy> getCategorias() {
+	public MultiValueMap<String, CategoryHierarchy> getCategorias() {
 		return categorias;
 	}
 
 	@Override
-	public void setCategorias(Map<String, CategoryHierarchy> categorias) {
+	public void setCategorias(MultiValueMap<String, CategoryHierarchy> categorias) {
 		this.categorias = categorias;
 	}
 }

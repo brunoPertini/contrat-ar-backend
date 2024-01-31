@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,7 +82,13 @@ public final class VendibleHelper {
 			List<VendibleCategoryDTO> toAddCategories = fetchHierachyForCategory(category);
 
 			VendibleCategoryDTO rootCategory = toAddCategories.get(toAddCategories.size() - 1);
-			boolean isMainCategoryInTree = response.getCategorias().containsKey(rootCategory.getName());
+			
+			boolean isMainCategoryInTree = response.getCategorias()
+					.values()
+					.stream()
+					.filter(c -> Objects.equals(c.getRootId(), rootCategory.getId()))
+					.findFirst()
+					.isPresent();
 
 			if (!isMainCategoryInTree) {
 				createAndInsertCategoryHierachy(response, toAddCategories);

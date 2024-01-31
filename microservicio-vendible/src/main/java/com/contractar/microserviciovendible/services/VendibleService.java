@@ -113,10 +113,11 @@ public class VendibleService {
 		boolean shouldNotCheckForParents = firstParentName == null && secondParentName == null;
 
 		if (shouldNotCheckForParents) {
-			boolean isAlreadyParent = vendibleCategoryRepository.findByParentName(baseCategoryName).isPresent();
+			VendibleCategory isolatedCategory = vendibleCategoryRepository.findAloneCategory(baseCategoryName);
+			boolean existsAsIsolatedCategpry =  isolatedCategory != null;
 
-			if (isAlreadyParent) {
-				return vendibleCategoryRepository.findByNameIgnoreCase(baseCategoryName).get();
+			if (existsAsIsolatedCategpry) {
+				return isolatedCategory;
 
 			}
 			baseCategory.setName(StringHelper.toUpperCamelCase(baseCategoryName));

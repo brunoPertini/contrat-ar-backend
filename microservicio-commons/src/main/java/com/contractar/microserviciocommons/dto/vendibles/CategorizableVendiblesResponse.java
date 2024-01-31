@@ -1,11 +1,11 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
-import java.util.Map;
+import org.springframework.util.MultiValueMap;
 
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
 
 public interface CategorizableVendiblesResponse {
-	public Map<String, CategoryHierarchy> getCategorias();
+	public MultiValueMap<String, CategoryHierarchy> getCategorias();
 
-	public void setCategorias(Map<String, CategoryHierarchy> categorias);
+	public void setCategorias(MultiValueMap<String, CategoryHierarchy> categorias);
 }
