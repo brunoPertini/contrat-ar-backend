@@ -316,36 +316,8 @@ public class VendibleService {
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 
-	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {
-		String baseCategoryName = baseCategory.getName();
-		String firstParentName = Optional.ofNullable(baseCategory.getParent()).map(parent -> parent.getName())
-				.orElse(null);
-
-		String grandParentName = firstParentName != null
-				? Optional.ofNullable(baseCategory.getParent().getParent()).map(grandParent -> grandParent.getName())
-						.orElse(null)
-				: null;
-
-		boolean hasCompleteHierachy = firstParentName != null && grandParentName != null;
-		boolean hasParent = firstParentName != null;
-		
-		VendibleCategory category;
-		
-		if (hasCompleteHierachy) {
-			category = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
-					grandParentName);
-		}
-		
-		if (hasParent) {
-			category = vendibleCategoryRepository.findByNameIgnoreCaseAndParentName(baseCategoryName, firstParentName)
-					.get();
-		} else {
-			List<VendibleCategory> matchedByNameCategories = vendibleCategoryRepository.findALlByNameIgnoreCase(baseCategoryName);
-			category = matchedByNameCategories.stream()
-					.filter(c -> c.getName().equals(baseCategoryName) && c.getParent() == null)
-					.findFirst()
-					.get();
-		}
+	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {		
+		VendibleCategory category = vendibleCategoryRepository.findById(baseCategory.getId()).get();
 		
 
 		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())

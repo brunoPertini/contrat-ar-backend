@@ -1,6 +1,7 @@
 package com.contractar.microserviciocommons.vendibles;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -27,7 +28,8 @@ public final class VendibleHelper {
 	/**
 	 * 
 	 * @param category
-	 * @return the category hierachy as a List, starting from itself to the highest one, i.e., that without parent
+	 * @return the category hierachy as a List, starting from itself to the highest
+	 *         one, i.e., that without parent
 	 */
 	public static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
 		List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
@@ -50,8 +52,9 @@ public final class VendibleHelper {
 	}
 
 	/**
-	 * Receives ordered categories in descending order for inserting them as a new 
+	 * Receives ordered categories in descending order for inserting them as a new
 	 * hierachy, where the root element is the first element of the array.
+	 * 
 	 * @param response
 	 * @param toAddCategories
 	 */
@@ -67,8 +70,9 @@ public final class VendibleHelper {
 			LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet(Set.of(currentHierarchy));
 			currentHierarchy = new CategoryHierarchy(currentElement, children);
 		}
-		
-		response.getCategorias().put(currentHierarchy.getRoot().getName(), currentHierarchy);
+
+		response.getCategorias().put(currentHierarchy.getRoot().getName(), 
+				new ArrayList<CategoryHierarchy>(Arrays.asList(currentHierarchy)));
 	}
 
 	/**
@@ -82,25 +86,42 @@ public final class VendibleHelper {
 			List<VendibleCategoryDTO> toAddCategories = fetchHierachyForCategory(category);
 
 			VendibleCategoryDTO rootCategory = toAddCategories.get(toAddCategories.size() - 1);
-			
-			boolean isMainCategoryInTree = response.getCategorias()
-					.values()
-					.stream()
-					.filter(c -> Objects.equals(c.getRootId(), rootCategory.getId()))
-					.findFirst()
-					.isPresent();
+
+			boolean isMainCategoryInTree = response.getCategorias().values().stream().anyMatch(c -> c.stream()
+					.anyMatch(innerCategory -> Objects.equals(innerCategory.getRootId(), rootCategory.getId())));
 
 			if (!isMainCategoryInTree) {
 				createAndInsertCategoryHierachy(response, toAddCategories);
 			} else {
-				// If the main category of the Vendible to be inserted exists, it means that a new CategoryHierachy has to be inserted under it.
-				// This walks through all the category array. While the category exists (the current in the array is a child of the current in the tree),
-				// The algorithm processes the next element at both structures. Once it finds a category in the array that isn't a child of current node in the tree,
+				// If the main category of the Vendible to be inserted exists, it means that a
+				// new CategoryHierachy has to be inserted under it.
+				// This walks through all the category array. While the category exists (the
+				// current in the array is a child of the current in the tree),
+				// The algorithm processes the next element at both structures. Once it finds a
+				// category in the array that isn't a child of current node in the tree,
 				// it is inserted as one.
 				Collections.reverse(toAddCategories);
 				int i = 0;
-				CategoryHierarchy currentHierarchy = response.getCategorias().get(toAddCategories.get(0).getName());
-
+				
+				VendibleCategoryDTO toBeInsertedCategory = toAddCategories.get(0);
+							
+				
+				List<CategoryHierarchy> matchedHierachies = response.getCategorias()
+						.values()
+						.stream()
+						.filter(hierachiesList -> hierachiesList
+								.stream()
+								.anyMatch(hierachy -> Objects.equals(hierachy.getRootId(), toBeInsertedCategory.getId()))
+								)
+						.findFirst()
+						.get();
+				
+				CategoryHierarchy currentHierarchy = matchedHierachies
+						.stream()
+						.filter(h -> Objects.equals(h.getRootId(), toBeInsertedCategory.getId()))
+						.findFirst()
+						.get();
+						
 				boolean canContinueOverTree = true;
 
 				while (i < toAddCategories.size()) {
@@ -140,7 +161,7 @@ public final class VendibleHelper {
 
 		});
 	}
-	
+
 	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
 			Vendible vendible) {
 		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {

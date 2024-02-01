@@ -11,6 +11,8 @@ import com.contractar.microserviciovendible.models.VendibleCategory;
 
 public interface VendibleCategoryRepository extends Repository<VendibleCategory, Long> {
 	VendibleCategory save(VendibleCategory category);
+	
+	Optional<VendibleCategory> findById(Long id);
 
 	Optional<VendibleCategory> findByNameIgnoreCase(String name);
 
