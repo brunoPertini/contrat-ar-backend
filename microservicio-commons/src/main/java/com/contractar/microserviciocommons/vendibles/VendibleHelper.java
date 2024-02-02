@@ -24,6 +24,7 @@ import com.contractar.microserviciovendible.models.VendibleCategory;
 
 public final class VendibleHelper {
 	private static VendibleCategoryDTO nextArrayCategory;
+	private static CategoryHierarchy currentHierarchy;
 
 	/**
 	 * 
@@ -63,16 +64,26 @@ public final class VendibleHelper {
 		Iterator<VendibleCategoryDTO> iterator = toAddCategories.iterator();
 
 		VendibleCategoryDTO currentElement = iterator.next();
-		CategoryHierarchy currentHierarchy = new CategoryHierarchy(currentElement);
+		currentHierarchy = new CategoryHierarchy(currentElement);
 
 		while (iterator.hasNext()) {
 			currentElement = iterator.next();
 			LinkedHashSet<CategoryHierarchy> children = new LinkedHashSet(Set.of(currentHierarchy));
 			currentHierarchy = new CategoryHierarchy(currentElement, children);
 		}
-
-		response.getCategorias().put(currentHierarchy.getRoot().getName(), 
-				new ArrayList<CategoryHierarchy>(Arrays.asList(currentHierarchy)));
+		
+		// Despite the fact that in this flow the category is not in the response, given
+		// presentational purposes it should be inserted as a new hierarchy under the key with
+		// the same category name. 
+		
+		String rootCategoryName = currentHierarchy.getRoot().getName();
+		
+		Optional.ofNullable(response.getCategorias().get(rootCategoryName)).ifPresentOrElse(hierachiesList -> {
+			hierachiesList.add(currentHierarchy);
+		}, () -> {
+			response.getCategorias().put(rootCategoryName, 
+					new ArrayList<CategoryHierarchy>(Arrays.asList(currentHierarchy)));
+		});
 	}
 
 	/**
