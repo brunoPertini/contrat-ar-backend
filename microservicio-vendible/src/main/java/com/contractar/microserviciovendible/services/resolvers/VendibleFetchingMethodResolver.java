@@ -15,9 +15,9 @@ public interface VendibleFetchingMethodResolver {
 	/**
 	 *  
 	 * @param nombre
-	 * @param categoryName
+	 * @param categoryId
 	 * @return A supplier that runs the concrete repository method to find a vendible type by name and/or category 
 	 */
-	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, String categoryName);
+	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId);
 	
 }

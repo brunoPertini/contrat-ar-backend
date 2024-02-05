@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import com.contractar.microserviciovendible.models.Vendible;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
@@ -21,10 +20,10 @@ public class ProductoFetchingMethodResolver implements VendibleFetchingMethodRes
 	private ProductoRepository productoRepository;
 
 	@Override
-	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, String categoryName) {
+	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId) {
 		return () -> {
-		    if (StringUtils.hasLength(categoryName)) {
-		        return Optional.ofNullable(vendibleService.findCategoryByName(categoryName))
+		    if (Optional.ofNullable(categoryId).isPresent()) {
+		        return Optional.ofNullable(vendibleService.findCategoryById(categoryId))
 		                .map((category) -> this.productoRepository.findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(nombre,
 		                		category.getId()))
 		                .orElseGet(() -> this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre));

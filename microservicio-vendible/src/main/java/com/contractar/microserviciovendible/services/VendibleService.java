@@ -311,8 +311,8 @@ public class VendibleService {
 
 	}
 
-	public VendibleCategory findCategoryByName(String name) {
-		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByNameIgnoreCase(name);
+	public VendibleCategory findCategoryById(Long categoryId) {
+		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findById(categoryId);
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 
@@ -325,11 +325,11 @@ public class VendibleService {
 
 	}
 
-	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName,
+	public VendiblesResponseDTO findByNombreAsc(String nombre, Long categoryId,
 			VendibleFetchingMethodResolver repositoryMethodResolver) {
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
 
-		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryName).get().stream()
+		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryId).get().stream()
 				.forEach(vendible -> {
 					Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper
 							.getProveedoresVendibles(response, vendible);
