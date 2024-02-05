@@ -113,21 +113,21 @@ public class VendibleService {
 		boolean shouldNotCheckForParents = firstParentName == null && secondParentName == null;
 
 		if (shouldNotCheckForParents) {
-			Optional<VendibleCategory> baseCategoryOpt = vendibleCategoryRepository
-					.findByNameIgnoreCaseAndParentName(baseCategoryName, firstParentName);
+			VendibleCategory isolatedCategory = vendibleCategoryRepository.findAloneCategory(baseCategoryName);
+			boolean existsAsIsolatedCategpry =  isolatedCategory != null;
 
-			if (baseCategoryOpt.isPresent()) {
-				return baseCategoryOpt.get();
+			if (existsAsIsolatedCategpry) {
+				return isolatedCategory;
 
 			}
 			baseCategory.setName(StringHelper.toUpperCamelCase(baseCategoryName));
 			return vendibleCategoryRepository.save(baseCategory);
 		}
 
-		VendibleCategory rootCategory = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
+		VendibleCategory persistedBaseCategory = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
 				secondParentName);
 
-		boolean hierachyExists = rootCategory != null;
+		boolean hierachyExists = persistedBaseCategory != null;
 		categoryParentAux = null;
 
 		if (!hierachyExists) {
@@ -161,8 +161,13 @@ public class VendibleService {
 			return categoryParentAux;
 
 		}
-
-		return rootCategory;
+		
+		if (firstParentName != null && secondParentName != null) {
+			return persistedBaseCategory;
+		}
+		
+		baseCategory.setParent(persistedBaseCategory);
+		return vendibleCategoryRepository.save(baseCategory);
 
 	}
 
@@ -306,34 +311,25 @@ public class VendibleService {
 
 	}
 
-	public VendibleCategory findCategoryByName(String name) {
-		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findByNameIgnoreCase(name);
+	public VendibleCategory findCategoryById(Long categoryId) {
+		Optional<VendibleCategory> valueOpt = vendibleCategoryRepository.findById(categoryId);
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 
-	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {
-		String baseCategoryName = baseCategory.getName();
-		String firstParentName = Optional.ofNullable(baseCategory.getParent()).map(parent -> parent.getName())
-				.orElse(null);
-
-		String grandParentName = firstParentName != null
-				? Optional.ofNullable(baseCategory.getParent().getParent()).map(grandParent -> grandParent.getName())
-						.orElse(null)
-				: null;
-
-		VendibleCategory category = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
-				grandParentName);
+	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {		
+		VendibleCategory category = vendibleCategoryRepository.findById(baseCategory.getId()).get();
+		
 
 		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())
 				.collect(Collectors.toList());
 
 	}
 
-	public VendiblesResponseDTO findByNombreAsc(String nombre, String categoryName,
+	public VendiblesResponseDTO findByNombreAsc(String nombre, Long categoryId,
 			VendibleFetchingMethodResolver repositoryMethodResolver) {
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
 
-		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryName).get().stream()
+		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryId).get().stream()
 				.forEach(vendible -> {
 					Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper
 							.getProveedoresVendibles(response, vendible);

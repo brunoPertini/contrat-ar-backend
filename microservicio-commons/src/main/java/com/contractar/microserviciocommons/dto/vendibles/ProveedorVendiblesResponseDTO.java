@@ -1,9 +1,10 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
+
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
 
@@ -17,20 +18,20 @@ public class ProveedorVendiblesResponseDTO implements CategorizableVendiblesResp
 	
 	private Set<SimplifiedVendibleDTO> vendibles;
 	
-	private Map<String, CategoryHierarchy> categorias;
+	private MultiValueMap<String, CategoryHierarchy> categorias;
 
 	public ProveedorVendiblesResponseDTO() {
-		this.categorias = new HashMap<String, CategoryHierarchy>();
-		this.vendibles = new LinkedHashSet<SimplifiedVendibleDTO>();
+		this.categorias = new LinkedMultiValueMap<>();
+		this.vendibles = new LinkedHashSet<>();
 	}
 
 	@Override
-	public Map<String, CategoryHierarchy> getCategorias() {
+	public MultiValueMap<String, CategoryHierarchy> getCategorias() {
 		return this.categorias;
 	}
 
 	@Override
-	public void setCategorias(Map<String, CategoryHierarchy> categorias) {
+	public void setCategorias(MultiValueMap<String, CategoryHierarchy> categorias) {
 		this.categorias = categorias;
 	}
 	
