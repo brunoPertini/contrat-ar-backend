@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
@@ -81,9 +82,25 @@ public class UsuarioController {
 	}
 	
 	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
-	public ResponseEntity<UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId) throws UserNotFoundException {
+	public ResponseEntity< ? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId) throws UserNotFoundException {
 		Usuario user = this.usuarioService.findById(userId, false);
-		return new ResponseEntity<UsuarioDTO>(new UsuarioDTO(user.getname(),
+		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
+			Proveedor proveedor = ((Proveedor) user);
+			return new ResponseEntity<>(new ProveedorDTO(proveedor.getname(),
+					proveedor.getsurname(),
+					proveedor.getEmail(),
+					proveedor.isActive(),
+					proveedor.getBirthDate(),
+					proveedor.getRole(),
+					proveedor.getlocation(),
+					proveedor.getDni(),
+					proveedor.getPlan(),
+					proveedor.getProveedorType(),
+					proveedor.getPhone())
+					, HttpStatus.OK);
+		};
+			
+		return new ResponseEntity<>(new UsuarioDTO(user.getname(),
 				user.getsurname(),
 				user.getEmail(),
 				user.isActive(),
