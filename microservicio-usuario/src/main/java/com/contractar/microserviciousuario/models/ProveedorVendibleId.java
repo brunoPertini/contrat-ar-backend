@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 public class ProveedorVendibleId implements Serializable{
 	private static final long serialVersionUID = 5904666276558706286L;
-	public Long proveedorId;
-	public Long vendibleId;
+	private Long proveedorId;
+	private Long vendibleId;
 	
 	public ProveedorVendibleId() {
 		
