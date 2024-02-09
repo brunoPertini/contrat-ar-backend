@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
@@ -18,10 +20,12 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
+import com.contractar.microserviciocommons.helpers.DistanceCalculator;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
+import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
@@ -35,17 +39,20 @@ public class ProveedorVendibleService {
 
 	@Autowired
 	private RestTemplate httpClient;
-	
+
 	@Autowired
 	private SecurityHelper securityHelper;
 
 	@Value("${microservicio-vendible.url}")
 	private String SERVICIO_VENDIBLE_URL;
 
+	@Value("${microservicio-usuario.url}")
+	private String SERVICIO_USUARIO_URL;
+
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
-		if (repository.findById(id).isPresent())  {
+		if (repository.findById(id).isPresent()) {
 			throw new VendibleAlreadyBindedException();
 		}
 		proveedorVendible.setProveedor(proveedor);
@@ -68,7 +75,7 @@ public class ProveedorVendibleService {
 		if (!securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
 		}
-		
+
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.repository.findById(id).orElseThrow(() -> new VendibleNotFoundException());
 
@@ -91,14 +98,14 @@ public class ProveedorVendibleService {
 
 		ProveedorVendiblesResponseDTO response = new ProveedorVendiblesResponseDTO();
 
-		for (ProveedorVendible pv: results) {
+		for (ProveedorVendible pv : results) {
 			SimplifiedVendibleDTO simplifiedVendibleDTO = new SimplifiedVendibleDTO();
 
 			String getVendibleHierachyStringUrl = (SERVICIO_VENDIBLE_URL
 					+ VendiblesControllersUrls.GET_CATEGORY_HIERACHY);
 
-			List<String> categoryNames = pv.getCategory() != null ? 
-					httpClient.postForObject(getVendibleHierachyStringUrl, pv.getCategory(), List.class)
+			List<String> categoryNames = pv.getCategory() != null
+					? httpClient.postForObject(getVendibleHierachyStringUrl, pv.getCategory(), List.class)
 					: List.of();
 
 			simplifiedVendibleDTO.setVendibleId(pv.getVendible().getId());
@@ -108,7 +115,7 @@ public class ProveedorVendibleService {
 			simplifiedVendibleDTO.setCategoryNames(categoryNames);
 			simplifiedVendibleDTO.setPrecio(pv.getPrecio());
 			simplifiedVendibleDTO.setStock(pv.getStock());
-			
+
 			VendibleHelper.addCategoriasToResponse(pv, response);
 
 			response.getVendibles().add(simplifiedVendibleDTO);
@@ -117,22 +124,28 @@ public class ProveedorVendibleService {
 		return response;
 
 	}
-	
-	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId) {
+
+	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Long clienteId) {
+		String getClientUrl = SERVICIO_USUARIO_URL
+				+ (UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", clienteId.toString()));
+
+		UsuarioDTO loggedClient = httpClient.getForObject(getClientUrl, UsuarioDTO.class);
+
 		VendibleProveedoresDTO response = new VendibleProveedoresDTO();
-		
+
 		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
-		
+
 		results.forEach(proveedorVendible -> {
 			response.getVendibles().add(new DistanceProveedorDTO(proveedorVendible.getVendible().getNombre(),
 					proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
-					proveedorVendible.getStock(), proveedorVendible.getProveedor().getId()));
-			
+					proveedorVendible.getStock(), proveedorVendible.getProveedor().getId(),
+					DistanceCalculator.calculateDistance(loggedClient.getLocation(), proveedorVendible.getLocation())));
+
 			response.getProveedores().add(new ProveedorDTO(proveedorVendible.getProveedor()));
 		});
-		
+
 		return response;
-		
+
 	}
 
 }
