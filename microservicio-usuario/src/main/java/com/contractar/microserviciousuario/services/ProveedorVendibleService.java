@@ -10,15 +10,18 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
+import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
@@ -113,6 +116,23 @@ public class ProveedorVendibleService {
 
 		return response;
 
+	}
+	
+	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId) {
+		VendibleProveedoresDTO response = new VendibleProveedoresDTO();
+		
+		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
+		
+		results.forEach(proveedorVendible -> {
+			response.getVendibles().add(new DistanceProveedorDTO(proveedorVendible.getVendible().getNombre(),
+					proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
+					proveedorVendible.getStock(), proveedorVendible.getProveedor().getId()));
+			
+			response.getProveedores().add(new ProveedorDTO(proveedorVendible.getProveedor()));
+		});
+		
+		return response;
+		
 	}
 
 }

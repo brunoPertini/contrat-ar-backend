@@ -21,8 +21,8 @@ import jakarta.persistence.PrimaryKeyJoinColumn;
 public class Cliente extends Usuario {
 	private static final long serialVersionUID = -18128319090812613L;
 	
-	@OneToMany(mappedBy = "proveedor", fetch = FetchType.LAZY, orphanRemoval = true)
-	private Set<ProveedorVendible> vendibles;
+	@OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY, orphanRemoval = true)
+	private Set<DistanciaProveedor> distances;
 	
 	public Cliente() {
 		super();
@@ -32,4 +32,13 @@ public class Cliente extends Usuario {
 	Point location, LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
 		super(id, name, surname, email, isActive, location, birthDate, password, authorities, role);
 	}
+	
+	public Set<DistanciaProveedor> getDistances() {
+		return distances;
+	}
+
+	public void setDistances(Set<DistanciaProveedor> distances) {
+		this.distances = distances;
+	}
+
 }

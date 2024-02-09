@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class ClienteProveedorVendibleId implements Serializable{
 
 	private static final long serialVersionUID = 7967504227750555671L;
+	
 	private ProveedorVendibleId proveedorVendibleId;
 	private Long clienteId;
 	

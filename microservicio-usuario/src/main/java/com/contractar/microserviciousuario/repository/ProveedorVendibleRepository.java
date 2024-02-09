@@ -23,4 +23,10 @@ public interface ProveedorVendibleRepository extends CrudRepository<ProveedorVen
             + "JOIN pv.category "
             + "WHERE pv.id.proveedorId=:proveedorId ")
 	public List<ProveedorVendible> getProveedorVendibleInfo(@Param("proveedorId") Long proveedorId);
+	
+	@Query("SELECT pv FROM ProveedorVendible pv "
+            + "JOIN pv.vendible "
+            + "JOIN pv.proveedor "
+            + "WHERE pv.id.vendibleId=:vendibleId ")
+	public List<ProveedorVendible> getProveedoreVendiblesInfoForVendible(@Param("vendibleId") Long vendibleId);
 }

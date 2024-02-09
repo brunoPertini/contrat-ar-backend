@@ -18,12 +18,6 @@ public class DistanciaProveedor {
 	
 	private double distance;
 	
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@MapsId("proveedorId")
-	@JoinColumn(name = "proveedor_id")
-	private Proveedor proveedor;
-	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("clienteId")
 	@JoinColumn(name = "cliente_id")
@@ -35,7 +29,6 @@ public class DistanciaProveedor {
 	public DistanciaProveedor(ClienteProveedorVendibleId id, double distance, Proveedor proveedor, Cliente cliente) {
 		this.id = id;
 		this.distance = distance;
-		this.proveedor = proveedor;
 		this.cliente = cliente;
 	} 
 	
@@ -53,14 +46,6 @@ public class DistanciaProveedor {
 
 	public void setDistance(double distance) {
 		this.distance = distance;
-	}
-	
-	public Proveedor getProveedor() {
-		return proveedor;
-	}
-
-	public void setProveedor(Proveedor proveedor) {
-		this.proveedor = proveedor;
 	}
 
 	public Cliente getCliente() {
