@@ -45,6 +45,7 @@ public class SecurityConfig {
 		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/error",
 				"/actuator/**",
 				"/oauth/login",
+				"/oauth/userId",
 				"/oauth/public_key")
 				.anonymous().anyRequest().authenticated());
 

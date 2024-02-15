@@ -18,7 +18,7 @@ import org.springframework.core.io.Resource;
 @Configuration
 public class JwtConfig {
 	
-	@Value("classpath:contractar-jwt.jks")
+	@Value("classpath:contractar.jks")
 	Resource resource;
 	
 	@Value("${security.keyStore.password}")

@@ -5,10 +5,15 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
@@ -25,12 +30,13 @@ import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
-import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
 import com.contractar.microserviciovendible.models.Vendible;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class ProveedorVendibleService {
@@ -48,6 +54,9 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-usuario.url}")
 	private String SERVICIO_USUARIO_URL;
+	
+	@Value("${microservicio-security.url}")
+	private String SERVICIO_SECURITY_URL;
 
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
@@ -125,7 +134,18 @@ public class ProveedorVendibleService {
 
 	}
 
-	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Long clienteId) {
+	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, HttpServletRequest request) {
+		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", request.getHeader("Authorization"));
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+		
+		ResponseEntity<Long> getClientIdResponse = httpClient.exchange(getClientIdUrl, HttpMethod.GET, entity, Long.class);
+		
+		Long clienteId = getClientIdResponse.getBody();
+
 		String getClientUrl = SERVICIO_USUARIO_URL
 				+ (UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", clienteId.toString()));
 

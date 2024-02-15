@@ -15,7 +15,6 @@ public class BeansConfig {
 	
     @Bean
     public SecurityHelper securityHelper() {
-    	SecurityHelper securityHelper = new SecurityHelper(restTemplate());
-        return securityHelper;
+    	return  new SecurityHelper(restTemplate());
     }
 }
