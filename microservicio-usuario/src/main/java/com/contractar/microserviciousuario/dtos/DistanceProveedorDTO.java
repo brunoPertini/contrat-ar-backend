@@ -2,7 +2,7 @@ package com.contractar.microserviciousuario.dtos;
 
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 
-public class DistanceProveedorDTO extends SimplifiedProveedorVendibleDTO{
+public class DistanceProveedorDTO extends SimplifiedProveedorVendibleDTO implements Comparable<DistanceProveedorDTO>{
 
 	private double distance;
 
@@ -23,6 +23,10 @@ public class DistanceProveedorDTO extends SimplifiedProveedorVendibleDTO{
 			int stock, Long proveedorId, double distance) {
 		super(vendibleNombre, descripcion, precio, imagenUrl, stock, proveedorId);
 		this.distance = distance;
+	}
+	@Override
+	public int compareTo(DistanceProveedorDTO distanceProveedor) {
+		return ((Double) this.getDistance()).compareTo(distanceProveedor.getDistance());
 	}
 
 }
