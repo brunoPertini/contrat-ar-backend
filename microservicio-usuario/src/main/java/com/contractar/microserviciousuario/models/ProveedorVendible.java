@@ -66,6 +66,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
+	@NotNull
 	private Point location;
 
 	@NotNull

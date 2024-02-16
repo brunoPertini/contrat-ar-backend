@@ -1,5 +1,7 @@
 package com.contractar.microserviciocommons.helpers;
 
+import java.text.DecimalFormat;
+
 import org.locationtech.jts.geom.Point;
 
 public class DistanceCalculator {
@@ -22,7 +24,9 @@ public class DistanceCalculator {
                    Math.pow(Math.sin(dLon / 2), 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         
-     // Distancia en kilometros
-        return RADIUS * c/1000;
+        DecimalFormat format = new DecimalFormat("#.00");
+        String numberString = format.format((RADIUS * c)/1000);
+        
+        return Double.valueOf(numberString.replace(',', '.'));
     }
 }
