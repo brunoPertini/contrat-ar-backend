@@ -21,16 +21,18 @@ public class ProveedorControler {
 	private ProveedorVendibleService proveedorVendibleService;
 
 	@GetMapping("/proveedor/{proveedorId}/vendible")
-	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedor(@PathVariable("proveedorId") Long proveedorId) {
-		return new ResponseEntity<ProveedorVendiblesResponseDTO>(proveedorVendibleService.getProveedorVendiblesInfo(proveedorId),
-				HttpStatus.OK);
+	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedor(
+			@PathVariable("proveedorId") Long proveedorId) {
+		return new ResponseEntity<ProveedorVendiblesResponseDTO>(
+				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId), HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/vendible/{vendibleId}/proveedores")
 	public ResponseEntity<VendibleProveedoresDTO> getProveedoresOfVendible(@PathVariable("vendibleId") Long vendibleId,
 			@RequestParam(name = "filter_distance_min", required = false) Double minDistance,
 			@RequestParam(name = "filter_distance_max", required = false) Double maxDistance,
 			HttpServletRequest request) throws JsonProcessingException {
-		return new ResponseEntity<>(proveedorVendibleService.getProveedoreVendiblesInfoForVendible(vendibleId, minDistance, maxDistance, request), HttpStatus.OK);
+		return new ResponseEntity<>(proveedorVendibleService.getProveedoreVendiblesInfoForVendible(vendibleId,
+				minDistance, maxDistance, request), HttpStatus.OK);
 	}
 }
