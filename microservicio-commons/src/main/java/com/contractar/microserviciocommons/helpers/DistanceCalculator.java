@@ -5,10 +5,15 @@ import java.text.DecimalFormat;
 import org.locationtech.jts.geom.Point;
 
 public class DistanceCalculator {
-    // Radio de la Tierra en metros
+    // Earth's radius
     static final double RADIUS = 6371000;
 
-    // Método para calcular la distancia entre dos puntos utilizando la fórmula de Haversine
+    /**
+     * 
+     * @param point1
+     * @param point2
+     * @return The distance between point1 and point2 in kilometers, using Haversine's formula
+     */
     public static double calculateDistance(Point point1, Point point2) {
         double lat1 = Math.toRadians(point1.getY());
         double lon1 = Math.toRadians(point1.getX());
@@ -18,7 +23,6 @@ public class DistanceCalculator {
         double dLat = lat2 - lat1;
         double dLon = lon2 - lon1;
 
-        // Fórmula de Haversine
         double a = Math.pow(Math.sin(dLat / 2), 2) +
                    Math.cos(lat1) * Math.cos(lat2) *
                    Math.pow(Math.sin(dLon / 2), 2);

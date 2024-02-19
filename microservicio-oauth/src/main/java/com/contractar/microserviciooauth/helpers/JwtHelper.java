@@ -70,9 +70,9 @@ public class JwtHelper {
 		String payload = decodedJWT.getPayload();
 
 		ObjectMapper objectMapper = new ObjectMapper();
-		
-	    byte[] decodedPayloadBytes = Base64.getDecoder().decode(payload);
-	    String decodedPayloadString = new String(decodedPayloadBytes);
+
+		byte[] decodedPayloadBytes = Base64.getDecoder().decode(payload);
+		String decodedPayloadString = new String(decodedPayloadBytes);
 
 		Object jsonObject = objectMapper.readValue(decodedPayloadString, Object.class);
 

@@ -37,7 +37,7 @@ public class SecurityController {
 
 	@Autowired
 	private RSAPublicKey storePublicKey;
-	
+
 	@Autowired
 	private JwtHelper jwtHelper;
 
@@ -49,12 +49,14 @@ public class SecurityController {
 	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password)
 			throws UserNotFoundException {
 		UsuarioOauthDTO userDetails = (UsuarioOauthDTO) userDetailsService.loadUserByUsername(email);
-		
-		SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userDetails.getRole().getNombre());
-		List<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>(Collections.singletonList(authority));
 
-		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails, authorities);
-		
+		SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userDetails.getRole().getNombre());
+		List<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>(
+				Collections.singletonList(authority));
+
+		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails,
+				authorities);
+
 		ZoneId zone = ZoneId.of(ZoneId.SHORT_IDS.get("AGT"));
 		ZonedDateTime expirationDateTime = ZonedDateTime.now(zone).plusHours(1);
 
@@ -75,17 +77,17 @@ public class SecurityController {
 
 	@GetMapping("/oauth/public_key")
 	public ResponseEntity<String> getPublicKey() {
-        byte[] publicKeyBytes = storePublicKey.getEncoded();
-        
-        String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
-        
-        StringBuilder pemFormat = new StringBuilder();
-        pemFormat.append("-----BEGIN PUBLIC KEY-----\n");
-        pemFormat.append(publicKeyBase64);
-        pemFormat.append("\n-----END PUBLIC KEY-----");
+		byte[] publicKeyBytes = storePublicKey.getEncoded();
+
+		String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
+
+		StringBuilder pemFormat = new StringBuilder();
+		pemFormat.append("-----BEGIN PUBLIC KEY-----\n");
+		pemFormat.append(publicKeyBase64);
+		pemFormat.append("\n-----END PUBLIC KEY-----");
 		return ResponseEntity.ok(pemFormat.toString());
 	}
-	
+
 	@GetMapping(SecurityControllerUrls.GET_USER_ID_FROM_TOKEN)
 	public ResponseEntity<Long> getUserIdFromHeaders(HttpServletRequest request) throws JsonProcessingException {
 		Map<String, Object> jwtPayload = jwtHelper.parsePayloadFromJwt(request.getHeader("authorization"));
