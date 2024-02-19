@@ -23,6 +23,7 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
+import com.contractar.microserviciovendible.filters.FilterChainCreator;
 import com.contractar.microserviciovendible.models.Vendible;
 
 @Service
@@ -39,6 +40,12 @@ public class ProveedorVendibleService {
 	@Value("${microservicio-vendible.url}")
 	private String SERVICIO_VENDIBLE_URL;
 
+	@Value("${microservicio-usuario.url}")
+	private String SERVICIO_USUARIO_URL;
+
+	@Value("${microservicio-security.url}")
+	private String SERVICIO_SECURITY_URL;
+	
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
@@ -115,4 +122,55 @@ public class ProveedorVendibleService {
 
 	}
 
+	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Double minDistance,
+			Double maxDistance, HttpServletRequest request) {
+		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", request.getHeader("Authorization"));
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<Long> getClientIdResponse = httpClient.exchange(getClientIdUrl, HttpMethod.GET, entity,
+				Long.class);
+
+		Long clienteId = getClientIdResponse.getBody();
+
+		String getClientUrl = SERVICIO_USUARIO_URL
+				+ (UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", clienteId.toString()));
+
+		UsuarioDTO loggedClient = httpClient.getForObject(getClientUrl, UsuarioDTO.class);
+
+		VendibleProveedoresDTO response = new VendibleProveedoresDTO();
+
+		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
+
+		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null);
+
+		boolean chainNotExists = chainCreator.getFilterChain() == null;
+
+		results.forEach(proveedorVendible -> {
+			double distance = DistanceCalculator.calculateDistance(loggedClient.getLocation(),
+					proveedorVendible.getLocation());
+
+			if (!chainNotExists) {
+				chainCreator.setToCompareDistance(distance);
+			}
+
+			boolean shouldAddInfo = chainNotExists || chainCreator.runChain();
+
+			if (shouldAddInfo) {
+				response.getVendibles()
+						.add(new DistanceProveedorDTO(proveedorVendible.getVendible().getNombre(),
+								proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
+								proveedorVendible.getProveedor().getId(), distance));
+
+				response.getProveedores().add(new ProveedorDTO(proveedorVendible.getProveedor()));
+			}
+		});
+
+		return response;
+
+	}
 }
