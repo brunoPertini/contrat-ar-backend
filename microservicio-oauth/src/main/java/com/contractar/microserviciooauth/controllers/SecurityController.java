@@ -1,16 +1,14 @@
 package com.contractar.microserviciooauth.controllers;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.security.interfaces.RSAPublicKey;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,10 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciooauth.helpers.JwtHelper;
 import com.contractar.microserviciooauth.services.UserDetailsServiceImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
@@ -32,8 +35,11 @@ public class SecurityController {
 
 	private UserDetailsService userDetailsService;
 
-	@Value("classpath:clave_publica.pem")
-	Resource clavePublicaResource;
+	@Autowired
+	private RSAPublicKey storePublicKey;
+
+	@Autowired
+	private JwtHelper jwtHelper;
 
 	public SecurityController(UserDetailsService userDetailsService) {
 		this.userDetailsService = userDetailsService;
@@ -43,12 +49,14 @@ public class SecurityController {
 	public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password)
 			throws UserNotFoundException {
 		UsuarioOauthDTO userDetails = (UsuarioOauthDTO) userDetailsService.loadUserByUsername(email);
-		
-		SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userDetails.getRole().getNombre());
-		List<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>(Collections.singletonList(authority));
 
-		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails, authorities);
-		
+		SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userDetails.getRole().getNombre());
+		List<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>(
+				Collections.singletonList(authority));
+
+		String jwt = ((UserDetailsServiceImpl) userDetailsService).createJwtForUser(email, password, userDetails,
+				authorities);
+
 		ZoneId zone = ZoneId.of(ZoneId.SHORT_IDS.get("AGT"));
 		ZonedDateTime expirationDateTime = ZonedDateTime.now(zone).plusHours(1);
 
@@ -69,19 +77,21 @@ public class SecurityController {
 
 	@GetMapping("/oauth/public_key")
 	public ResponseEntity<String> getPublicKey() {
-		try (InputStream inputStream = clavePublicaResource.getInputStream();
-				Scanner scanner = new Scanner(inputStream, "UTF-8")) {
+		byte[] publicKeyBytes = storePublicKey.getEncoded();
 
-			StringBuilder content = new StringBuilder();
-			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
-				content.append(line).append(System.lineSeparator());
-			}
+		String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
 
-			String publicKey = content.toString();
-			return ResponseEntity.ok(publicKey);
-		} catch (IOException e) {
-			return ResponseEntity.ok("");
-		}
+		StringBuilder pemFormat = new StringBuilder();
+		pemFormat.append("-----BEGIN PUBLIC KEY-----\n");
+		pemFormat.append(publicKeyBase64);
+		pemFormat.append("\n-----END PUBLIC KEY-----");
+		return ResponseEntity.ok(pemFormat.toString());
+	}
+
+	@GetMapping(SecurityControllerUrls.GET_USER_ID_FROM_TOKEN)
+	public ResponseEntity<Long> getUserIdFromHeaders(HttpServletRequest request) throws JsonProcessingException {
+		Map<String, Object> jwtPayload = jwtHelper.parsePayloadFromJwt(request.getHeader("authorization"));
+		Long userId = Long.parseLong((String) jwtPayload.get("id"));
+		return ResponseEntity.ok(userId);
 	}
 }

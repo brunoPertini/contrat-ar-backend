@@ -8,7 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
+import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 public class ProveedorControler {
@@ -19,5 +23,11 @@ public class ProveedorControler {
 	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedor(@PathVariable("proveedorId") Long proveedorId) {
 		return new ResponseEntity<ProveedorVendiblesResponseDTO>(proveedorVendibleService.getProveedorVendiblesInfo(proveedorId),
 				HttpStatus.OK);
+	}
+	
+	@GetMapping("/vendible/{vendibleId}/proveedores")
+	public ResponseEntity<VendibleProveedoresDTO> getProveedoresOfVendible(@PathVariable("vendibleId") Long vendibleId,
+			HttpServletRequest request) throws JsonProcessingException {
+		return new ResponseEntity<>(proveedorVendibleService.getProveedoreVendiblesInfoForVendible(vendibleId, request), HttpStatus.OK);
 	}
 }

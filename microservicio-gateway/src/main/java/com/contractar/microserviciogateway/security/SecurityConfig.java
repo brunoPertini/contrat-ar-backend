@@ -99,7 +99,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
         });
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll()
-				.antMatchers("/oauth/login", "/oauth/public_key")
+				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId")
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**")
 				.access("@securityUtils.hasValidClientId(request)")
