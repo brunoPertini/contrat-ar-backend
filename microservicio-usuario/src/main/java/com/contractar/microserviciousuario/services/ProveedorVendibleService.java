@@ -34,6 +34,7 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
+import com.contractar.microserviciovendible.filters.FilterChainCreator;
 import com.contractar.microserviciovendible.models.Vendible;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,7 +55,7 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-usuario.url}")
 	private String SERVICIO_USUARIO_URL;
-	
+
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
 
@@ -134,16 +135,18 @@ public class ProveedorVendibleService {
 
 	}
 
-	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, HttpServletRequest request) {
+	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Double minDistance,
+			Double maxDistance, HttpServletRequest request) {
 		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", request.getHeader("Authorization"));
 
 		HttpEntity<String> entity = new HttpEntity<>(headers);
-		
-		ResponseEntity<Long> getClientIdResponse = httpClient.exchange(getClientIdUrl, HttpMethod.GET, entity, Long.class);
-		
+
+		ResponseEntity<Long> getClientIdResponse = httpClient.exchange(getClientIdUrl, HttpMethod.GET, entity,
+				Long.class);
+
 		Long clienteId = getClientIdResponse.getBody();
 
 		String getClientUrl = SERVICIO_USUARIO_URL
@@ -155,17 +158,32 @@ public class ProveedorVendibleService {
 
 		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
 
-		results.forEach(proveedorVendible -> {
-			response.getVendibles().add(new DistanceProveedorDTO(proveedorVendible.getVendible().getNombre(),
-					proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(), proveedorVendible.getImagenUrl(),
-					proveedorVendible.getStock(), proveedorVendible.getProveedor().getId(),
-					DistanceCalculator.calculateDistance(loggedClient.getLocation(), proveedorVendible.getLocation())));
+		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null);
 
-			response.getProveedores().add(new ProveedorDTO(proveedorVendible.getProveedor()));
+		boolean chainNotExists = chainCreator.getFilterChain() == null;
+
+		results.forEach(proveedorVendible -> {
+			double distance = DistanceCalculator.calculateDistance(loggedClient.getLocation(),
+					proveedorVendible.getLocation());
+
+			if (!chainNotExists) {
+				chainCreator.setToCompareDistance(distance);
+			}
+
+			boolean shouldAddInfo = chainNotExists || chainCreator.runChain();
+
+			if (shouldAddInfo) {
+				response.getVendibles()
+						.add(new DistanceProveedorDTO(proveedorVendible.getVendible().getNombre(),
+								proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
+								proveedorVendible.getProveedor().getId(), distance));
+
+				response.getProveedores().add(new ProveedorDTO(proveedorVendible.getProveedor()));
+			}
 		});
 
 		return response;
 
 	}
-
 }
