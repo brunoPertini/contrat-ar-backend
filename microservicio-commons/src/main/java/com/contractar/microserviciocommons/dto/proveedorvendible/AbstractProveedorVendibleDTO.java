@@ -1,6 +1,9 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
 public abstract class AbstractProveedorVendibleDTO {
+	
+	private Long vendibleId;
+
 	private String vendibleNombre;
 
 	private String descripcion;
@@ -59,6 +62,14 @@ public abstract class AbstractProveedorVendibleDTO {
 
 	public int getStock() {
 		return stock;
+	}
+	
+	public Long getVendibleId() {
+		return vendibleId;
+	}
+
+	public void setVendibleId(Long vendibleId) {
+		this.vendibleId = vendibleId;
 	}
 
 	public void setStock(int stock) {

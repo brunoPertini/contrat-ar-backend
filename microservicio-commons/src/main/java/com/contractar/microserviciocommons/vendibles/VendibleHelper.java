@@ -183,6 +183,7 @@ public final class VendibleHelper {
 			response.getProveedores().add(new ProveedorDTO(proveedor));
 
 			proveedorVendibleDTO.setVendibleCategoryId(proveedorVendible.getCategory().getId());
+			proveedorVendibleDTO.setVendibleId(vendible.getId());
 
 			return proveedorVendibleDTO;
 		}).collect(Collectors.toSet());
