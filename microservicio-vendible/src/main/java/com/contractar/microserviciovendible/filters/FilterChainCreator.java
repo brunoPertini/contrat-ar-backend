@@ -2,8 +2,13 @@ package com.contractar.microserviciovendible.filters;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
+/**
+ * This class intends to be a Wrapper to isolate some specifics about FilterHandler instances. Some of its
+ * tasks are:
+ * 	1. Based on the parameters it receives in its constructor, creates the chain with the proper filters and order of execution.
+ *  2. Manages the map of arguments, each one with a meaningful name, to be passed to the chain of responsibility.
+ */
 public class FilterChainCreator {
 
 	public static final String FILTER_NAME_DISTANCE = "DISTANCE_FILTERS";

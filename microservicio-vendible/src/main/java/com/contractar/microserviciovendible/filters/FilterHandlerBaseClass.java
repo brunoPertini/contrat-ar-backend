@@ -3,6 +3,10 @@ package com.contractar.microserviciovendible.filters;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * This class sets the chain of responsibility for each available filter. Any extended class must
+ * specify the logic to handle its filter in the abstract method defined here. 
+ */
 public abstract class FilterHandlerBaseClass implements FilterHandler {
 
 	private FilterHandler nextHandler;
