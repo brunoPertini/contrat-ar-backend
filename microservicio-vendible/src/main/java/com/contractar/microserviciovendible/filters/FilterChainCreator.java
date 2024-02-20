@@ -22,7 +22,7 @@ public class FilterChainCreator {
 	}
 
 	public FilterChainCreator(Double firstDistance, Double secondDistance, Double toCompareDistance) {
-		boolean shouldCreateDistanceChain = firstDistance != null && secondDistance != null;
+		boolean shouldCreateDistanceChain = firstDistance != null || secondDistance != null;
 
 		if (shouldCreateDistanceChain) {
 			this.filterChain = new DistanceFilterHandler();
