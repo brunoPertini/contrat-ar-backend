@@ -1,7 +1,9 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
@@ -24,6 +26,11 @@ public class VendibleProveedoresDTO {
 
 	public VendibleProveedoresDTO() {
 		this.vendibles = new HashSet<>();
+		this.proveedores = new HashSet<>();
+	}
+	
+	public VendibleProveedoresDTO(Comparator<DistanceProveedorDTO> comparator) {
+		this.vendibles = new TreeSet<>(comparator);
 		this.proveedores = new HashSet<>();
 	}
 

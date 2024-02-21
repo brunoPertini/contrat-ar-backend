@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +59,7 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
-
+	
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
@@ -105,7 +106,7 @@ public class ProveedorVendibleService {
 	@SuppressWarnings("unchecked")
 	public ProveedorVendiblesResponseDTO getProveedorVendiblesInfo(Long proveedorId) {
 		List<ProveedorVendible> results = repository.getProveedorVendibleInfo(proveedorId);
-
+	
 		ProveedorVendiblesResponseDTO response = new ProveedorVendiblesResponseDTO();
 
 		for (ProveedorVendible pv : results) {
@@ -153,8 +154,16 @@ public class ProveedorVendibleService {
 				+ (UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", clienteId.toString()));
 
 		UsuarioDTO loggedClient = httpClient.getForObject(getClientUrl, UsuarioDTO.class);
+		
+		Comparator<DistanceProveedorDTO> comparator = (first,second)-> {
+			boolean isLower = first.getDistance() < second.getDistance();
+			
+			boolean isEqual = first.getDistance() == second.getDistance();
+			
+			return isLower ? -1 : isEqual ? 0 : 1;
+		};
 
-		VendibleProveedoresDTO response = new VendibleProveedoresDTO();
+		VendibleProveedoresDTO response = new VendibleProveedoresDTO(comparator);
 
 		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
 
