@@ -155,21 +155,22 @@ public class ProveedorVendibleService {
 
 		UsuarioDTO loggedClient = httpClient.getForObject(getClientUrl, UsuarioDTO.class);
 		
-		Comparator<DistanceProveedorDTO> comparator = (first,second)-> {
+		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null);
+
+		boolean chainNotExists = chainCreator.getFilterChain() == null;
+
+		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
+		
+		Comparator<DistanceProveedorDTO> comparator = chainNotExists ? null : (first,second)-> {
 			boolean isLower = first.getDistance() < second.getDistance();
 			
 			boolean isEqual = first.getDistance() == second.getDistance();
 			
 			return isLower ? -1 : isEqual ? 0 : 1;
 		};
-
-		VendibleProveedoresDTO response = new VendibleProveedoresDTO(comparator);
-
-		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
-
-		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null);
-
-		boolean chainNotExists = chainCreator.getFilterChain() == null;
+		
+		VendibleProveedoresDTO response = chainNotExists ? new VendibleProveedoresDTO()
+				: new VendibleProveedoresDTO(comparator);
 
 		results.forEach(proveedorVendible -> {
 			double distance = DistanceCalculator.calculateDistance(loggedClient.getLocation(),
