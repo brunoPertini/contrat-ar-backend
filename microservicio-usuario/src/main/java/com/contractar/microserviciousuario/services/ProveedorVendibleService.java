@@ -157,11 +157,13 @@ public class ProveedorVendibleService {
 		
 		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null);
 
-		boolean chainNotExists = chainCreator.getFilterChain() == null;
+		boolean chainNotExists = chainCreator.getFilterChain() == null; 
 
 		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
 		
-		Comparator<DistanceProveedorDTO> comparator = chainNotExists ? null : (first,second)-> {
+		boolean shouldSort = results.size() >=2;
+		
+		Comparator<DistanceProveedorDTO> comparator = !shouldSort ? null : (first,second)-> {
 			boolean isLower = first.getDistance() < second.getDistance();
 			
 			boolean isEqual = first.getDistance() == second.getDistance();
@@ -169,7 +171,7 @@ public class ProveedorVendibleService {
 			return isLower ? -1 : isEqual ? 0 : 1;
 		};
 		
-		VendibleProveedoresDTO response = chainNotExists ? new VendibleProveedoresDTO()
+		VendibleProveedoresDTO response = !shouldSort ? new VendibleProveedoresDTO()
 				: new VendibleProveedoresDTO(comparator);
 
 		results.forEach(proveedorVendible -> {
