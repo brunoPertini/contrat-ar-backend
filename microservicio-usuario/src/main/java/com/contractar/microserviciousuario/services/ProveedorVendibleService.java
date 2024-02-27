@@ -137,7 +137,7 @@ public class ProveedorVendibleService {
 	}
 
 	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Double minDistance,
-			Double maxDistance, HttpServletRequest request) {
+			Double maxDistance, Integer minPrice, Integer maxPrice, HttpServletRequest request) {
 		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
 
 		HttpHeaders headers = new HttpHeaders();
@@ -155,7 +155,7 @@ public class ProveedorVendibleService {
 
 		UsuarioDTO loggedClient = httpClient.getForObject(getClientUrl, UsuarioDTO.class);
 		
-		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null);
+		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null, minPrice, maxPrice, null);
 
 		boolean chainNotExists = chainCreator.getFilterChain() == null; 
 
@@ -163,12 +163,39 @@ public class ProveedorVendibleService {
 		
 		boolean shouldSort = results.size() >=2;
 		
-		Comparator<DistanceProveedorDTO> comparator = !shouldSort ? null : (first,second)-> {
-			boolean isLower = first.getDistance() < second.getDistance();
+		Comparator<DistanceProveedorDTO> byDistanceComparator = (firstByDistancePv, secondByDistancePv) -> {
+			boolean isLower = firstByDistancePv.getDistance() < secondByDistancePv.getDistance();
+
+			boolean isEqual = firstByDistancePv.getDistance() == secondByDistancePv.getDistance();
+
+			return isLower ? -1 : isEqual ? 0 : 1;
+		};
+		
+		Comparator<DistanceProveedorDTO> byPriceComparator = (firstPv, secondPv) -> {
+			boolean isLower = first.getPrecio() < second.getPrecio();
 			
-			boolean isEqual = first.getDistance() == second.getDistance();
+			boolean isEqual = first.getPrecio() == second.getPrecio();
 			
 			return isLower ? -1 : isEqual ? 0 : 1;
+		};
+		
+		// Main comparator. Ordering by price has priority over the other atributtes.
+		Comparator<DistanceProveedorDTO> comparator = !shouldSort ? null : (first,second)-> {
+			
+			boolean shouldSortByPrice = minPrice != null || maxPrice != null;
+			
+			boolean shouldSortByDistance = minDistance != null || maxDistance != null;
+			
+			if (shouldSortByPrice) {				
+				int byPriceComparingResult = byPriceComparator.compare(first, second);
+				
+				return byPriceComparingResult != 0 ? byPriceComparingResult 
+						: shouldSortByDistance ? byDistanceComparator.compare(first, second) 
+								: 0;
+			}
+			
+			return shouldSortByDistance ? byDistanceComparator.compare(first, second) : 0;
+					
 		};
 		
 		VendibleProveedoresDTO response = !shouldSort ? new VendibleProveedoresDTO()
@@ -180,6 +207,7 @@ public class ProveedorVendibleService {
 
 			if (!chainNotExists) {
 				chainCreator.setToCompareDistance(distance);
+				chainCreator.setToComparePrice(proveedorVendible.getPrecio());
 			}
 
 			boolean shouldAddInfo = chainNotExists || chainCreator.runChain();

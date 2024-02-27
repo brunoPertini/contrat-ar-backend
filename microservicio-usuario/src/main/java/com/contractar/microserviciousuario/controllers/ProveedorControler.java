@@ -31,8 +31,10 @@ public class ProveedorControler {
 	public ResponseEntity<VendibleProveedoresDTO> getProveedoresOfVendible(@PathVariable("vendibleId") Long vendibleId,
 			@RequestParam(name = "filter_distance_min", required = false) Double minDistance,
 			@RequestParam(name = "filter_distance_max", required = false) Double maxDistance,
+			@RequestParam(name = "filter_price_min", required = false) Integer minPrice,
+			@RequestParam(name = "filter_price_max", required = false) Integer maxPrice,
 			HttpServletRequest request) throws JsonProcessingException {
 		return new ResponseEntity<>(proveedorVendibleService.getProveedoreVendiblesInfoForVendible(vendibleId,
-				minDistance, maxDistance, request), HttpStatus.OK);
+				minDistance, maxDistance, minPrice, maxPrice, request), HttpStatus.OK);
 	}
 }
