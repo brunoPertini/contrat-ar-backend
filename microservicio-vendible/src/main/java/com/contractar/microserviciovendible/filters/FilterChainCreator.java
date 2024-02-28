@@ -2,6 +2,7 @@ package com.contractar.microserviciovendible.filters;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class intends to be a Wrapper to isolate some specifics about FilterHandler instances. Some of its
@@ -85,6 +86,8 @@ public class FilterChainCreator {
 			priceArgs.put(FILTER_NAME_TO_COMPARE_PRICE, toComparePrice);
 			
 			this.filterChain.setNextHanlder(createFilterHandler(firstDistance, secondDistance, toCompareDistance));
+		} else {
+			this.filterChain = createFilterHandler(firstDistance, secondDistance, toCompareDistance);
 		}
 	}
 
@@ -105,13 +108,15 @@ public class FilterChainCreator {
 	}
 
 	public void setToCompareDistance(double newValue) {
-		((HashMap<String, Double>) this.chainArgs.get(FILTER_NAME_DISTANCE)).put(FILTER_NAME_TO_COMPARE_DISTANCE,
-				newValue);
+		Optional.ofNullable((HashMap<String, Double>) this.chainArgs.get(FILTER_NAME_DISTANCE)).ifPresent(distanceParams -> {
+			distanceParams.put(FILTER_NAME_TO_COMPARE_DISTANCE, newValue);
+		});
 	}
 	
 	public void setToComparePrice(Integer newValue) {
-		((HashMap<String, Integer>) this.chainArgs.get(PRICE_FILTERS)).put(FILTER_NAME_TO_COMPARE_PRICE,
-				newValue);
+		Optional.ofNullable((HashMap<String, Integer>) this.chainArgs.get(PRICE_FILTERS)).ifPresent(priceParams -> {
+			priceParams.put(FILTER_NAME_TO_COMPARE_PRICE, newValue);
+		});
 	}
 	
 	public boolean runChain() {

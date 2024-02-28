@@ -10,14 +10,16 @@ import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 
 /**
  * 
- * Response given to a cliente when enters into a vendible detail. Contains proveedores offers, each one
- * with its distance from cliente current's location.
+ * Response given to a cliente when enters into a vendible detail. Contains
+ * proveedores offers, each one with its distance from cliente current's
+ * location.
  *
  */
 public class VendibleProveedoresDTO {
-
 	private Set<DistanceProveedorDTO> vendibles;
 	private Set<ProveedorDTO> proveedores;
+	private double minDistance;
+	private double maxDistance;
 
 	public VendibleProveedoresDTO(Set<DistanceProveedorDTO> vendibles, Set<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
@@ -28,7 +30,7 @@ public class VendibleProveedoresDTO {
 		this.vendibles = new HashSet<>();
 		this.proveedores = new HashSet<>();
 	}
-	
+
 	public VendibleProveedoresDTO(Comparator<DistanceProveedorDTO> comparator) {
 		this.vendibles = new TreeSet<>(comparator);
 		this.proveedores = new HashSet<>();
@@ -37,13 +39,32 @@ public class VendibleProveedoresDTO {
 	public Set<DistanceProveedorDTO> getVendibles() {
 		return vendibles;
 	}
+
 	public void setVendibles(Set<DistanceProveedorDTO> vendibles) {
 		this.vendibles = vendibles;
 	}
+
 	public Set<ProveedorDTO> getProveedores() {
 		return proveedores;
 	}
+
 	public void setProveedores(Set<ProveedorDTO> proveedores) {
 		this.proveedores = proveedores;
+	}
+
+	public double getMinDistance() {
+		return minDistance;
+	}
+
+	public void setMinDistance(double minDistance) {
+		this.minDistance = minDistance;
+	}
+
+	public double getMaxDistance() {
+		return maxDistance;
+	}
+
+	public void setMaxDistance(double maxDistance) {
+		this.maxDistance = maxDistance;
 	}
 }

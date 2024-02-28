@@ -1,8 +1,12 @@
 package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -59,7 +63,7 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
-	
+
 	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
@@ -106,7 +110,7 @@ public class ProveedorVendibleService {
 	@SuppressWarnings("unchecked")
 	public ProveedorVendiblesResponseDTO getProveedorVendiblesInfo(Long proveedorId) {
 		List<ProveedorVendible> results = repository.getProveedorVendibleInfo(proveedorId);
-	
+
 		ProveedorVendiblesResponseDTO response = new ProveedorVendiblesResponseDTO();
 
 		for (ProveedorVendible pv : results) {
@@ -136,6 +140,12 @@ public class ProveedorVendibleService {
 
 	}
 
+	private void setMinAndMaxForSlider(VendibleProveedoresDTO response, List<Double> distances) {
+		Collections.sort(distances);
+		response.setMinDistance(distances.get(0));
+		response.setMaxDistance(distances.get(distances.size() - 1));
+	}
+
 	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Double minDistance,
 			Double maxDistance, Integer minPrice, Integer maxPrice, HttpServletRequest request) {
 		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
@@ -154,15 +164,16 @@ public class ProveedorVendibleService {
 				+ (UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", clienteId.toString()));
 
 		UsuarioDTO loggedClient = httpClient.getForObject(getClientUrl, UsuarioDTO.class);
-		
-		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null, minPrice, maxPrice, null);
 
-		boolean chainNotExists = chainCreator.getFilterChain() == null; 
+		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null, minPrice, maxPrice,
+				null);
+
+		boolean chainNotExists = chainCreator.getFilterChain() == null;
 
 		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
-		
-		boolean shouldSort = results.size() >=2;
-		
+
+		boolean shouldSort = results.size() >= 2;
+
 		Comparator<DistanceProveedorDTO> byDistanceComparator = (firstByDistancePv, secondByDistancePv) -> {
 			boolean isLower = firstByDistancePv.getDistance() < secondByDistancePv.getDistance();
 
@@ -170,40 +181,45 @@ public class ProveedorVendibleService {
 
 			return isLower ? -1 : isEqual ? 0 : 1;
 		};
-		
+
 		Comparator<DistanceProveedorDTO> byPriceComparator = (firstPv, secondPv) -> {
-			boolean isLower = first.getPrecio() < second.getPrecio();
-			
-			boolean isEqual = first.getPrecio() == second.getPrecio();
-			
+			boolean isLower = firstPv.getPrecio() < secondPv.getPrecio();
+
+			boolean isEqual = firstPv.getPrecio() == secondPv.getPrecio();
+
 			return isLower ? -1 : isEqual ? 0 : 1;
 		};
-		
+
 		// Main comparator. Ordering by price has priority over the other atributtes.
-		Comparator<DistanceProveedorDTO> comparator = !shouldSort ? null : (first,second)-> {
-			
+		Comparator<DistanceProveedorDTO> comparator = !shouldSort ? null : (first, second) -> {
+
+			int dtosComparingResult = first.equals(second) ? 0 : -1;
+
 			boolean shouldSortByPrice = minPrice != null || maxPrice != null;
-			
+
 			boolean shouldSortByDistance = minDistance != null || maxDistance != null;
-			
-			if (shouldSortByPrice) {				
+
+			if (shouldSortByPrice) {
 				int byPriceComparingResult = byPriceComparator.compare(first, second);
-				
-				return byPriceComparingResult != 0 ? byPriceComparingResult 
-						: shouldSortByDistance ? byDistanceComparator.compare(first, second) 
-								: 0;
+
+				return byPriceComparingResult != 0 ? byPriceComparingResult
+						: shouldSortByDistance ? byDistanceComparator.compare(first, second) : dtosComparingResult;
 			}
-			
-			return shouldSortByDistance ? byDistanceComparator.compare(first, second) : 0;
-					
+
+			return shouldSortByDistance ? byDistanceComparator.compare(first, second) : dtosComparingResult;
+
 		};
-		
+
 		VendibleProveedoresDTO response = !shouldSort ? new VendibleProveedoresDTO()
 				: new VendibleProveedoresDTO(comparator);
+
+		List<Double> toSortDistances = new ArrayList<>();
 
 		results.forEach(proveedorVendible -> {
 			double distance = DistanceCalculator.calculateDistance(loggedClient.getLocation(),
 					proveedorVendible.getLocation());
+
+			toSortDistances.add(distance);
 
 			if (!chainNotExists) {
 				chainCreator.setToCompareDistance(distance);
@@ -222,6 +238,8 @@ public class ProveedorVendibleService {
 				response.getProveedores().add(new ProveedorDTO(proveedorVendible.getProveedor()));
 			}
 		});
+
+		setMinAndMaxForSlider(response, toSortDistances);
 
 		return response;
 
