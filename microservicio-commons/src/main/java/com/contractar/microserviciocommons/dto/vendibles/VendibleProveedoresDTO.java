@@ -18,8 +18,13 @@ import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 public class VendibleProveedoresDTO {
 	private Set<DistanceProveedorDTO> vendibles;
 	private Set<ProveedorDTO> proveedores;
+
 	private double minDistance;
 	private double maxDistance;
+	private int minPrice;
+	private int maxPrice;
+
+
 
 	public VendibleProveedoresDTO(Set<DistanceProveedorDTO> vendibles, Set<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
@@ -66,5 +71,20 @@ public class VendibleProveedoresDTO {
 
 	public void setMaxDistance(double maxDistance) {
 		this.maxDistance = maxDistance;
+	}
+	public int getMinPrice() {
+		return minPrice;
+	}
+
+	public void setMinPrice(int minPrice) {
+		this.minPrice = minPrice;
+	}
+
+	public int getMaxPrice() {
+		return maxPrice;
+	}
+
+	public void setMaxPrice(int maxPrice) {
+		this.maxPrice = maxPrice;
 	}
 }
