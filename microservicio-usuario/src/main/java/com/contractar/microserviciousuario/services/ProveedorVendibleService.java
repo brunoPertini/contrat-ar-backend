@@ -216,7 +216,7 @@ public class ProveedorVendibleService {
 				: new VendibleProveedoresDTO(comparator);
 
 		List<Double> toSortDistances = new ArrayList<>();
-		
+
 		List<Integer> toSortPrices = new ArrayList<>();
 
 		results.forEach(proveedorVendible -> {

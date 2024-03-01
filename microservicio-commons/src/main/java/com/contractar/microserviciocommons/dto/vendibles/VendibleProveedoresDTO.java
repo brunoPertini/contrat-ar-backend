@@ -12,7 +12,8 @@ import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
  * 
  * Response given to a cliente when enters into a vendible detail. Contains
  * proveedores offers, each one with its distance from cliente current's
- * location.
+ * location. It also has some additional information useful for frontend, such as
+ * min and max distances found.
  *
  */
 public class VendibleProveedoresDTO {
