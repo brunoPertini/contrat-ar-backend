@@ -1,18 +1,16 @@
 package com.contractar.microserviciousuario.sorting;
 
-import com.contractar.microserviciocommons.dto.proveedorvendible.AbstractProveedorVendibleDTO;
+import java.util.Comparator;
+
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 
-public class VendibleDistanceComparator extends BaseComparator {
+public class VendibleDistanceComparator implements Comparator<DistanceProveedorDTO> {
 
-	public VendibleDistanceComparator() {}
+	public VendibleDistanceComparator() {
+	}
 
 	@Override
-	public int compare(AbstractProveedorVendibleDTO o1, AbstractProveedorVendibleDTO o2) {
-		DistanceProveedorDTO first = (DistanceProveedorDTO) o1;
-		
-		DistanceProveedorDTO second = (DistanceProveedorDTO) o2;
-		
+	public int compare(DistanceProveedorDTO first, DistanceProveedorDTO second) {
 		boolean isLower = first.getDistance() < second.getDistance();
 
 		boolean isEqual = first.getDistance() == second.getDistance();
