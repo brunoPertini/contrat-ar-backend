@@ -3,7 +3,6 @@ package com.contractar.microserviciousuario.services;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,42 +174,13 @@ public class ProveedorVendibleService {
 		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
 
 		boolean shouldSort = results.size() >= 2;
+		
+		boolean shouldSortByPrice = minPrice != null || maxPrice != null;
 
-		Comparator<DistanceProveedorDTO> byDistanceComparator = (firstByDistancePv, secondByDistancePv) -> {
-			boolean isLower = firstByDistancePv.getDistance() < secondByDistancePv.getDistance();
+		boolean shouldSortByDistance = minDistance != null || maxDistance != null;
 
-			boolean isEqual = firstByDistancePv.getDistance() == secondByDistancePv.getDistance();
-
-			return isLower ? -1 : isEqual ? 0 : 1;
-		};
-
-		Comparator<DistanceProveedorDTO> byPriceComparator = (firstPv, secondPv) -> {
-			boolean isLower = firstPv.getPrecio() < secondPv.getPrecio();
-
-			boolean isEqual = firstPv.getPrecio() == secondPv.getPrecio();
-
-			return isLower ? -1 : isEqual ? 0 : 1;
-		};
-
-		// Main comparator. Ordering by price has priority over the other attributes.
-		Comparator<DistanceProveedorDTO> comparator = !shouldSort ? null : (first, second) -> {
-
-			int dtosComparingResult = first.equals(second) ? 0 : -1;
-
-			boolean shouldSortByPrice = minPrice != null || maxPrice != null;
-
-			boolean shouldSortByDistance = minDistance != null || maxDistance != null;
-
-			if (shouldSortByPrice) {
-				int byPriceComparingResult = byPriceComparator.compare(first, second);
-
-				return byPriceComparingResult != 0 ? byPriceComparingResult
-						: shouldSortByDistance ? byDistanceComparator.compare(first, second) : dtosComparingResult;
-			}
-
-			return shouldSortByDistance ? byDistanceComparator.compare(first, second) : dtosComparingResult;
-
-		};
+		ProveedorVendibleComparator comparator = !shouldSort ? null 
+				: new ProveedorVendibleComparator(shouldSortByPrice, shouldSortByDistance);
 
 		VendibleProveedoresDTO response = !shouldSort ? new VendibleProveedoresDTO()
 				: new VendibleProveedoresDTO(comparator);

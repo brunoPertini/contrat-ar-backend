@@ -1,8 +1,9 @@
 package com.contractar.microserviciousuario.services;
 
+import java.util.Comparator;
+
 import com.contractar.microserviciocommons.dto.proveedorvendible.AbstractProveedorVendibleDTO;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
-import com.contractar.microserviciousuario.sorting.BaseComparator;
 import com.contractar.microserviciousuario.sorting.VendibleDistanceComparator;
 import com.contractar.microserviciousuario.sorting.VendiblePriceComparator;
 
@@ -11,7 +12,7 @@ import com.contractar.microserviciousuario.sorting.VendiblePriceComparator;
  * If ordering by price leaves an equality result, the comparison is made by distance.
  *
  */
-public class ProveedorVendibleComparator extends BaseComparator {
+public class ProveedorVendibleComparator implements Comparator<AbstractProveedorVendibleDTO> {
 	
 	private boolean shouldSortByPrice;
 	private boolean shouldSortByDistance;

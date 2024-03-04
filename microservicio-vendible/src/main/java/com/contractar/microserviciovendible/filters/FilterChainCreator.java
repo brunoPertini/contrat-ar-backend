@@ -34,11 +34,11 @@ public class FilterChainCreator {
 
 	private Map<String, Object> chainArgs;
 	
-	private FilterHandler createFilterHandler(Double firstDistance, Double secondDistance, Double toCompareDistance) {
+	private DistanceFilterHandler createFilterHandler(Double firstDistance, Double secondDistance, Double toCompareDistance) {
 		boolean shouldCreateDistanceChain = firstDistance != null || secondDistance != null;
 
 		if (shouldCreateDistanceChain) {
-			FilterHandler handler = new DistanceFilterHandler();
+			DistanceFilterHandler handler = new DistanceFilterHandler();
 			
 			if (chainArgs == null) {
 				chainArgs = new HashMap<>();
