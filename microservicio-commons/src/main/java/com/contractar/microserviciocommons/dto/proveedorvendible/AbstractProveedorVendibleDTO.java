@@ -1,5 +1,7 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
+import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
+
 public abstract class AbstractProveedorVendibleDTO {
 	
 	private Long vendibleId;
@@ -9,6 +11,12 @@ public abstract class AbstractProveedorVendibleDTO {
 	private String descripcion;
 
 	private int precio;
+	
+	private PriceTypeValue tipoPrecio;
+	
+	private boolean offersDelivery;
+	
+	private boolean offersInCustomAddress;
 
 	private String imagenUrl;
 
@@ -82,6 +90,30 @@ public abstract class AbstractProveedorVendibleDTO {
 
 	public void setVendibleCategoryId(Long vendibleCategoryId) {
 		this.vendibleCategoryId = vendibleCategoryId;
+	}
+	
+	public PriceTypeValue getTipoPrecio() {
+		return tipoPrecio;
+	}
+
+	public void setTipoPrecio(PriceTypeValue tipoPrecio) {
+		this.tipoPrecio = tipoPrecio;
+	}
+
+	public boolean isOffersDelivery() {
+		return offersDelivery;
+	}
+
+	public void setOffersDelivery(boolean offersDelivery) {
+		this.offersDelivery = offersDelivery;
+	}
+	
+	public boolean isOffersInCustomAddress() {
+		return offersInCustomAddress;
+	}
+
+	public void setOffersInCustomAddress(boolean offersInCustomAddress) {
+		this.offersInCustomAddress = offersInCustomAddress;
 	}
 
 }

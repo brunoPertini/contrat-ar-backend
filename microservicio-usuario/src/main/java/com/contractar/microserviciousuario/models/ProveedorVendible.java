@@ -72,6 +72,10 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	@NotNull
 	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
 	private boolean offersDelivery;
+	
+	@NotNull
+	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
+	private boolean offersInCustomAddress;
 
 	@OneToOne
 	@NotNull
@@ -173,6 +177,14 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 
 	public void setOffersDelivery(boolean offersDelivery) {
 		this.offersDelivery = offersDelivery;
+	}
+	
+	public boolean getOffersInCustomAddress() {
+		return offersInCustomAddress;
+	}
+
+	public void setOffersInCustomAddress(boolean offersInCustomAddress) {
+		this.offersInCustomAddress = offersInCustomAddress;
 	}
 
 	@Override

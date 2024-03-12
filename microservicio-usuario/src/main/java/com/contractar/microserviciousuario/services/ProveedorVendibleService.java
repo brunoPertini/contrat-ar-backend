@@ -128,6 +128,10 @@ public class ProveedorVendibleService {
 			simplifiedVendibleDTO.setCategoryNames(categoryNames);
 			simplifiedVendibleDTO.setPrecio(pv.getPrecio());
 			simplifiedVendibleDTO.setStock(pv.getStock());
+			simplifiedVendibleDTO.setTipoPrecio(pv.getTipoPrecio());
+			simplifiedVendibleDTO.setOffersDelivery(pv.getOffersDelivery());
+			simplifiedVendibleDTO.setOffersInCustomAddress(pv.getOffersInCustomAddress());
+			simplifiedVendibleDTO.setLocation(pv.getLocation());
 
 			VendibleHelper.addCategoriasToResponse(pv, response);
 
@@ -209,8 +213,11 @@ public class ProveedorVendibleService {
 								proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
 								proveedorVendible.getProveedor().getId(), distance));
+				
+				 ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
+				 toAddProveedor.setLocation(proveedorVendible.getLocation());
 
-				response.getProveedores().add(new ProveedorDTO(proveedorVendible.getProveedor()));
+				response.getProveedores().add(toAddProveedor);
 			}
 		});
 

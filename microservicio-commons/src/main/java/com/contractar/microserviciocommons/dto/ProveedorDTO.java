@@ -45,7 +45,7 @@ public class ProveedorDTO extends UsuarioDTO {
 
 	public ProveedorDTO(Proveedor proveedor) {
 		super(proveedor.getname(), proveedor.getsurname(), proveedor.getEmail(), proveedor.isActive(),
-				proveedor.getBirthDate(), proveedor.getRole(), proveedor.getlocation());
+				proveedor.getBirthDate(), proveedor.getRole(), null);
 		this.plan = proveedor.getPlan();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
