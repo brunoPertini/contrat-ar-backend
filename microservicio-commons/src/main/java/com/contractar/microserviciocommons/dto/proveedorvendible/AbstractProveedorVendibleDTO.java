@@ -100,7 +100,7 @@ public abstract class AbstractProveedorVendibleDTO {
 		this.tipoPrecio = tipoPrecio;
 	}
 
-	public boolean isOffersDelivery() {
+	public boolean getOffersDelivery() {
 		return offersDelivery;
 	}
 
