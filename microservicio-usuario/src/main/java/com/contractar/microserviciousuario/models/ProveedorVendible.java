@@ -47,6 +47,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	private PriceTypeValue tipoPrecio;
 
 	@NotBlank
+	@Column(length = 3000)
 	private String descripcion;
 
 	@NotBlank
