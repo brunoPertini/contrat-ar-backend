@@ -31,3 +31,6 @@ microservicio-imagenes/.mvn/wrapper/maven-wrapper.properties
 *.gz
 *.jks
 *.crt
+microservicio-commons/bin/application.properties
+microservicio-commons/bin/mvnw
+microservicio-commons/bin/mvnw
