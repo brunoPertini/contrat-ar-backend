@@ -72,6 +72,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+		  <dependency>
+		  	<groupId>com.contractar</groupId>
+		  	<artifactId>microservicio-adapter</artifactId>
+		  	<version>0.0.1-SNAPSHOT</version>
+		  </dependency>
 	</dependencies>
 	<dependencyManagement>
     <dependencies>

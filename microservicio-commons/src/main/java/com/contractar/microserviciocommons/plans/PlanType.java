@@ -1,6 +1,8 @@
 package com.contractar.microserviciocommons.plans;
 
-public enum PlanType {
+import com.contractar.microservicioadapter.enums.Plan;
+
+public enum PlanType implements Plan{
 	FREE,
 	PAID,
 }

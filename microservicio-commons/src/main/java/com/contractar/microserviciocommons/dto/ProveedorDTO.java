@@ -6,10 +6,9 @@ import java.util.Optional;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciousuario.models.Proveedor;
-import com.contractar.microserviciousuario.models.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.validation.constraints.NotBlank;
@@ -43,7 +42,7 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.phone = phone;
 	}
 
-	public ProveedorDTO(Proveedor proveedor) {
+	public ProveedorDTO(ProveedorAccessor proveedor) {
 		super(proveedor.getname(), proveedor.getsurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getRole(), null);
 		this.plan = proveedor.getPlan();

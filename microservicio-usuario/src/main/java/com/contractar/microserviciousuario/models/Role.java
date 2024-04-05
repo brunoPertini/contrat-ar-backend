@@ -2,6 +2,8 @@ package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 
+import com.contractar.microservicioadapter.enums.RoleAccesor;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,7 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
-public class Role implements Serializable{
+public class Role implements Serializable, RoleAccesor{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
