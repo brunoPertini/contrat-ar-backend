@@ -32,4 +32,6 @@ public interface ProveedorVendibleAccesor {
 
 	public VendibleCategoryAccesor getCategory();
 
+	public void setCategory(VendibleCategoryAccesor addedCategory);
+
 }

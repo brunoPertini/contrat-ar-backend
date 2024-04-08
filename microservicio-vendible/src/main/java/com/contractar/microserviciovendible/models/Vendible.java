@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
-import com.contractar.microserviciousuario.models.ProveedorVendible;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -38,7 +37,7 @@ public class Vendible implements Serializable, VendibleAccesor {
 	private String nombre;
 
 	@OneToMany(mappedBy = "vendible", fetch = FetchType.LAZY, orphanRemoval = true)
-	private Set<ProveedorVendible> proveedoresVendibles;
+	private Set<ProveedorVendibleAccesor> proveedoresVendibles;
 
 	public String getNombre() {
 		return nombre;
@@ -56,24 +55,24 @@ public class Vendible implements Serializable, VendibleAccesor {
 		this.id = id;
 	}
 	
-	public Set<ProveedorVendible> getProveedoresVendibles() {
+	public Set<ProveedorVendibleAccesor> getProveedoresVendibles() {
 		return proveedoresVendibles;
 	}
 
-	public void setProveedoresVendibles(Set<ProveedorVendible> proveedoresVendibles) {
+	public void setProveedoresVendibles(Set<ProveedorVendibleAccesor> proveedoresVendibles) {
 		this.proveedoresVendibles = proveedoresVendibles;
 	}
 
 	public Vendible() {
-		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendible>();
+		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendibleAccesor>();
 	}
 
 	public Vendible(String nombre) {
 		this.nombre = nombre;
-		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendible>();
+		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendibleAccesor>();
 	}
 
-	public Vendible(String nombre, Set<ProveedorVendible> proveedoresVendibles) {
+	public Vendible(String nombre, Set<ProveedorVendibleAccesor> proveedoresVendibles) {
 		this.nombre = nombre;
 		this.proveedoresVendibles = proveedoresVendibles;
 	}

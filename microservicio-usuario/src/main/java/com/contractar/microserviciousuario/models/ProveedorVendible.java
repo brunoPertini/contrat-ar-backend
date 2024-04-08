@@ -5,13 +5,12 @@ import java.io.Serializable;
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
+import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
-import com.contractar.microserviciovendible.models.Vendible;
-import com.contractar.microserviciovendible.models.VendibleCategory;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -60,7 +59,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("vendibleId")
 	@JoinColumn(name = "vendible_id")
-	private Vendible vendible;
+	private VendibleAccesor vendible;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("proveedorId")
@@ -82,14 +81,14 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 
 	@OneToOne
 	@NotNull
-	private VendibleCategory category;
+	private VendibleCategoryAccesor category;
 
 	public ProveedorVendible() {
 	}
 
 	public ProveedorVendible(ProveedorVendibleId id, @NotNull int precio, @NotBlank String descripcion,
-			String imagenUrl, int stock, Vendible vendible, Proveedor proveedor, PriceTypeValue tipoPrecio,
-			VendibleCategory category, boolean offersDelivery) {
+			String imagenUrl, int stock, VendibleAccesor vendible, Proveedor proveedor, PriceTypeValue tipoPrecio,
+			VendibleCategoryAccesor category, boolean offersDelivery) {
 		this.id = id;
 		this.precio = precio;
 		this.descripcion = descripcion;
@@ -142,11 +141,11 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 		this.stock = stock;
 	}
 
-	public Vendible getVendible() {
+	public VendibleAccesor getVendible() {
 		return vendible;
 	}
 
-	public void setVendible(Vendible vendible) {
+	public void setVendible(VendibleAccesor vendible) {
 		this.vendible = vendible;
 	}
 
@@ -197,7 +196,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 
 	@Override
 	public void setCategory(VendibleCategoryAccesor category) {
-		this.category = (@NotNull VendibleCategory) category;
+		this.category = category;
 	}
 
 }

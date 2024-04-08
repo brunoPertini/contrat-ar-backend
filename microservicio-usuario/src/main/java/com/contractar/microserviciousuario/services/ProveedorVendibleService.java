@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
@@ -33,12 +34,11 @@ import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
+import com.contractar.microserviciousuario.filters.FilterChainCreator;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
-import com.contractar.microserviciovendible.filters.FilterChainCreator;
-import com.contractar.microserviciovendible.models.Vendible;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -62,7 +62,7 @@ public class ProveedorVendibleService {
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
 
-	public ProveedorVendible bindVendibleToProveedor(Vendible vendible, Proveedor proveedor,
+	public ProveedorVendible bindVendibleToProveedor(VendibleAccesor vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
 		if (repository.findById(id).isPresent()) {
