@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
+import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
@@ -33,7 +35,7 @@ import jakarta.validation.constraints.NotNull;
  * price, image, and so on.
  */
 @Entity
-public class ProveedorVendible implements Serializable, CategorizableObject {
+public class ProveedorVendible implements Serializable, CategorizableObject, ProveedorVendibleAccesor {
 	private static final long serialVersionUID = -2724448122568231385L;
 
 	@EmbeddedId
@@ -189,13 +191,13 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	}
 
 	@Override
-	public VendibleCategory getCategory() {
-		return category;
+	public VendibleCategoryAccesor getCategory() {
+		return this.category;
 	}
 
 	@Override
-	public void setCategory(VendibleCategory category) {
-		this.category = category;
+	public void setCategory(VendibleCategoryAccesor category) {
+		this.category = (@NotNull VendibleCategory) category;
 	}
 
 }

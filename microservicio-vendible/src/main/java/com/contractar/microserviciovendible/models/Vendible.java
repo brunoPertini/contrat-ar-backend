@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
+import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 
 import jakarta.persistence.Column;
@@ -22,7 +24,7 @@ import jakarta.validation.constraints.NotBlank;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
-public class Vendible implements Serializable {
+public class Vendible implements Serializable, VendibleAccesor {
 
 	private static final long serialVersionUID = -6708815378872073493L;
 
@@ -53,6 +55,14 @@ public class Vendible implements Serializable {
 	public void setId(Long id) {
 		this.id = id;
 	}
+	
+	public Set<ProveedorVendible> getProveedoresVendibles() {
+		return proveedoresVendibles;
+	}
+
+	public void setProveedoresVendibles(Set<ProveedorVendible> proveedoresVendibles) {
+		this.proveedoresVendibles = proveedoresVendibles;
+	}
 
 	public Vendible() {
 		this.proveedoresVendibles = new LinkedHashSet<ProveedorVendible>();
@@ -68,11 +78,4 @@ public class Vendible implements Serializable {
 		this.proveedoresVendibles = proveedoresVendibles;
 	}
 
-	public Set<ProveedorVendible> getProveedoresVendibles() {
-		return proveedoresVendibles;
-	}
-
-	public void setProveedoresVendibles(Set<ProveedorVendible> proveedoresVendibles) {
-		this.proveedoresVendibles = proveedoresVendibles;
-	}
 }

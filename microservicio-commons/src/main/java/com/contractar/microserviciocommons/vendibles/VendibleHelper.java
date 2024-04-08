@@ -11,6 +11,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.contractar.microservicioadapter.entities.ProveedorAccessor;
+import com.contractar.microservicioadapter.entities.VendibleAccesor;
+import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
@@ -18,9 +21,6 @@ import com.contractar.microserviciocommons.dto.vendibles.CategorizableVendiblesR
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
 import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
-import com.contractar.microserviciousuario.models.Proveedor;
-import com.contractar.microserviciovendible.models.Vendible;
-import com.contractar.microserviciovendible.models.VendibleCategory;
 
 public final class VendibleHelper {
 	private static VendibleCategoryDTO nextArrayCategory;
@@ -32,16 +32,16 @@ public final class VendibleHelper {
 	 * @return the category hierachy as a List, starting from itself to the highest
 	 *         one, i.e., that without parent
 	 */
-	public static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategory category) {
+	public static List<VendibleCategoryDTO> fetchHierachyForCategory(VendibleCategoryAccesor category) {
 		List<VendibleCategoryDTO> toAddCategories = new ArrayList<VendibleCategoryDTO>();
 
-		Optional<VendibleCategory> parentOpt = Optional.ofNullable(category.getParent());
+		Optional<VendibleCategoryAccesor> parentOpt = Optional.ofNullable(category.getParent());
 		Long parentId = parentOpt.isPresent() ? parentOpt.get().getId() : null;
 		VendibleCategoryDTO dto = new VendibleCategoryDTO(category.getId(), category.getName(), parentId);
 		toAddCategories.add(dto);
 
 		while (parentOpt.isPresent()) {
-			VendibleCategory parent = parentOpt.get();
+			VendibleCategoryAccesor parent = parentOpt.get();
 			Long parentParentId = Optional.ofNullable(parent.getParent()).isPresent() ? parent.getParent().getId()
 					: null;
 			VendibleCategoryDTO parentDTO = new VendibleCategoryDTO(parent.getId(), parent.getName(), parentParentId);
@@ -174,9 +174,9 @@ public final class VendibleHelper {
 	}
 
 	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
-			Vendible vendible) {
+			VendibleAccesor vendible) {
 		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
-			Proveedor proveedor = proveedorVendible.getProveedor();
+			ProveedorAccessor proveedor = proveedorVendible.getProveedor();
 			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(
 					vendible.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());

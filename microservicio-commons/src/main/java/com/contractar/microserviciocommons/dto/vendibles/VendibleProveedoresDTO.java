@@ -5,9 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.proveedorvendible.AbstractProveedorVendibleDTO;
-import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 
 /**
  * 
@@ -18,7 +17,7 @@ import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
  *
  */
 public class VendibleProveedoresDTO {
-	private Set<DistanceProveedorDTO> vendibles;
+	private Set<AbstractProveedorVendibleDTOAccesor> vendibles;
 	private Set<ProveedorDTO> proveedores;
 
 	private double minDistance;
@@ -28,7 +27,7 @@ public class VendibleProveedoresDTO {
 
 
 
-	public VendibleProveedoresDTO(Set<DistanceProveedorDTO> vendibles, Set<ProveedorDTO> proveedores) {
+	public VendibleProveedoresDTO(Set<AbstractProveedorVendibleDTOAccesor> vendibles, Set<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
 		this.proveedores = proveedores;
 	}
@@ -38,16 +37,16 @@ public class VendibleProveedoresDTO {
 		this.proveedores = new HashSet<>();
 	}
 
-	public VendibleProveedoresDTO(Comparator<AbstractProveedorVendibleDTO> comparator) {
+	public VendibleProveedoresDTO(Comparator<AbstractProveedorVendibleDTOAccesor> comparator) {
 		this.vendibles = new TreeSet<>(comparator);
 		this.proveedores = new HashSet<>();
 	}
 
-	public Set<DistanceProveedorDTO> getVendibles() {
+	public Set<AbstractProveedorVendibleDTOAccesor> getVendibles() {
 		return vendibles;
 	}
 
-	public void setVendibles(Set<DistanceProveedorDTO> vendibles) {
+	public void setVendibles(Set<AbstractProveedorVendibleDTOAccesor> vendibles) {
 		this.vendibles = vendibles;
 	}
 

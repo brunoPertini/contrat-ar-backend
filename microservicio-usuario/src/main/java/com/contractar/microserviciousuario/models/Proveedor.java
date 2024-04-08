@@ -11,7 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciocommons.usuarios.serialization.ProveedorDeserializer;
+import com.contractar.microserviciousuario.serialization.ProveedorDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;

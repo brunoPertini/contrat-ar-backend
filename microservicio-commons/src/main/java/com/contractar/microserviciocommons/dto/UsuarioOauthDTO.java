@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import com.contractar.microserviciousuario.models.Role;
+import com.contractar.microservicioadapter.enums.RoleAccesor;
 
 public class UsuarioOauthDTO extends User {
 	private static final long serialVersionUID = -5145570701186883068L;
@@ -21,14 +21,14 @@ public class UsuarioOauthDTO extends User {
 
 	private boolean isActive;
 
-	private Role role;
+	private RoleAccesor role;
 
 	public UsuarioOauthDTO() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 	}
 
 	public UsuarioOauthDTO(Long id, String name, String surname, String email, boolean isActive, String password,
-			List<SimpleGrantedAuthority> authorities, Role role) {
+			List<SimpleGrantedAuthority> authorities, RoleAccesor role) {
 		super(name + surname, password, false, true, true, true, authorities);
 		this.id = id;
 		this.name = name;
@@ -70,11 +70,11 @@ public class UsuarioOauthDTO extends User {
 		this.isActive = isActive;
 	}
 
-	public Role getRole() {
+	public RoleAccesor getRole() {
 		return role;
 	}
 
-	public void setRole(Role role) {
+	public void setRole(RoleAccesor role) {
 		this.role = role;
 	}
 	

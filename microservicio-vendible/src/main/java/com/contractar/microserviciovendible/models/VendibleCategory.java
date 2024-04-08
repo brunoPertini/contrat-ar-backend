@@ -3,6 +3,8 @@ package com.contractar.microserviciovendible.models;
 import java.io.Serializable;
 import java.util.Objects;
 
+import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +14,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
-public class VendibleCategory implements Serializable{
+public class VendibleCategory implements Serializable, VendibleCategoryAccesor{
 	private static final long serialVersionUID = 7730485531522553692L;
 
 	@Id

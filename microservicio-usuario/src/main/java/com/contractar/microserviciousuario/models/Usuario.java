@@ -11,7 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
-import com.contractar.microserviciocommons.usuarios.serialization.UserDetailsDeserializer;
+import com.contractar.microserviciousuario.serialization.UserDetailsDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;

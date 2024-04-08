@@ -1,8 +1,9 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
+import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 
-public abstract class AbstractProveedorVendibleDTO {
+public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorVendibleDTOAccesor{
 	
 	private Long vendibleId;
 

@@ -7,7 +7,7 @@ import java.util.Set;
 import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.contractar.microserviciocommons.usuarios.serialization.ClienteDeserializer;
+import com.contractar.microserviciousuario.serialization.ClienteDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package com.contractar.microserviciocommons.usuarios.serialization;
+package com.contractar.microserviciousuario.serialization;
 
 import java.io.IOException;
 import java.util.ArrayList;
