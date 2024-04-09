@@ -1,4 +1,4 @@
-package com.contractar.microserviciovendible.models;
+package com.contractar.microservicioadapter.implementations.entities;
 
 import java.io.Serializable;
 import java.util.Objects;

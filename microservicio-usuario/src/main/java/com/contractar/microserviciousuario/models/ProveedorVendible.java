@@ -7,6 +7,7 @@ import org.locationtech.jts.geom.Point;
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+import com.contractar.microservicioadapter.implementations.entities.VendibleCategory;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
@@ -81,14 +82,14 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 
 	@OneToOne
 	@NotNull
-	private VendibleCategoryAccesor category;
+	private VendibleCategory category;
 
 	public ProveedorVendible() {
 	}
 
 	public ProveedorVendible(ProveedorVendibleId id, @NotNull int precio, @NotBlank String descripcion,
 			String imagenUrl, int stock, VendibleAccesor vendible, Proveedor proveedor, PriceTypeValue tipoPrecio,
-			VendibleCategoryAccesor category, boolean offersDelivery) {
+			VendibleCategory category, boolean offersDelivery) {
 		this.id = id;
 		this.precio = precio;
 		this.descripcion = descripcion;
@@ -196,7 +197,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 
 	@Override
 	public void setCategory(VendibleCategoryAccesor category) {
-		this.category = category;
+		this.category = (VendibleCategory) category;
 	}
 
 }

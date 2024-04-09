@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class, ManagementWebSecurityAutoConfiguration.class })
-@EntityScan(basePackages = { "com.contractar.microserviciousuario.models" })
+@EntityScan(basePackages = { "com.contractar.microserviciousuario.models"})
 public class MicroservicioUsuarioApplication {
 
 	public static void main(String[] args) {

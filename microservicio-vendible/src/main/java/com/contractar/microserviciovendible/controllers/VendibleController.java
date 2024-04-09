@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
+import com.contractar.microservicioadapter.implementations.entities.VendibleCategory;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCategoryDTO;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
-import com.contractar.microserviciovendible.models.VendibleCategory;
 import com.contractar.microserviciovendible.services.VendibleService;
 
 import jakarta.validation.Valid;
