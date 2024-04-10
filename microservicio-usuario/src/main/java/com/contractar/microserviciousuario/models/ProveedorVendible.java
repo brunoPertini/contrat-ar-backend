@@ -7,7 +7,6 @@ import org.locationtech.jts.geom.Point;
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
-import com.contractar.microservicioadapter.implementations.entities.VendibleCategory;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
@@ -60,7 +59,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("vendibleId")
 	@JoinColumn(name = "vendible_id")
-	private VendibleAccesor vendible;
+	private Vendible vendible;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("proveedorId")
@@ -88,7 +87,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	}
 
 	public ProveedorVendible(ProveedorVendibleId id, @NotNull int precio, @NotBlank String descripcion,
-			String imagenUrl, int stock, VendibleAccesor vendible, Proveedor proveedor, PriceTypeValue tipoPrecio,
+			String imagenUrl, int stock, Vendible vendible, Proveedor proveedor, PriceTypeValue tipoPrecio,
 			VendibleCategory category, boolean offersDelivery) {
 		this.id = id;
 		this.precio = precio;
@@ -147,7 +146,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	}
 
 	public void setVendible(VendibleAccesor vendible) {
-		this.vendible = vendible;
+		this.vendible = (Vendible)vendible;
 	}
 
 	public Proveedor getProveedor() {

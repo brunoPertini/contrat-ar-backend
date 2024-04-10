@@ -7,8 +7,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.TransactionSystemException;
 
-import com.contractar.microserviciovendible.models.Producto;
-import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciousuario.models.Producto;
+import com.contractar.microserviciousuario.models.Vendible;
 
 public interface ProductoRepository extends CrudRepository<Producto, Long>{
 	public Producto save(Vendible producto) throws TransactionSystemException;

@@ -7,8 +7,8 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.TransactionSystemException;
 
-import com.contractar.microserviciovendible.models.Servicio;
-import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciousuario.models.Servicio;
+import com.contractar.microserviciousuario.models.Vendible;
 
 public interface ServicioRepository extends PagingAndSortingRepository<Servicio, Long>{
 	public Servicio findById(Long id);

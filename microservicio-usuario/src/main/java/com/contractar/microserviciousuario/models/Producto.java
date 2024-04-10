@@ -1,4 +1,4 @@
-package com.contractar.microserviciovendible.models;
+package com.contractar.microserviciousuario.models;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

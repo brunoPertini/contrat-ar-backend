@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
 import com.contractar.microserviciovendible.services.VendibleService;
 
