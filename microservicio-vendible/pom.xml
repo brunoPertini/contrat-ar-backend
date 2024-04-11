@@ -57,12 +57,12 @@
             <groupId>com.contractar</groupId>
             <artifactId>microservicio-commons</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-       </dependency>
+    	</dependency>
             <dependency>
             <groupId>com.contractar</groupId>
             <artifactId>microservicio-usuario</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-       </dependency>
+            </dependency>
 	</dependencies>
 	<dependencyManagement>
     <dependencies>

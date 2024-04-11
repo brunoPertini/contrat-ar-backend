@@ -14,6 +14,7 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Role;
 import com.contractar.microserviciousuario.models.Usuario;
+import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciousuario.repository.ClienteRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.RoleRepository;
@@ -121,8 +122,8 @@ public class UsuarioService {
 
 		String getVendibleUrl = builder.toUriString();
 
-		Optional<VendibleAccesor> vendibleOpt = Optional.ofNullable(
-				httpClient.getForObject(getVendibleUrl, VendibleAccesor.class)
+		Optional<Vendible> vendibleOpt = Optional.ofNullable(
+				httpClient.getForObject(getVendibleUrl, Vendible.class)
 				);
 		Optional<Proveedor> proveedorOpt = proveedorRepository.findById(proveedorId);
 

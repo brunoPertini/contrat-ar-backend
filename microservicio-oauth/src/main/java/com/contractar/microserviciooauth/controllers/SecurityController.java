@@ -20,10 +20,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
-import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
 import com.contractar.microserviciooauth.services.UserDetailsServiceImpl;
+import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.servlet.http.Cookie;

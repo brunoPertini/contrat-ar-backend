@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 import org.locationtech.jts.geom.Point;
 
-import com.contractar.microservicioadapter.enums.RoleAccesor;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -26,8 +25,6 @@ public class UsuarioDTO {
 
 	private LocalDate birthDate;
 
-	private RoleAccesor role;
-
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
@@ -35,14 +32,13 @@ public class UsuarioDTO {
 	public UsuarioDTO() {
 	}
 
-	public UsuarioDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate, RoleAccesor role,
+	public UsuarioDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate,
 			Point location) {
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
 		this.isActive = isActive;
 		this.birthDate = birthDate;
-		this.role = role;
 		this.location = location;
 	}
 
@@ -84,14 +80,6 @@ public class UsuarioDTO {
 
 	public void setBirthDate(LocalDate birthDate) {
 		this.birthDate = birthDate;
-	}
-
-	public RoleAccesor getRole() {
-		return role;
-	}
-
-	public void setRole(RoleAccesor role) {
-		this.role = role;
 	}
 
 	public Point getLocation() {

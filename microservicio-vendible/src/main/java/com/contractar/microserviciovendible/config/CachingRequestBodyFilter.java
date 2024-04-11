@@ -3,7 +3,6 @@ package com.contractar.microserviciovendible.config;
 import java.io.IOException;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import com.contractar.microserviciocommons.infra.CachedBodyHttpServletRequest;
 

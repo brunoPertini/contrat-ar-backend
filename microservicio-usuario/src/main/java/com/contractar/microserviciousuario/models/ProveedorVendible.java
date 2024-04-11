@@ -11,6 +11,7 @@ import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -144,6 +145,11 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public VendibleAccesor getVendible() {
 		return vendible;
 	}
+	
+	@JsonSetter
+	public void setVendible(Vendible vendible) {
+		this.vendible = vendible;
+	}
 
 	public void setVendible(VendibleAccesor vendible) {
 		this.vendible = (Vendible)vendible;
@@ -193,6 +199,12 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public VendibleCategoryAccesor getCategory() {
 		return this.category;
 	}
+	
+	@JsonSetter
+	public void setCategory(VendibleCategory category) {
+		this.category = category;
+	}
+	
 
 	@Override
 	public void setCategory(VendibleCategoryAccesor category) {

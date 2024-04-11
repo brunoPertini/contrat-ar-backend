@@ -19,7 +19,6 @@ import com.contractar.microserviciocommons.constants.controllers.GeoControllersU
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.UsuarioDTO;
-import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -28,6 +27,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingE
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
@@ -105,7 +105,6 @@ public class UsuarioController {
 				user.getEmail(),
 				user.isActive(),
 				user.getBirthDate(),
-				user.getRole(),
 				user.getlocation())
 				, HttpStatus.OK);
 	}
