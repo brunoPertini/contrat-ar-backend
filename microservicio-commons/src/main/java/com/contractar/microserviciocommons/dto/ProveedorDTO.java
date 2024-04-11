@@ -36,7 +36,7 @@ public class ProveedorDTO extends UsuarioDTO {
 	public ProveedorDTO() {
 	}
 
-	public ProveedorDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate, RoleAccesor role,
+	public ProveedorDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate,
 			Point location, String dni, PlanType plan, ProveedorType proveedorType, String phone) {
 		super(name, surname, email, isActive, birthDate, location);
 		this.dni = dni;

@@ -91,7 +91,6 @@ public class UsuarioController {
 					proveedor.getEmail(),
 					proveedor.isActive(),
 					proveedor.getBirthDate(),
-					proveedor.getRole(),
 					proveedor.getlocation(),
 					proveedor.getDni(),
 					proveedor.getPlan(),

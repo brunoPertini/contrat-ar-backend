@@ -14,7 +14,6 @@ public interface AbstractProveedorVendibleDTOAccesor {
 	public int getStock();
 	
 	public Long getVendibleId();
-
 	
 	public Long getVendibleCategoryId();
 	
