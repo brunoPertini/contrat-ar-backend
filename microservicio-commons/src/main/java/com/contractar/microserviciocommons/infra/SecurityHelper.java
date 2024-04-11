@@ -1,6 +1,5 @@
 package com.contractar.microserviciocommons.infra;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -9,7 +8,6 @@ public class SecurityHelper {
 
 	private RestTemplate httpClient;
 
-	@Autowired
 	public SecurityHelper(RestTemplate restTemplate) {
 		this.httpClient = restTemplate;
 	}

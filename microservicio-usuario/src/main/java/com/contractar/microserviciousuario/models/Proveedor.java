@@ -8,9 +8,10 @@ import java.util.Set;
 import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciocommons.usuarios.serialization.ProveedorDeserializer;
+import com.contractar.microserviciousuario.serialization.ProveedorDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import jakarta.persistence.Column;
@@ -26,7 +27,7 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @PrimaryKeyJoinColumn(name = "proveedorId")
 @JsonDeserialize(using = ProveedorDeserializer.class)
-public class Proveedor extends Usuario {
+public class Proveedor extends Usuario implements ProveedorAccessor {
 
 	private static final long serialVersionUID = -7439587233032181786L;
 

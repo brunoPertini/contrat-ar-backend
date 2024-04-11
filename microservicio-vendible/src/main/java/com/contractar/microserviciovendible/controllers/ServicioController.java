@@ -20,7 +20,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateExcept
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
-import com.contractar.microserviciovendible.models.Servicio;
+import com.contractar.microserviciousuario.models.Servicio;
 import com.contractar.microserviciovendible.services.VendibleService;
 import com.contractar.microserviciovendible.services.resolvers.ServicioFetchingMethodResolver;
 

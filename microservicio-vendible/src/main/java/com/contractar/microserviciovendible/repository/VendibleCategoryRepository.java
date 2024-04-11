@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-import com.contractar.microserviciovendible.models.VendibleCategory;
+import com.contractar.microserviciousuario.models.VendibleCategory;
 
 public interface VendibleCategoryRepository extends Repository<VendibleCategory, Long> {
 	VendibleCategory save(VendibleCategory category);

@@ -1,6 +1,8 @@
 package com.contractar.microserviciocommons.proveedores;
 
-public enum ProveedorType {
+import com.contractar.microservicioadapter.enums.Proveedor;
+
+public enum ProveedorType implements Proveedor{
     SERVICIOS,
     PRODUCTOS,
 }

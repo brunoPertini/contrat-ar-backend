@@ -15,10 +15,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.contractar.microservicioadapter.entities.ProveedorAccessor;
+import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
+import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
+import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -29,10 +33,8 @@ import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
-import com.contractar.microserviciousuario.models.Proveedor;
-import com.contractar.microserviciousuario.models.ProveedorVendible;
-import com.contractar.microserviciovendible.models.Vendible;
-import com.contractar.microserviciovendible.models.VendibleCategory;
+import com.contractar.microserviciousuario.models.Vendible;
+import com.contractar.microserviciousuario.models.VendibleCategory;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
 import com.contractar.microserviciovendible.repository.ServicioRepository;
 import com.contractar.microserviciovendible.repository.VendibleCategoryRepository;
@@ -186,16 +188,16 @@ public class VendibleService {
 			throw new CantCreateException();
 		}
 
-		ProveedorVendible firstPv = vendible.getProveedoresVendibles().toArray(new ProveedorVendible[0])[0];
+		ProveedorVendibleAccesor firstPv = vendible.getProveedoresVendibles().toArray(new ProveedorVendibleAccesor[0])[0];
 
-		VendibleCategory vendibleCategory = firstPv.getCategory();
+		VendibleCategory vendibleCategory = (VendibleCategory) firstPv.getCategory();
 
 		if (Optional.ofNullable(vendibleCategory).isEmpty()
 				|| Optional.ofNullable(vendibleCategory.getName()).isEmpty()) {
 			throw new CantCreateException();
 		}
 
-		VendibleCategory addedCategory = this.persistCategoryHierachy(vendibleCategory);
+		VendibleCategoryAccesor addedCategory = this.persistCategoryHierachy(vendibleCategory);
 		firstPv.setCategory(addedCategory);
 
 		Vendible addedVendible;
@@ -226,7 +228,7 @@ public class VendibleService {
 					+ UsersControllerUrls.PROVEEDOR_VENDIBLE.replace("{proveedorId}", proveedorId.toString())
 							.replace("{vendibleId}", addedVendible.getId().toString());
 
-			ProveedorVendible pv = (ProveedorVendible) vendible.getProveedoresVendibles().toArray()[0];
+			ProveedorVendibleAccesor pv = (ProveedorVendibleAccesor) vendible.getProveedoresVendibles().toArray()[0];
 
 			ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
 
@@ -287,7 +289,7 @@ public class VendibleService {
 
 			Set<ProveedorVendibleDTO> proveedoresVendibles = vendible.getProveedoresVendibles().stream()
 					.map(proveedorVendible -> {
-						Proveedor proveedor = proveedorVendible.getProveedor();
+						ProveedorAccessor proveedor = proveedorVendible.getProveedor();
 						ProveedorVendibleDTO proveedorVendibleDTO = new ProveedorVendibleDTO(vendible.getNombre(),
 								proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
@@ -336,7 +338,8 @@ public class VendibleService {
 					if (proveedoresVendibles.size() > 0) {
 						response.getVendibles().put(vendible.getNombre(), proveedoresVendibles);
 						vendible.getProveedoresVendibles().forEach(proveedorVendible -> {
-							VendibleHelper.addCategoriasToResponse(proveedorVendible, response);
+							CategorizableObject categorizableProveedorVendible = (CategorizableObject) proveedorVendible;
+							VendibleHelper.addCategoriasToResponse(categorizableProveedorVendible, response);
 						});
 					}
 				});

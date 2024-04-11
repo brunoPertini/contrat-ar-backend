@@ -4,12 +4,14 @@ import java.io.Serializable;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
+import com.contractar.microservicioadapter.entities.VendibleAccesor;
+import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
-import com.contractar.microserviciovendible.models.Vendible;
-import com.contractar.microserviciovendible.models.VendibleCategory;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -33,7 +35,7 @@ import jakarta.validation.constraints.NotNull;
  * price, image, and so on.
  */
 @Entity
-public class ProveedorVendible implements Serializable, CategorizableObject {
+public class ProveedorVendible implements Serializable, CategorizableObject, ProveedorVendibleAccesor {
 	private static final long serialVersionUID = -2724448122568231385L;
 
 	@EmbeddedId
@@ -140,12 +142,17 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 		this.stock = stock;
 	}
 
-	public Vendible getVendible() {
+	public VendibleAccesor getVendible() {
 		return vendible;
 	}
-
+	
+	@JsonSetter
 	public void setVendible(Vendible vendible) {
 		this.vendible = vendible;
+	}
+
+	public void setVendible(VendibleAccesor vendible) {
+		this.vendible = (Vendible)vendible;
 	}
 
 	public Proveedor getProveedor() {
@@ -189,13 +196,19 @@ public class ProveedorVendible implements Serializable, CategorizableObject {
 	}
 
 	@Override
-	public VendibleCategory getCategory() {
-		return category;
+	public VendibleCategoryAccesor getCategory() {
+		return this.category;
 	}
-
-	@Override
+	
+	@JsonSetter
 	public void setCategory(VendibleCategory category) {
 		this.category = category;
+	}
+	
+
+	@Override
+	public void setCategory(VendibleCategoryAccesor category) {
+		this.category = (VendibleCategory) category;
 	}
 
 }

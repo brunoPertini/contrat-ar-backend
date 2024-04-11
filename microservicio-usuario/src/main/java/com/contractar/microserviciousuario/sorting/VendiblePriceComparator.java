@@ -2,14 +2,14 @@ package com.contractar.microserviciousuario.sorting;
 
 import java.util.Comparator;
 
-import com.contractar.microserviciocommons.dto.proveedorvendible.AbstractProveedorVendibleDTO;
+import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
 
-public class VendiblePriceComparator implements Comparator<AbstractProveedorVendibleDTO>{
+public class VendiblePriceComparator implements Comparator<AbstractProveedorVendibleDTOAccesor>{
 
 	public VendiblePriceComparator() {}
 
 	@Override
-	public int compare(AbstractProveedorVendibleDTO first, AbstractProveedorVendibleDTO second) {
+	public int compare(AbstractProveedorVendibleDTOAccesor first, AbstractProveedorVendibleDTOAccesor second) {
 		boolean isLower = first.getPrecio() < second.getPrecio();
 
 		boolean isEqual = first.getPrecio() == second.getPrecio();

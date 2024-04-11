@@ -3,7 +3,7 @@ package com.contractar.microserviciovendible.services.resolvers;
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microserviciousuario.models.Vendible;
 
 /**
  * 

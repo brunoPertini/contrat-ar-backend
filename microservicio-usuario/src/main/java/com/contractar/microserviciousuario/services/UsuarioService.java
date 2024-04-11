@@ -14,11 +14,12 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Role;
 import com.contractar.microserviciousuario.models.Usuario;
+import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciousuario.repository.ClienteRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.RoleRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
-import com.contractar.microserviciovendible.models.Vendible;
+import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.exceptions.CustomException;
@@ -121,7 +122,9 @@ public class UsuarioService {
 
 		String getVendibleUrl = builder.toUriString();
 
-		Optional<Vendible> vendibleOpt = Optional.ofNullable(httpClient.getForObject(getVendibleUrl, Vendible.class));
+		Optional<Vendible> vendibleOpt = Optional.ofNullable(
+				httpClient.getForObject(getVendibleUrl, Vendible.class)
+				);
 		Optional<Proveedor> proveedorOpt = proveedorRepository.findById(proveedorId);
 
 		if (vendibleOpt.isPresent() && proveedorOpt.isPresent()) {
@@ -141,7 +144,7 @@ public class UsuarioService {
 
 			if (typesMatch) {
 				try {
-					Vendible toBindVendible = vendibleOpt.get();
+					VendibleAccesor toBindVendible = vendibleOpt.get();
 					toBindVendible.setId(vendibleId);
 					proveedorVendibleService.bindVendibleToProveedor(toBindVendible, proveedorOpt.get(),
 							proveedorVendible);

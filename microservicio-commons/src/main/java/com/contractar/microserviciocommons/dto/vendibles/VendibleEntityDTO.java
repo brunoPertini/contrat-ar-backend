@@ -1,14 +1,14 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
-import com.contractar.microserviciovendible.models.VendibleCategory;
+import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 
 public class VendibleEntityDTO implements CategorizableObject {
 	private String nombre;
-	private VendibleCategory category;
+	private VendibleCategoryAccesor category;
 	
 	public VendibleEntityDTO() {}
 
-	public VendibleEntityDTO(String nombre, VendibleCategory category) {
+	public VendibleEntityDTO(String nombre, VendibleCategoryAccesor category) {
 		this.nombre = nombre;
 		this.category = category;
 	}
@@ -22,12 +22,12 @@ public class VendibleEntityDTO implements CategorizableObject {
 	}
 
 	@Override
-	public VendibleCategory getCategory() {
+	public VendibleCategoryAccesor getCategory() {
 		return category;
 	}
 
 	@Override
-	public void setCategory(VendibleCategory category) {
+	public void setCategory(VendibleCategoryAccesor category) {
 		this.category = category;
 	}
 

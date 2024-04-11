@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.IndexPagesRoutes;
-import com.contractar.microserviciocommons.dto.UsuarioOauthDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
+import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 
 @Component
 public class UserDetailsServiceImpl implements UserDetailsService {

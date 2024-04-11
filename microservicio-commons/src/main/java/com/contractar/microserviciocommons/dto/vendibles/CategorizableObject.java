@@ -1,8 +1,8 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
-import com.contractar.microserviciovendible.models.VendibleCategory;
+import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 
 public interface CategorizableObject {
-	public VendibleCategory getCategory();
-	public void setCategory(VendibleCategory category);
+	public VendibleCategoryAccesor getCategory();
+	public void setCategory(VendibleCategoryAccesor category);
 }
