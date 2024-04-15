@@ -4,10 +4,18 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 
 @Component("securityUtils")
 public class SecurityUtils {
@@ -17,6 +25,12 @@ public class SecurityUtils {
 
 	@Value("${spring.security.oauth2.client.secret}")
 	private String clientSecret;
+
+	@Value("${zuul.routes.microservicio-oauth.url}")
+	private String SERVICIO_SECURITY_URL;
+
+	@Autowired
+	private RestTemplate restTemplate;
 
 	public boolean hasValidClientId(HttpServletRequest request) {
 		String clientId = request.getHeader("client-id");
@@ -30,6 +44,43 @@ public class SecurityUtils {
 		} else {
 			throw new OAuth2AuthenticationException(new OAuth2Error("Invalid client"));
 		}
+
+	}
+
+
+	/**
+	 * Checks if the userId in the request's jwt matches with the userId that comes after 
+	 * the passed path variable section
+	 */
+	public boolean userIdsMatch(HttpServletRequest request, String pathSection) {
+		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", request.getHeader("Authorization"));
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<Long> getClientIdResponse = restTemplate.exchange(getClientIdUrl, HttpMethod.GET, entity,
+				Long.class);
+
+		Long idFromToken = getClientIdResponse.getBody();
+
+		String pathInfo = request.getServletPath();
+
+		if (pathInfo == null || idFromToken == null) {
+			return false;
+		}
+		String[] pathParts = pathInfo.split("/");
+
+		Long idFromRequest = null;
+
+		for (int i = 0; i < pathParts.length; ++i) {
+			if (pathParts[i].equals(pathSection)) {
+				idFromRequest = Long.valueOf(pathParts[i + 1]);
+			}
+		}
+
+		return idFromRequest != null && idFromToken.equals(idFromRequest);
 
 	}
 }

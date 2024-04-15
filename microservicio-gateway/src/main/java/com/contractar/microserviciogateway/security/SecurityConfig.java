@@ -23,6 +23,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.web.cors.CorsConfiguration;
 
+import com.contractar.microserviciogateway.constants.RolesNames.RolesValues;
+
 @Configuration
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
@@ -97,20 +99,28 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
             corsConfiguration.setAllowCredentials(true);
             return corsConfiguration;
         });
+		
+		String proveedorProductoRole = RolesValues.PROVEEDOR_PRODUCTOS.name();
+		String clienteRole = RolesValues.CLIENTE.name();
+		String proveedorServicioRole = RolesValues.PROVEEDOR_SERVICIOS.name();
+		
+		String vendiblesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole + "', '" + proveedorServicioRole + "')";
+		
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId")
 				.access("@securityUtils.hasValidClientId(request)")
-				.antMatchers(HttpMethod.POST, "/usuarios/**")
+				.antMatchers(HttpMethod.POST, "/usuarios/**") // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
-				.antMatchers(vendiblesUrls).access("@securityUtils.hasValidClientId(request) and isAuthenticated()")
-				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS", "CLIENTE")
-				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS", "CLIENTE")
-				.antMatchers(productosUrls).hasAuthority("PROVEEDOR_PRODUCTOS") //TODO: ver porque rompe si no pongo el harcodeo
-				.antMatchers(HttpMethod.POST, servicesUrls).hasAuthority("PROVEEDOR_SERVICIOS")
-				.antMatchers(HttpMethod.POST,vendiblesUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
-				.antMatchers(proveedorUrls).hasAnyAuthority("PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
-				.antMatchers("/geo/**").hasAnyAuthority("CLIENTE", "PROVEEDOR_PRODUCTOS", "PROVEEDOR_SERVICIOS")
+				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole)
+				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAuthority(proveedorProductoRole)
+				.antMatchers(HttpMethod.POST, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)	
+				.antMatchers(HttpMethod.PUT, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)		
+				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole)
+				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole)
+				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole)
+				.antMatchers(proveedorUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole)
+				.antMatchers("/geo/**").hasAnyAuthority(clienteRole, proveedorProductoRole, proveedorServicioRole)
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
