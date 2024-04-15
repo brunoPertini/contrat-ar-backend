@@ -85,7 +85,7 @@ public class ProveedorVendibleService {
 
 	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData)
 			throws VendibleNotFoundException, VendibleUpdateException {
-		if (!securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
+		if (newData.getImagenUrl() != null && !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
 		}
 
