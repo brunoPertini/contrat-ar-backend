@@ -47,9 +47,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] vendiblesUrls = {"/vendible/**", "/usuarios/proveedor/**/vendible/**"};
 	
 	private final String[] productosUrls = {"/product/**"};
-	
-	private final String[] servicesUrls = {"/service/**"};
-	
+		
 	private final String[] proveedorUrls = {"/proveedor/**"};
 
 	@Bean
@@ -115,7 +113,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole)
 				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAuthority(proveedorProductoRole)
 				.antMatchers(HttpMethod.POST, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)	
-				.antMatchers(HttpMethod.PUT, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)		
+				.antMatchers(HttpMethod.PUT, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule) 
+				.antMatchers(HttpMethod.DELETE, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)
 				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole)
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole)
 				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole)
