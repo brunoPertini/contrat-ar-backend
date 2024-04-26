@@ -9,7 +9,6 @@ import org.locationtech.jts.geom.Point;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.enums.Plan;
 import com.contractar.microservicioadapter.enums.Proveedor;
-import com.contractar.microservicioadapter.enums.RoleAccesor;
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,8 +36,8 @@ public class ProveedorDTO extends UsuarioDTO {
 	}
 
 	public ProveedorDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate,
-			Point location, String dni, PlanType plan, ProveedorType proveedorType, String phone) {
-		super(name, surname, email, isActive, birthDate, location);
+			Point location, String dni, PlanType plan, ProveedorType proveedorType, String phone, String password) {
+		super(name, surname, email, isActive, birthDate, location, password);
 		this.dni = dni;
 		this.plan = plan;
 		this.proveedorType = proveedorType;
@@ -47,7 +46,7 @@ public class ProveedorDTO extends UsuarioDTO {
 
 	public ProveedorDTO(ProveedorAccessor proveedor) {
 		super(proveedor.getname(), proveedor.getsurname(), proveedor.getEmail(), proveedor.isActive(),
-				proveedor.getBirthDate(), null);
+				proveedor.getBirthDate(), null, null);
 		this.plan = proveedor.getPlan();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
