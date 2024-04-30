@@ -26,8 +26,6 @@ public class UsuarioDTO {
 
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate birthDate;
-	
-	private String password;
 
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
@@ -37,14 +35,13 @@ public class UsuarioDTO {
 	}
 
 	public UsuarioDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate,
-			Point location, String password) {
+			Point location) {
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
 		this.isActive = isActive;
 		this.birthDate = birthDate;
 		this.location = location;
-		this.password = password;
 	}
 
 	public String getName() {
@@ -102,13 +99,4 @@ public class UsuarioDTO {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
 }

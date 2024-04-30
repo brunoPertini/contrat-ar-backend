@@ -95,8 +95,7 @@ public class UsuarioController {
 					proveedor.getDni(),
 					proveedor.getPlan(),
 					proveedor.getProveedorType(),
-					proveedor.getPhone(),
-					proveedor.getPassword())
+					proveedor.getPhone())
 					, HttpStatus.OK);
 		};
 			
@@ -105,8 +104,7 @@ public class UsuarioController {
 				user.getEmail(),
 				user.isActive(),
 				user.getBirthDate(),
-				user.getlocation(),
-				user.getPassword())
+				user.getlocation())
 				, HttpStatus.OK);
 	}
 
