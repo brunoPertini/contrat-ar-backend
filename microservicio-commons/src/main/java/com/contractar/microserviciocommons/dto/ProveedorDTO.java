@@ -9,7 +9,6 @@ import org.locationtech.jts.geom.Point;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.enums.Plan;
 import com.contractar.microservicioadapter.enums.Proveedor;
-import com.contractar.microservicioadapter.enums.RoleAccesor;
 import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,7 +20,6 @@ public class ProveedorDTO extends UsuarioDTO {
 	@NotBlank
 	private String dni;
 
-	@JsonIgnore
 	@NotNull
 	private Plan plan;
 
