@@ -6,6 +6,7 @@ import org.locationtech.jts.geom.Point;
 
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -23,6 +24,7 @@ public class UsuarioDTO {
 
 	private boolean isActive;
 
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate birthDate;
 
 	@JsonDeserialize(using = UbicacionDeserializer.class)
