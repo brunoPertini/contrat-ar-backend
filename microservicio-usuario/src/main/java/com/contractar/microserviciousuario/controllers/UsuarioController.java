@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
-import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
@@ -75,7 +75,7 @@ public class UsuarioController {
 			@RequestParam(required = false) Long id) throws UserNotFoundException {
 		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id, true);
 
-		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getname(), usuario.getsurname(),
+		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getName(), usuario.getSurname(),
 				usuario.getEmail(), usuario.isActive(), usuario.getPassword(),
 				new ArrayList<SimpleGrantedAuthority>(), usuario.getRole());
 		return new ResponseEntity<UsuarioOauthDTO>(usuarioOauthDTO, HttpStatus.OK);
@@ -86,12 +86,12 @@ public class UsuarioController {
 		Usuario user = this.usuarioService.findById(userId, false);
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
-			return new ResponseEntity<>(new ProveedorDTO(proveedor.getname(),
-					proveedor.getsurname(),
+			return new ResponseEntity<>(new ProveedorDTO(proveedor.getName(),
+					proveedor.getSurname(),
 					proveedor.getEmail(),
 					proveedor.isActive(),
 					proveedor.getBirthDate(),
-					proveedor.getlocation(),
+					proveedor.getLocation(),
 					proveedor.getDni(),
 					proveedor.getPlan(),
 					proveedor.getProveedorType(),
@@ -99,12 +99,12 @@ public class UsuarioController {
 					, HttpStatus.OK);
 		};
 			
-		return new ResponseEntity<>(new UsuarioDTO(user.getname(),
-				user.getsurname(),
+		return new ResponseEntity<>(new UsuarioDTO(user.getName(),
+				user.getSurname(),
 				user.getEmail(),
 				user.isActive(),
 				user.getBirthDate(),
-				user.getlocation())
+				user.getLocation())
 				, HttpStatus.OK);
 	}
 

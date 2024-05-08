@@ -1,4 +1,4 @@
-package com.contractar.microserviciocommons.dto;
+package com.contractar.microserviciocommons.dto.usuario;
 
 import java.time.LocalDate;
 

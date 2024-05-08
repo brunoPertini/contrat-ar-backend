@@ -48,9 +48,6 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	
 	private String fotoPerfilUrl;
 	
-	@Column(length = 30)
-	private String phone;
-
 	public Proveedor() {
 		super();
 	}
@@ -108,13 +105,4 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	public void setFotoPerfilUrl(String fotoPerfilUrl) {
 		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
-	
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
 }

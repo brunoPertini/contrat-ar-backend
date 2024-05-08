@@ -49,6 +49,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] productosUrls = {"/product/**"};
 		
 	private final String[] proveedorUrls = {"/proveedor/**"};
+	
+	private final String[] clientesUrls = {"/cliente/**"};
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -104,6 +106,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		
 		String vendiblesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole + "', '" + proveedorServicioRole + "')";
 		
+		String clientesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"cliente\") and hasAnyAuthority('" + clienteRole + "')";
+
+		
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId")
@@ -118,6 +123,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole)
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole)
 				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole)
+				.antMatchers(HttpMethod.PUT, clientesUrls).access(clientesOperationsAccsesRule)
 				.antMatchers(proveedorUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole)
 				.antMatchers("/geo/**").hasAnyAuthority(clienteRole, proveedorProductoRole, proveedorServicioRole)
 				.anyRequest()
