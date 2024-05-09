@@ -4,8 +4,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class ReflectionHelper {
 
@@ -81,4 +83,15 @@ public final class ReflectionHelper {
 		
 		return fields.toArray(new Field[fields.size()]);
 	}
+	
+	  public static Map<String, Object> getObjectFields(Object obj) throws IllegalAccessException {
+	        Map<String, Object> map = new HashMap<>();
+	        Class<?> clazz = obj.getClass();
+	        for (Field field : clazz.getDeclaredFields()) {
+	            field.setAccessible(true);
+	            Object value = field.get(obj);
+	            map.put(field.getName(), value);
+	        }
+	        return map;
+	    }
 }

@@ -20,13 +20,17 @@ import com.contractar.microserviciocommons.constants.controllers.UsersController
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
+import com.contractar.microserviciocommons.dto.usuario.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
+import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciousuario.admin.services.AdminService;
+import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -43,6 +47,9 @@ public class UsuarioController {
 	
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
+	
+	@Autowired
+	private AdminService adminService;
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -63,7 +70,7 @@ public class UsuarioController {
 	}
 
 	@SuppressWarnings("rawtypes")
-	@GetMapping(UsersControllerUrls.USUARIO_EXISTS)
+	@GetMapping(UsersControllerUrls.USUARIO_BASE_URL)
 	public ResponseEntity usuarioExists(@PathVariable Long usuarioId) throws UserNotFoundException {
 		boolean usuarioExists = usuarioService.usuarioExists(usuarioId);
 		int responseStatus = usuarioExists ? 200 : 404;
@@ -137,6 +144,22 @@ public class UsuarioController {
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
+	
+	
+	  @PutMapping(UsersControllerUrls.USUARIO_BASE_URL) 
+	  public ResponseEntity<?> changeUserSensibleInfo(@PathVariable Long usuarioId, @RequestBody UsuarioSensibleInfoDTO body) throws ChangeAlreadyRequestedException {
+		  try {
+			  adminService.addChangeRequestEntry(body, usuarioId);
+			  return ResponseEntity
+					  .ok()
+					  .build();
+		  } catch (IllegalAccessException e) {
+			  return new ExceptionFactory().getResponseException(
+					  "Hay algún error con los campos que estas tratando de actualizar",
+					  HttpStatusCode.valueOf(409));
+		  }
+	  }
+	 
 	
 	@GetMapping(GeoControllersUrls.TRANSLATE_COORDINATES)
 	public ResponseEntity<?> translateAddress(@RequestParam("latitude") double latitude, @RequestParam("longitude") double longitude) {
