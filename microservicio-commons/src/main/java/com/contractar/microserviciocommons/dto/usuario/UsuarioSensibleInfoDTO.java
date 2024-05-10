@@ -1,5 +1,8 @@
 package com.contractar.microserviciocommons.dto.usuario;
 
+/**
+ * Info that requires ADMIN approval to be inserted or modified as it is sensible
+ */
 public class UsuarioSensibleInfoDTO {
 
 	private String email;

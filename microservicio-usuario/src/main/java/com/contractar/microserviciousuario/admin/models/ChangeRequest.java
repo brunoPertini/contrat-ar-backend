@@ -8,6 +8,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
+/**
+ * Represents a change that is requested by a Cliente or Proveedor, but has to be confirmed by an ADMIN. Implies an UPDATE 
+ * operation on the database. 
+ */
 @Entity
 public class ChangeRequest implements Serializable {
 
