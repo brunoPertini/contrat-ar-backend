@@ -27,6 +27,8 @@ public class ChangeRequest implements Serializable {
 	private String attributes;
 	
 	private boolean wasApplied;
+	
+	public ChangeRequest() {}
 
 	public ChangeRequest(String table, String attributes, boolean wasApplied, Long sourceTableId) {
 		this.sourceTable = table;

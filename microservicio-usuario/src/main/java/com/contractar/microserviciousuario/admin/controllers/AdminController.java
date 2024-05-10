@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
+import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
 
 import jakarta.validation.Valid;
 
@@ -21,8 +22,9 @@ public class AdminController {
 	private AdminService adminService;
 	
 	@PatchMapping("/admin/change-requests/{id}")
-	public ResponseEntity<Void> confirmUserRequestChange(@PathVariable("id") Long id) {
-		
+	 public ResponseEntity<?> confirmUserRequestChange(@PathVariable("id") Long id) throws ChangeConfirmException {
+		adminService.confirmChangeRequest(id);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
 	@PutMapping("/admin/usuarios/{id}")

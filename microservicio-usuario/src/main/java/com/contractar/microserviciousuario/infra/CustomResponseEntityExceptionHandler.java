@@ -17,6 +17,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFound
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
+import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
 
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
@@ -32,7 +33,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 			VendibleNotFoundException.class,
 			VendibleAlreadyExistsException.class,
 			VendibleUpdateException.class,
-			ChangeAlreadyRequestedException.class})
+			ChangeAlreadyRequestedException.class,
+			ChangeConfirmException.class})
 	public ResponseEntity<Object> handleCustomExceptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),
