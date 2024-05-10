@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
-import com.contractar.microserviciocommons.dto.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 
 /**
  * 

@@ -1,5 +1,6 @@
 package com.contractar.microserviciousuario.services;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.usuario.UsuarioCommonInfoUpdateDTO;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -29,6 +31,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 
 @Service
@@ -53,7 +56,7 @@ public class UsuarioService {
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
-	
+
 	@Value("${openstreet-api.url}")
 	private String openStreetAPIUrl;
 
@@ -72,14 +75,38 @@ public class UsuarioService {
 
 	}
 
-	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
-		return proveedorRepository.existsByIdAndProveedorType(id, proveedorType);
-	}
-
 	public Cliente createCliente(Cliente cliente) {
 		Role clienteRole = roleRepository.findByNombre(RolesValues.CLIENTE.toString()).get();
 		cliente.setRole(clienteRole);
 		return clienteRepository.save(cliente);
+	}
+
+	public Cliente updateCliente(Long clienteId, UsuarioCommonInfoUpdateDTO newInfo) throws Exception {
+		Optional<Cliente> clienteOpt = this.clienteRepository.findById(clienteId);
+
+		if (!clienteOpt.isPresent()) {
+			throw new UserNotFoundException("El usuario no existe");
+		}
+		
+		Cliente cliente = clienteOpt.get();
+
+		String dtoFullClassName = UsuarioCommonInfoUpdateDTO.class.getPackage().getName()
+				+ ".UsuarioCommonInfoUpdateDTO";
+		String entityFullClassName = Cliente.class.getPackage().getName() + ".Cliente";
+
+		try {
+			ReflectionHelper.applySetterFromExistingFields(newInfo, cliente, dtoFullClassName, entityFullClassName);
+			clienteRepository.save(cliente);
+			return cliente;
+
+		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
+				| InvocationTargetException e) {
+			throw e;
+		}
+	}
+
+	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
+		return proveedorRepository.existsByIdAndProveedorType(id, proveedorType);
 	}
 
 	public boolean usuarioExists(Long id) throws UserNotFoundException {
@@ -106,7 +133,7 @@ public class UsuarioService {
 		if (usuarioOpt.isPresent()) {
 			return usuarioOpt.get();
 		}
-		
+
 		if (handleLoginExceptions) {
 			throw new UserNotFoundException();
 		} else {
@@ -122,9 +149,7 @@ public class UsuarioService {
 
 		String getVendibleUrl = builder.toUriString();
 
-		Optional<Vendible> vendibleOpt = Optional.ofNullable(
-				httpClient.getForObject(getVendibleUrl, Vendible.class)
-				);
+		Optional<Vendible> vendibleOpt = Optional.ofNullable(httpClient.getForObject(getVendibleUrl, Vendible.class));
 		Optional<Proveedor> proveedorOpt = proveedorRepository.findById(proveedorId);
 
 		if (vendibleOpt.isPresent() && proveedorOpt.isPresent()) {
@@ -158,9 +183,9 @@ public class UsuarioService {
 			throw new VendibleBindingException();
 		}
 	}
-	
+
 	public Object translateCoordinates(double latitude, double longitude) {
-		String baseUrl = openStreetAPIUrl+ "reverse?lat="+latitude+"&lon="+longitude+"&format=json";
+		String baseUrl = openStreetAPIUrl + "reverse?lat=" + latitude + "&lon=" + longitude + "&format=json";
 		try {
 			return httpClient.getForObject(baseUrl, Object.class);
 		} catch (Exception e) {

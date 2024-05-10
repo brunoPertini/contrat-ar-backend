@@ -17,16 +17,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
-import com.contractar.microserviciocommons.dto.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
+import com.contractar.microserviciocommons.dto.usuario.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
+import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciousuario.admin.services.AdminService;
+import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -43,6 +47,9 @@ public class UsuarioController {
 	
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
+	
+	@Autowired
+	private AdminService adminService;
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -63,7 +70,7 @@ public class UsuarioController {
 	}
 
 	@SuppressWarnings("rawtypes")
-	@GetMapping(UsersControllerUrls.USUARIO_EXISTS)
+	@GetMapping(UsersControllerUrls.USUARIO_BASE_URL)
 	public ResponseEntity usuarioExists(@PathVariable Long usuarioId) throws UserNotFoundException {
 		boolean usuarioExists = usuarioService.usuarioExists(usuarioId);
 		int responseStatus = usuarioExists ? 200 : 404;
@@ -75,7 +82,7 @@ public class UsuarioController {
 			@RequestParam(required = false) Long id) throws UserNotFoundException {
 		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id, true);
 
-		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getname(), usuario.getsurname(),
+		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getName(), usuario.getSurname(),
 				usuario.getEmail(), usuario.isActive(), usuario.getPassword(),
 				new ArrayList<SimpleGrantedAuthority>(), usuario.getRole());
 		return new ResponseEntity<UsuarioOauthDTO>(usuarioOauthDTO, HttpStatus.OK);
@@ -86,12 +93,12 @@ public class UsuarioController {
 		Usuario user = this.usuarioService.findById(userId, false);
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
-			return new ResponseEntity<>(new ProveedorDTO(proveedor.getname(),
-					proveedor.getsurname(),
+			return new ResponseEntity<>(new ProveedorDTO(proveedor.getName(),
+					proveedor.getSurname(),
 					proveedor.getEmail(),
 					proveedor.isActive(),
 					proveedor.getBirthDate(),
-					proveedor.getlocation(),
+					proveedor.getLocation(),
 					proveedor.getDni(),
 					proveedor.getPlan(),
 					proveedor.getProveedorType(),
@@ -99,12 +106,12 @@ public class UsuarioController {
 					, HttpStatus.OK);
 		};
 			
-		return new ResponseEntity<>(new UsuarioDTO(user.getname(),
-				user.getsurname(),
+		return new ResponseEntity<>(new UsuarioDTO(user.getName(),
+				user.getSurname(),
 				user.getEmail(),
 				user.isActive(),
 				user.getBirthDate(),
-				user.getlocation())
+				user.getLocation())
 				, HttpStatus.OK);
 	}
 
@@ -137,6 +144,22 @@ public class UsuarioController {
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
+	
+	
+	  @PutMapping(UsersControllerUrls.USUARIO_BASE_URL) 
+	  public ResponseEntity<?> changeUserSensibleInfo(@PathVariable Long usuarioId, @RequestBody UsuarioSensibleInfoDTO body) throws ChangeAlreadyRequestedException {
+		  try {
+			  adminService.addChangeRequestEntry(body, usuarioId);
+			  return ResponseEntity
+					  .ok()
+					  .build();
+		  } catch (IllegalAccessException e) {
+			  return new ExceptionFactory().getResponseException(
+					  "Hay algún error con los campos que estas tratando de actualizar",
+					  HttpStatusCode.valueOf(409));
+		  }
+	  }
+	 
 	
 	@GetMapping(GeoControllersUrls.TRANSLATE_COORDINATES)
 	public ResponseEntity<?> translateAddress(@RequestParam("latitude") double latitude, @RequestParam("longitude") double longitude) {

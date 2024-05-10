@@ -9,15 +9,15 @@ import com.contractar.microservicioadapter.enums.RoleAccesor;
 public interface UsuarioAccesor {
 	public Long getId();
 
-	public String getname();
+	public String getName();
 
-	public String getsurname();
+	public String getSurname();
 
 	public String getEmail();
 
 	public boolean isActive();
 
-	public Point getlocation();
+	public Point getLocation();
 
 	public LocalDate getBirthDate();
 

@@ -57,6 +57,9 @@ public class Usuario extends User implements Serializable {
 
 	@NotNull
 	private LocalDate birthDate;
+	
+	@Column(length = 30)
+	private String phone;
 
 	@OneToOne
 	@JoinColumn(name = "role")
@@ -101,19 +104,19 @@ public class Usuario extends User implements Serializable {
 		this.id = id;
 	}
 
-	public String getname() {
+	public String getName() {
 		return name;
 	}
 
-	public void setname(String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getsurname() {
+	public String getSurname() {
 		return surname;
 	}
 
-	public void setsurname(String surname) {
+	public void setSurname(String surname) {
 		this.surname = surname;
 	}
 
@@ -133,11 +136,11 @@ public class Usuario extends User implements Serializable {
 		this.isActive = isActive;
 	}
 
-	public Point getlocation() {
+	public Point getLocation() {
 		return location;
 	}
 
-	public void setlocation(Point location) {
+	public void setLocation(Point location) {
 		this.location = location;
 	}
 
@@ -163,5 +166,13 @@ public class Usuario extends User implements Serializable {
 
 	public void setRole(Role role) {
 		this.role = role;
+	}
+	
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
 	}
 }

@@ -1,4 +1,4 @@
-package com.contractar.microserviciocommons.dto;
+package com.contractar.microserviciocommons.dto.usuario;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -44,7 +44,7 @@ public class ProveedorDTO extends UsuarioDTO {
 	}
 
 	public ProveedorDTO(ProveedorAccessor proveedor) {
-		super(proveedor.getname(), proveedor.getsurname(), proveedor.getEmail(), proveedor.isActive(),
+		super(proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), null);
 		this.plan = proveedor.getPlan();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
