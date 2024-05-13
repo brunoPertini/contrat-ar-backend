@@ -11,6 +11,4 @@ public interface ProveedorAccessor extends UsuarioAccesor{
 	public Proveedor getProveedorType();
 
 	public String getFotoPerfilUrl();
-
-	public String getPhone();	
 }

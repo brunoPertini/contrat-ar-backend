@@ -25,12 +25,15 @@ public class ClienteController {
 	public ResponseEntity<?> update(@RequestBody UsuarioCommonInfoUpdateDTO body, @PathVariable("id") Long id) {
 		try {
 			Cliente updated = usuarioService.updateCliente(id, body);
-			return new ResponseEntity<>(new UsuarioDTO(updated.getName(),
+			return new ResponseEntity<>(new UsuarioDTO(
+					updated.getId(),
+					updated.getName(),
 					updated.getSurname(), 
 					updated.getEmail(),
 					updated.isActive(),
 					updated.getBirthDate(),
-					updated.getLocation()), HttpStatus.OK);
+					updated.getLocation(),
+					updated.getPhone()), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ExceptionFactory().getResponseException("No se pudo actualizar al usuario", HttpStatusCode.valueOf(409));
 		}
