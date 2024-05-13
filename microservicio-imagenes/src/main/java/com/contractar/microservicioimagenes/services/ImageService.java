@@ -23,7 +23,7 @@ public class ImageService {
 
 	@Value("${cdn.location.dev}")
 	private String cdnBaseUrl;
-	
+
 	@Value("${cdn.dir.dev}")
 	private String cdnDir;
 
@@ -83,36 +83,42 @@ public class ImageService {
 		}
 
 	}
+	
+	private String saveImageFile(MultipartFile file, String uploadDirTemplate) throws IOException, ImageUploadException {
+		byte[] bytes = file.getBytes();
+
+		String imageFileType = findImageType(file.getContentType());
+
+		boolean isAcceptedFormat = Arrays.stream(acceptedFormats).anyMatch(format -> format.equals(imageFileType));
+
+		if (!isAcceptedFormat) {
+			throw new ImageUploadException("");
+		}
+
+		byte[] croppedBytes = cropToSquare(bytes, imageFileType);
+
+		String fileName = file.getOriginalFilename();
+
+		saveImageToFile(croppedBytes, fileName, cdnDir + File.separator + uploadDirTemplate);
+
+		return cdnBaseUrl + File.separator + uploadDirTemplate + File.separator + fileName;
+	}
 
 	public String saveProveedorVendibleImage(MultipartFile file, Long proveedorId, String vendibleName)
 			throws IOException, ImageUploadException {
-		try {
-			final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator
-					+ proveedorId.toString() + File.separator + vendibleName;
-			
-			byte[] bytes = file.getBytes();
+		final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator + proveedorId.toString() + File.separator
+				+ vendibleName;
 
-			String imageFileType = findImageType(file.getContentType());
+		return saveImageFile(file, UPLOAD_DIR_TEMPLATE);
 
-			boolean isAcceptedFormat = Arrays.stream(acceptedFormats).anyMatch(format -> format.equals(imageFileType));
+	}
+	
+	public String saveProveedorProfilePhoto(MultipartFile file, Long proveedorId)
+			throws IOException, ImageUploadException {
+		final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator + proveedorId.toString();
 
-			if (!isAcceptedFormat) {
-				throw new ImageUploadException("");
-			}
+		return saveImageFile(file, UPLOAD_DIR_TEMPLATE);
 
-			byte[] croppedBytes = cropToSquare(bytes, imageFileType);
-			
-			String fileName = file.getOriginalFilename();
-
-			saveImageToFile(croppedBytes, fileName , cdnDir  + File.separator + UPLOAD_DIR_TEMPLATE);
-			
-			String filePath = cdnBaseUrl + File.separator + UPLOAD_DIR_TEMPLATE + File.separator + fileName;
-
-			return filePath;
-
-		} catch (IOException e) {
-			throw e;
-		}
 	}
 
 }

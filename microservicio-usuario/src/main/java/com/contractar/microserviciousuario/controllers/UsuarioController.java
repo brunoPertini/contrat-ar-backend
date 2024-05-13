@@ -104,7 +104,8 @@ public class UsuarioController {
 					proveedor.getDni(),
 					proveedor.getPlan(),
 					proveedor.getProveedorType(),
-					proveedor.getPhone())
+					proveedor.getPhone(),
+					proveedor.getFotoPerfilUrl())
 					, HttpStatus.OK);
 		};
 			

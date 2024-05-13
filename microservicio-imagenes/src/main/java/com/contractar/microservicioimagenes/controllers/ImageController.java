@@ -31,11 +31,21 @@ public class ImageController {
 					proveedorId,
 					vendibleName);
 			return new ResponseEntity<String>(fileFullUrl, HttpStatus.OK);
-		} catch (IOException e) {
+		} catch (IOException | ImageUploadException e) {
 			return new ExceptionFactory().getResponseException("Error al cargar la imagen, por favor verifique que el archivo no esté dañado",
 					HttpStatus.CONFLICT);
-		} catch(ImageUploadException imageUploadException) {
-			return new ExceptionFactory().getResponseException(imageUploadException.getMessage(), HttpStatus.CONFLICT);
+		}
+	}
+	
+	@PostMapping("/image/proveedor/{proveedorId}/upload")
+	public ResponseEntity<?> uploadProfilePhoto(@RequestParam("file") MultipartFile file, @PathVariable("proveedorId") Long proveedorId)
+			throws ImageUploadException {
+		try {
+			String fileFullUrl = imageService.saveProveedorProfilePhoto(file, proveedorId);
+			return new ResponseEntity<String>(fileFullUrl, HttpStatus.OK);
+		} catch (IOException | ImageUploadException e) {
+			return new ExceptionFactory().getResponseException("Error al cargar la imagen, por favor verifique que el archivo no esté dañado",
+					HttpStatus.CONFLICT);
 		}
 	}
 }
