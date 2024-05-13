@@ -29,30 +29,26 @@ public class ProveedorDTO extends UsuarioDTO {
 	
 	private String fotoPerfilUrl;
 	
-	private String phone;
-
 	public ProveedorDTO() {
 	}
 
-	public ProveedorDTO(String name, String surname, String email, boolean isActive, LocalDate birthDate,
+	public ProveedorDTO(Long id, String name, String surname, String email, boolean isActive, LocalDate birthDate,
 			Point location, String dni, PlanType plan, ProveedorType proveedorType, String phone) {
-		super(name, surname, email, isActive, birthDate, location);
+		super(id, name, surname, email, isActive, birthDate, location, phone);
 		this.dni = dni;
 		this.plan = plan;
 		this.proveedorType = proveedorType;
-		this.phone = phone;
 	}
 
 	public ProveedorDTO(ProveedorAccessor proveedor) {
-		super(proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
-				proveedor.getBirthDate(), null);
+		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
+				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
 		this.plan = proveedor.getPlan();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent((id) -> {
 			this.setId(id);
 		});
-		this.phone = proveedor.getPhone();
 	}
 
 	public String getDni() {
@@ -85,14 +81,6 @@ public class ProveedorDTO extends UsuarioDTO {
 
 	public void setFotoPerfilUrl(String fotoPerfilUrl) {
 		this.fotoPerfilUrl = fotoPerfilUrl;
-	}
-	
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
 	}
 	
 	@Override
