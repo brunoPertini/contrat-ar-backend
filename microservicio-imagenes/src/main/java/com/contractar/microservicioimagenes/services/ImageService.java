@@ -12,14 +12,20 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.contractar.microservicioimagenes.exceptions.ImageUploadException;
 
 @Service
 public class ImageService {
+	
+	@Autowired
+	private RestTemplate httpClient;
 
 	@Value("${cdn.location.dev}")
 	private String cdnBaseUrl;
@@ -103,6 +109,23 @@ public class ImageService {
 
 		return cdnBaseUrl + File.separator + uploadDirTemplate + File.separator + fileName;
 	}
+	
+	/**
+	 * 
+	 * @param path image full url in the CDN
+	 * @return if the image is stored in the system's CDN
+	 */
+	public boolean imageIsStored(String path) {
+		try {
+			// TODO: chequear que el path contenga al path de la URL
+			ResponseEntity<Void> response = httpClient.getForEntity(path, Void.class);
+			return response.getStatusCode().is2xxSuccessful();
+		} catch(Exception e) {
+			return false;
+		}
+		
+	}
+	
 
 	public String saveProveedorVendibleImage(MultipartFile file, Long proveedorId, String vendibleName)
 			throws IOException, ImageUploadException {

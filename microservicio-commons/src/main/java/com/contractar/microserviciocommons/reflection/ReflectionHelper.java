@@ -11,10 +11,12 @@ import java.util.Map;
 
 public final class ReflectionHelper {
 
-	
-	/** Takes the no null fields from sourceObject, searches those fields setters on destinationObject and applies each one,
-	 * passing the values found from sourceObject. For the reflection to proper work, objects full classes names are 
-	 * mandatory.
+	/**
+	 * Takes the no null fields from sourceObject, searches those fields setters on
+	 * destinationObject and applies each one, passing the values found from
+	 * sourceObject. For the reflection to proper work, objects full classes names
+	 * are mandatory.
+	 * 
 	 * @param sourceObject
 	 * @param destinationObject
 	 * @param sourceClass
@@ -58,40 +60,53 @@ public final class ReflectionHelper {
 						foundSetterMethod = method;
 					}
 				}
-				
+
 				finishedLooping = true;
-				
+
 			}
-			
+
 			if (foundSetterMethod != null) {
 				foundSetterMethod.invoke(destinationObject, notEmptyFields.get(fieldName));
 			}
 		}
 	}
-	
-	public static Field [] getAllFieldsOfHierachy(Class clazz) {
+
+	public static Field[] getAllFieldsOfHierachy(Class clazz) {
 		List<Field> fields = new ArrayList<Field>();
 		Class currentClass = clazz;
-		while(!currentClass.getSimpleName().equals("Object")) {
-			Field [] currentClassFields = currentClass.getDeclaredFields();
-			for(Field field: currentClassFields) {
+		while (!currentClass.getSimpleName().equals("Object")) {
+			Field[] currentClassFields = currentClass.getDeclaredFields();
+			for (Field field : currentClassFields) {
 				fields.add(field);
 			}
-			
+
 			currentClass = currentClass.getSuperclass();
 		}
-		
+
 		return fields.toArray(new Field[fields.size()]);
 	}
+
+	public static Map<String, Object> getObjectFields(Object obj) throws IllegalAccessException {
+		Map<String, Object> map = new HashMap<>();
+		Class<?> clazz = obj.getClass();
+		for (Field field : clazz.getDeclaredFields()) {
+			field.setAccessible(true);
+			Object value = field.get(obj);
+			map.put(field.getName(), value);
+		}
+		return map;
+	}
 	
-	  public static Map<String, Object> getObjectFields(Object obj) throws IllegalAccessException {
-	        Map<String, Object> map = new HashMap<>();
-	        Class<?> clazz = obj.getClass();
-	        for (Field field : clazz.getDeclaredFields()) {
-	            field.setAccessible(true);
-	            Object value = field.get(obj);
-	            map.put(field.getName(), value);
-	        }
-	        return map;
-	    }
+	/**
+	 * 
+	 * @param o
+	 * @return The object's class full name, i.e, including it's package structure
+	 */
+	public static String getObjectClassFullName(Object o) {
+		String classSimpleName = o.getClass().getSimpleName();
+		
+		String classPackage = o.getClass().getPackage().getName();
+		
+		return classPackage + "." + classSimpleName;
+	}
 }
