@@ -1,18 +1,21 @@
-package com.contractar.microserviciocommons.dto.usuario;
+package com.contractar.microserviciocommons.dto.usuario.sensibleinfo;
+
 
 /**
  * Info that requires ADMIN approval to be inserted or modified as it is sensible
  */
-public class UsuarioSensibleInfoDTO {
+public class UsuarioSensibleInfoDTO implements SensibleInfoDTO{
 
 	private String email;
 	private String password;
+	
+	public UsuarioSensibleInfoDTO() {}
 
 	public UsuarioSensibleInfoDTO(String email, String password) {
 		this.email = email;
 		this.password = password;
 	}
-
+	
 	public String getEmail() {
 		return email;
 	}
@@ -28,5 +31,4 @@ public class UsuarioSensibleInfoDTO {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
 }

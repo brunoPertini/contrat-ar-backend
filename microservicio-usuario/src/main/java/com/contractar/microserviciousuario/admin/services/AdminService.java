@@ -6,7 +6,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.contractar.microserviciocommons.dto.usuario.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.ProveedorSensibleInfoDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.SensibleInfoDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
@@ -20,14 +22,15 @@ public class AdminService {
 	@Autowired
 	private ChangeRequestRepositoryImpl repositoryImpl;
 
-	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, Long id)
+	public void addChangeRequestEntry(SensibleInfoDTO newInfo, Long sourceTableId)
 			throws IllegalAccessException, ChangeAlreadyRequestedException {
 		HashMap<String, Object> infoAsMap = (HashMap<String, Object>) ReflectionHelper.getObjectFields(newInfo);
 
 		boolean someInfoAlreadyRequested = infoAsMap.keySet().stream().anyMatch(newInfoKey -> {
-			Long matchingRequest = repository.getMatchingChangeRequest(id, newInfoKey);
+			Long matchingRequest = repository.getMatchingChangeRequest(sourceTableId, newInfoKey);
 			return matchingRequest != null;
 		});
+
 		if (someInfoAlreadyRequested) {
 			throw new ChangeAlreadyRequestedException();
 		}
@@ -42,10 +45,43 @@ public class AdminService {
 			}
 		});
 
-		attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
+		if (!attributesBuilder.isEmpty()) {
+			attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
+			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false, sourceTableId);
+			repository.save(newRequest);
+		}
 
-		ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false, id);
-		repository.save(newRequest);
+		
+		//Checking not shared sensible info	
+		if (newInfo instanceof ProveedorSensibleInfoDTO proveedorDTO) {			
+			HashMap<String, Object> proveedorInfoAsMap = (HashMap<String, Object>) ReflectionHelper.getObjectFields(proveedorDTO);
+
+			boolean someProveedorInfoAlreadyRequested = proveedorInfoAsMap.keySet().stream().anyMatch(newInfoKey -> {
+				Long matchingRequest = repository.getMatchingChangeRequest(sourceTableId, newInfoKey);
+				return matchingRequest != null;
+			});
+			
+			if (someProveedorInfoAlreadyRequested) {
+				throw new ChangeAlreadyRequestedException();
+			}
+			
+			StringBuilder proveedorBuilder = new StringBuilder("");
+
+			proveedorInfoAsMap.forEach((key, value) -> {
+				if (value != null) {
+					proveedorBuilder.append(key).append("=")
+					.append('\''+value.toString()+'\'')
+					.append(",");
+				}
+			});
+
+			proveedorBuilder.deleteCharAt(attributesBuilder.length() - 1);
+			
+			ChangeRequest proveedorRequest = new ChangeRequest("proveedor", proveedorBuilder.toString(), false, sourceTableId);
+			repository.save(proveedorRequest);
+			
+		}
+		
 	}
 
 	public void confirmChangeRequest(Long id) throws ChangeConfirmException {
