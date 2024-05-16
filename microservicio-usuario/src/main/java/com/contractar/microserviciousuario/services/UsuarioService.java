@@ -131,7 +131,7 @@ public class UsuarioService {
 
 			ResponseEntity imageExistsResponse = httpClient.getForEntity(uriBuilder.toUriString(), Void.class);
 			
-			if (imageExistsResponse.getStatusCodeValue() != 302) {
+			if (imageExistsResponse.getStatusCodeValue() != 200) {
 				throw new ImageNotUploadedException();
 			}
 		}
