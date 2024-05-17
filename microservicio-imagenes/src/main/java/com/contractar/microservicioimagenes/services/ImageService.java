@@ -117,7 +117,6 @@ public class ImageService {
 	 */
 	public boolean imageIsStored(String path) {
 		try {
-			// TODO: chequear que el path contenga al path de la URL
 			ResponseEntity<Void> response = httpClient.getForEntity(path, Void.class);
 			return response.getStatusCode().is2xxSuccessful();
 		} catch(Exception e) {

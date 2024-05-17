@@ -34,7 +34,7 @@ public class AdminController {
 	}
 	
 	@GetMapping("/admin/change-requests")
-	public ResponseEntity<?> requestChangeExists(@RequestParam(name="sourceTableId") Long sourceTableId,
+	public ResponseEntity<?> requestChangeExists(@RequestParam(required = true, name="sourceTableId") Long sourceTableId,
 			@RequestParam(required = true, name="searchAttributes") List<String> searchAttributes) {
 		boolean requestExists = adminService.requestExists(sourceTableId, searchAttributes);
 		return requestExists ? new ResponseEntity<>(HttpStatus.OK) :  new ResponseEntity<>(HttpStatus.NOT_FOUND);

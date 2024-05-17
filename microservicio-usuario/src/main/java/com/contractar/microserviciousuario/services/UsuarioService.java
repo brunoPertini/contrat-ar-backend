@@ -135,10 +135,6 @@ public class UsuarioService {
 			}
 		}
 		
-		if(Optional.ofNullable(newInfo.getPlan()).isPresent()) {
-			
-		}
-		
 		String dtoFullClassName = ReflectionHelper.getObjectClassFullName(newInfo);
 
 		String entityFullClassName = ReflectionHelper.getObjectClassFullName(proveedor);
