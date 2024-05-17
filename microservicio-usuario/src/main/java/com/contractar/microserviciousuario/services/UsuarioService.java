@@ -112,7 +112,6 @@ public class UsuarioService {
 		}
 	}
 	
-	// TODO: Manejar el cambio de plan
 	public Proveedor updateProveedor(Long proovedorId, ProveedorInfoUpdateDTO newInfo) 
 			throws UserNotFoundException, ImageNotUploadedException, 
 			ClassNotFoundException, IllegalArgumentException,

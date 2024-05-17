@@ -53,6 +53,6 @@ public class ImageController {
 	@GetMapping(ImagenesControllerUrls.IMAGE_BASE_URL)
 	public ResponseEntity<?> proveedorImageExists(@RequestParam(name = "imagePath") String fileName) {
 		boolean imageExists = imageService.imageIsStored(fileName);
-		return imageExists ? new ResponseEntity<>(HttpStatus.FOUND) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		return imageExists ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 }

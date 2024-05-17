@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.admin.services;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,10 @@ public class AdminService {
 	@Autowired
 	private ChangeRequestRepositoryImpl repositoryImpl;
 	
-	public boolean requestExists(Long sourceTableId, Object attribute) {
-		return attribute != null && repository.getMatchingChangeRequest(sourceTableId, attribute.toString()) != null;
+	
+	public boolean requestExists(Long sourceTableId, List<String> attributes) {
+		return !attributes.isEmpty() &&
+				repositoryImpl.getMatchingChangeRequest(sourceTableId, attributes) != null;
 	}
 
 	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, Long sourceTableId)
@@ -57,7 +60,7 @@ public class AdminService {
 	}
 	
 	public void addChangeRequestEntry(PlanType plan, Long proveedorId) throws ChangeAlreadyRequestedException {
-		boolean infoAlreadyRequested = requestExists(proveedorId, plan);
+		boolean infoAlreadyRequested = requestExists(proveedorId, List.of(plan.toString()));
 		
 		if (infoAlreadyRequested) {
 			throw new ChangeAlreadyRequestedException();

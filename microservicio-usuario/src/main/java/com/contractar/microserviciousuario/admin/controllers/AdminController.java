@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario.admin.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -33,8 +35,8 @@ public class AdminController {
 	
 	@GetMapping("/admin/change-requests")
 	public ResponseEntity<?> requestChangeExists(@RequestParam(name="sourceTableId") Long sourceTableId,
-			@RequestParam(required = false, name="plan") PlanType plan) {
-		boolean requestExists = adminService.requestExists(sourceTableId, plan);
+			@RequestParam(required = true, name="searchAttributes") List<String> searchAttributes) {
+		boolean requestExists = adminService.requestExists(sourceTableId, searchAttributes);
 		return requestExists ? new ResponseEntity<>(HttpStatus.OK) :  new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
