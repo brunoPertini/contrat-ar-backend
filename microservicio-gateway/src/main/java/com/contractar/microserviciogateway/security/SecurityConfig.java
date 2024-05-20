@@ -51,6 +51,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] proveedorUrls = {"/proveedor/**"};
 	
 	private final String[] clientesUrls = {"/cliente/**"};
+	
+	private final String[] adminUrls = {"/admin/**", "/admin/change-requests", "/admin/usuarios/proveedor/**"};
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -103,10 +105,12 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		String proveedorProductoRole = RolesValues.PROVEEDOR_PRODUCTOS.name();
 		String clienteRole = RolesValues.CLIENTE.name();
 		String proveedorServicioRole = RolesValues.PROVEEDOR_SERVICIOS.name();
+		String adminRole = RolesValues.ADMIN.name();
 		
-		String vendiblesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole + "', '" + proveedorServicioRole + "')";
+		String vendiblesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole +
+				"','" + proveedorServicioRole + "','" + adminRole+ "')";
 		
-		String clientesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"cliente\") and hasAnyAuthority('" + clienteRole + "')";
+		String clientesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"cliente\") and hasAnyAuthority('" + clienteRole + "','" + adminRole+ "')";
 
 		
 		http.csrf().disable();
@@ -115,17 +119,21 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**") // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
-				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole)
-				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAuthority(proveedorProductoRole)
+				.antMatchers(HttpMethod.PUT, adminUrls[2]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)
+				.antMatchers(HttpMethod.PUT, adminUrls[0]).hasAuthority(adminRole)
+				.antMatchers(HttpMethod.PATCH, adminUrls[0]).hasAuthority(adminRole)
+				.antMatchers(HttpMethod.GET, adminUrls[1]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole, adminRole)
+				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
+				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.POST, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)	
 				.antMatchers(HttpMethod.PUT, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule) 
 				.antMatchers(HttpMethod.DELETE, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)
-				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole)
-				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole)
-				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole)
+				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole, adminRole)
+				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
+				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, clientesUrls).access(clientesOperationsAccsesRule)
-				.antMatchers(proveedorUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole)
-				.antMatchers("/geo/**").hasAnyAuthority(clienteRole, proveedorProductoRole, proveedorServicioRole)
+				.antMatchers(proveedorUrls).access(vendiblesOperationsAccsesRule)
+				.antMatchers("/geo/**").hasAnyAuthority(clienteRole, proveedorProductoRole, proveedorServicioRole, adminRole)
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
