@@ -1,12 +1,14 @@
 package com.contractar.microserviciousuario.admin.services;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.contractar.microserviciocommons.dto.usuario.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
@@ -19,15 +21,22 @@ public class AdminService {
 
 	@Autowired
 	private ChangeRequestRepositoryImpl repositoryImpl;
+	
+	
+	public boolean requestExists(Long sourceTableId, List<String> attributes) {
+		return !attributes.isEmpty() &&
+				repositoryImpl.getMatchingChangeRequest(sourceTableId, attributes) != null;
+	}
 
-	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, Long id)
+	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, Long sourceTableId)
 			throws IllegalAccessException, ChangeAlreadyRequestedException {
 		HashMap<String, Object> infoAsMap = (HashMap<String, Object>) ReflectionHelper.getObjectFields(newInfo);
 
 		boolean someInfoAlreadyRequested = infoAsMap.keySet().stream().anyMatch(newInfoKey -> {
-			Long matchingRequest = repository.getMatchingChangeRequest(id, newInfoKey);
+			Long matchingRequest = repository.getMatchingChangeRequest(sourceTableId, newInfoKey);
 			return matchingRequest != null;
 		});
+
 		if (someInfoAlreadyRequested) {
 			throw new ChangeAlreadyRequestedException();
 		}
@@ -42,10 +51,26 @@ public class AdminService {
 			}
 		});
 
-		attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
+		if (!attributesBuilder.isEmpty()) {
+			attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
+			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false, sourceTableId, "id");
+			repository.save(newRequest);
+		}
+		
+	}
+	
+	public void addChangeRequestEntry(PlanType plan, Long proveedorId) throws ChangeAlreadyRequestedException {
+		boolean infoAlreadyRequested = requestExists(proveedorId, List.of(plan.toString()));
+		
+		if (infoAlreadyRequested) {
+			throw new ChangeAlreadyRequestedException();
+		}
+		
+		String planAttributeChangeQuery = "plan="+"\'"+plan.toString()+"\'";
+		
+		ChangeRequest planChangeRequest = new ChangeRequest("proveedor", planAttributeChangeQuery, false, proveedorId, "proveedor_id");
+		repository.save(planChangeRequest);
 
-		ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false, id);
-		repository.save(newRequest);
 	}
 
 	public void confirmChangeRequest(Long id) throws ChangeConfirmException {

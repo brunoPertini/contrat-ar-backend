@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -22,9 +23,12 @@ import com.contractar.microserviciousuario.repository.RoleRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
+import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioCommonInfoUpdateDTO;
 import com.contractar.microserviciocommons.exceptions.CustomException;
+import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
@@ -59,6 +63,9 @@ public class UsuarioService {
 
 	@Value("${openstreet-api.url}")
 	private String openStreetAPIUrl;
+	
+	@Value("${microservicio-imagenes.url}")
+	private String microservicioImagenesUrl;
 
 	public Usuario create(Usuario usuario) {
 		return usuarioRepository.save(usuario);
@@ -103,6 +110,41 @@ public class UsuarioService {
 				| InvocationTargetException e) {
 			throw e;
 		}
+	}
+	
+	public Proveedor updateProveedor(Long proovedorId, ProveedorInfoUpdateDTO newInfo) 
+			throws UserNotFoundException, ImageNotUploadedException, 
+			ClassNotFoundException, IllegalArgumentException,
+			IllegalAccessException, InvocationTargetException {
+		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
+
+		if (!proveedorOpt.isPresent()) {
+			throw new UserNotFoundException("El usuario no existe");
+		}
+		
+		Proveedor proveedor = proveedorOpt.get();
+
+		if (Optional.ofNullable(newInfo.getFotoPerfilUrl()).isPresent()) {
+			 UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(microservicioImagenesUrl + ImagenesControllerUrls.IMAGE_BASE_URL)
+		                .queryParam("imagePath", newInfo.getFotoPerfilUrl());
+
+			ResponseEntity imageExistsResponse = httpClient.getForEntity(uriBuilder.toUriString(), Void.class);
+			
+			if (imageExistsResponse.getStatusCodeValue() != 200) {
+				throw new ImageNotUploadedException();
+			}
+		}
+		
+		String dtoFullClassName = ReflectionHelper.getObjectClassFullName(newInfo);
+
+		String entityFullClassName = ReflectionHelper.getObjectClassFullName(proveedor);
+		
+		ReflectionHelper.applySetterFromExistingFields(newInfo, proveedor, dtoFullClassName, entityFullClassName);		
+			
+		proveedorRepository.save(proveedor);
+		
+		return proveedor;
+		
 	}
 
 	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {

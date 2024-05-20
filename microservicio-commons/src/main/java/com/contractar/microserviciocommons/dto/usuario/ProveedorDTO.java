@@ -33,11 +33,12 @@ public class ProveedorDTO extends UsuarioDTO {
 	}
 
 	public ProveedorDTO(Long id, String name, String surname, String email, boolean isActive, LocalDate birthDate,
-			Point location, String dni, PlanType plan, ProveedorType proveedorType, String phone) {
+			Point location, String dni, PlanType plan, ProveedorType proveedorType, String phone, String fotoPerfilUrl) {
 		super(id, name, surname, email, isActive, birthDate, location, phone);
 		this.dni = dni;
 		this.plan = plan;
 		this.proveedorType = proveedorType;
+		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
 
 	public ProveedorDTO(ProveedorAccessor proveedor) {

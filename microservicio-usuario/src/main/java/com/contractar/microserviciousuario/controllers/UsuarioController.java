@@ -20,7 +20,7 @@ import com.contractar.microserviciocommons.constants.controllers.UsersController
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
-import com.contractar.microserviciocommons.dto.usuario.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
@@ -104,7 +104,8 @@ public class UsuarioController {
 					proveedor.getDni(),
 					proveedor.getPlan(),
 					proveedor.getProveedorType(),
-					proveedor.getPhone())
+					proveedor.getPhone(),
+					proveedor.getFotoPerfilUrl())
 					, HttpStatus.OK);
 		};
 			

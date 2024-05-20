@@ -1,24 +1,38 @@
 package com.contractar.microserviciousuario.controllers;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
+import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
+import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
+import com.contractar.microserviciousuario.services.UsuarioService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @RestController
 public class ProveedorControler {
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
+	
+	@Autowired
+	private UsuarioService usuarioService;
 
 	@GetMapping("/proveedor/{proveedorId}/vendible")
 	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedor(
@@ -36,5 +50,15 @@ public class ProveedorControler {
 			HttpServletRequest request) throws JsonProcessingException {
 		return new ResponseEntity<>(proveedorVendibleService.getProveedoreVendiblesInfoForVendible(vendibleId,
 				minDistance, maxDistance, minPrice, maxPrice, request), HttpStatus.OK);
+	}
+	
+	@PutMapping("/proveedor/{proveedorId}")
+	public ResponseEntity<?> updateProveedorInfo(@PathVariable("proveedorId") Long proveedorId,
+			@RequestBody @Valid ProveedorInfoUpdateDTO body) throws UserNotFoundException, ImageNotUploadedException,
+	ClassNotFoundException, IllegalArgumentException,
+	IllegalAccessException, InvocationTargetException {
+		Proveedor updated = usuarioService.updateProveedor(proveedorId, body);
+		
+		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
 	}
 }

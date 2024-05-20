@@ -22,6 +22,9 @@ public class ChangeRequest implements Serializable {
 	private Long id;
 	
 	@Column(nullable = false)
+	private String sourceTableIdName;
+	
+	@Column(nullable = false)
 	private Long sourceTableId;
 
 	@Column(nullable = false)
@@ -29,16 +32,17 @@ public class ChangeRequest implements Serializable {
 	
 	@Column(nullable = false)
 	private String attributes;
-	
+
 	private boolean wasApplied;
 	
 	public ChangeRequest() {}
 
-	public ChangeRequest(String table, String attributes, boolean wasApplied, Long sourceTableId) {
+	public ChangeRequest(String table, String attributes, boolean wasApplied, Long sourceTableId, String sourceTableIdName) {
 		this.sourceTable = table;
 		this.attributes = attributes;
 		this.wasApplied = wasApplied;
 		this.sourceTableId = sourceTableId;
+		this.sourceTableIdName = sourceTableIdName;
 	}
 
 	public String getSourceTable() {
@@ -63,6 +67,14 @@ public class ChangeRequest implements Serializable {
 
 	public void setWasApplied(boolean wasApplied) {
 		this.wasApplied = wasApplied;
+	}
+	
+	public String getSourceTableIdName() {
+		return sourceTableIdName;
+	}
+
+	public void setSourceTableIdName(String sourceTableIdName) {
+		this.sourceTableIdName = sourceTableIdName;
 	}
 	
 	public Long getSourceTableId() {
