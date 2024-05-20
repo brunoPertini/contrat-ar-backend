@@ -20,6 +20,8 @@ import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
 
+import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -27,20 +29,20 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
 
-	@PatchMapping("/admin/change-requests/{id}")
+	@PatchMapping(AdminControllerUrls.CHANGE_REQUEST_BY_ID)
 	public ResponseEntity<?> confirmUserRequestChange(@PathVariable("id") Long id) throws ChangeConfirmException {
 		adminService.confirmChangeRequest(id);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 	
-	@GetMapping("/admin/change-requests")
+	@GetMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
 	public ResponseEntity<?> requestChangeExists(@RequestParam(required = true, name="sourceTableId") Long sourceTableId,
 			@RequestParam(required = true, name="searchAttributes") List<String> searchAttributes) {
 		boolean requestExists = adminService.requestExists(sourceTableId, searchAttributes);
 		return requestExists ? new ResponseEntity<>(HttpStatus.OK) :  new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
-	@PutMapping("/admin/usuarios/{id}")
+	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
 	public ResponseEntity<Void> updateUserCommonInfo(@RequestBody @Valid UsuarioSensibleInfoDTO body,
 			@PathVariable("id") Long id) throws ChangeAlreadyRequestedException {
 		try {
@@ -51,7 +53,7 @@ public class AdminController {
 		}
 	}
 
-	@PutMapping("/admin/usuarios/proveedor/{id}")
+	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR_BY_ID)
 	public ResponseEntity<Void> updateProveedorPlan(@RequestBody PlanType plan, @PathVariable("id") Long proveedorId)
 			throws ChangeAlreadyRequestedException {
 		adminService.addChangeRequestEntry(plan, proveedorId);
