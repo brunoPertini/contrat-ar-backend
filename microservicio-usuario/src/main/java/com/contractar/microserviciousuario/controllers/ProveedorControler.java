@@ -12,13 +12,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.services.ProveedorService;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,6 +36,23 @@ public class ProveedorControler {
 	
 	@Autowired
 	private UsuarioService usuarioService;
+	
+	@Autowired
+	private ProveedorService proveedorService;
+	
+	
+	@GetMapping(ProveedorControllerUrls.INTERNAL_PLAN_BASE_URL)
+	public ResponseEntity<?> getAllPlans() {
+		return new ResponseEntity<>(proveedorService.findAll(), HttpStatus.OK);
+	}
+	
+	@GetMapping(ProveedorControllerUrls.GET_PLAN_BY_ID)
+	public ResponseEntity <?> getPlan(@PathVariable("planId") Long planId) {
+		Plan foundPlan = proveedorService.findPlanById(planId);
+		
+		return foundPlan != null ? new ResponseEntity<>(foundPlan, HttpStatus.OK) 
+				: new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	}
 
 	@GetMapping("/proveedor/{proveedorId}/vendible")
 	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedor(

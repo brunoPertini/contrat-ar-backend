@@ -7,8 +7,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
-import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;

@@ -102,7 +102,7 @@ public class UsuarioController {
 					proveedor.getBirthDate(),
 					proveedor.getLocation(),
 					proveedor.getDni(),
-					proveedor.getPlan(),
+					proveedor.getPlan().getType(),
 					proveedor.getProveedorType(),
 					proveedor.getPhone(),
 					proveedor.getFotoPerfilUrl())
