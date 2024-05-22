@@ -45,8 +45,9 @@ public class AdminService {
 
 		infoAsMap.forEach((key, value) -> {
 			if (value != null) {
+				String formattedValue = value instanceof String ? '\''+value.toString()+'\'' : value.toString(); //This is to not add unnecessary ' when applying the UPDATE operation later. TODO: refactor it.
 				attributesBuilder.append(key).append("=")
-				.append('\''+value.toString()+'\'')
+				.append(formattedValue)
 				.append(",");
 			}
 		});

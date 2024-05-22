@@ -50,6 +50,18 @@ public class UsuarioController {
 	
 	@Autowired
 	private AdminService adminService;
+	
+	private static UsuarioDTO toUsuarioDTO(Usuario usuario) {
+		return new UsuarioDTO(
+				usuario.getId(),
+				usuario.getName(),
+				usuario.getSurname(),
+				usuario.getEmail(),
+				usuario.isActive(),
+				usuario.getBirthDate(),
+				usuario.getLocation(),
+				usuario.getPhone());
+	};
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -64,9 +76,9 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_CLIENTE)
-	public ResponseEntity<Cliente> crearCliente(@RequestBody @Valid Cliente usuario) {
+	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) {
 		Cliente createdUsuario = usuarioService.createCliente(usuario);
-		return new ResponseEntity<Cliente>(createdUsuario, HttpStatus.CREATED);
+		return new ResponseEntity<>(toUsuarioDTO(createdUsuario), HttpStatus.CREATED);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -109,15 +121,7 @@ public class UsuarioController {
 					, HttpStatus.OK);
 		};
 			
-		return new ResponseEntity<>(new UsuarioDTO(
-				user.getId(),
-				user.getName(),
-				user.getSurname(),
-				user.getEmail(),
-				user.isActive(),
-				user.getBirthDate(),
-				user.getLocation(),
-				user.getPhone())
+		return new ResponseEntity<>(toUsuarioDTO(user)
 				, HttpStatus.OK);
 	}
 

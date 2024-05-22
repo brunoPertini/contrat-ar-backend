@@ -49,7 +49,8 @@ public class Usuario extends User implements Serializable {
 	@NotBlank
 	private String email;
 
-	private boolean isActive;
+	@Column(nullable = false)
+	private boolean active;
 
 	@NotNull
 	@JsonDeserialize(using = UbicacionDeserializer.class)
@@ -75,7 +76,7 @@ public class Usuario extends User implements Serializable {
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
-		this.isActive = isActive;
+		this.active = isActive;
 		this.location = location;
 		this.birthDate = birthDate;
 		this.password = password;
@@ -89,7 +90,7 @@ public class Usuario extends User implements Serializable {
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
-		this.isActive = isActive;
+		this.active = isActive;
 		this.location = location;
 		this.birthDate = birthDate;
 		this.password = password;
@@ -129,11 +130,11 @@ public class Usuario extends User implements Serializable {
 	}
 
 	public boolean isActive() {
-		return isActive;
+		return active;
 	}
 
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
+	public void setIsActive(boolean isActive) {
+		this.active = isActive;
 	}
 
 	public Point getLocation() {

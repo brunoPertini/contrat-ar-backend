@@ -16,7 +16,7 @@ public interface UsuarioAccesor {
 	public String getEmail();
 
 	public boolean isActive();
-
+	
 	public Point getLocation();
 
 	public LocalDate getBirthDate();
