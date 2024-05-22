@@ -9,7 +9,6 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
-import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.serialization.ProveedorDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,7 +18,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -35,9 +36,10 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	@NotBlank
 	private String dni;
 
-	@Enumerated(EnumType.STRING)
-	@NotNull
-	private PlanType plan;
+
+	@OneToOne
+	@JoinColumn(name = "plan")
+	private Plan plan;
 
 	@Enumerated(EnumType.STRING)
 	@NotNull
@@ -61,7 +63,7 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	}
 
 	public Proveedor(String name, String surname, String email, boolean isActive, Point location, String dni,
-			String password, PlanType plan, Set<ProveedorVendible> vendibles, LocalDate birthDate,
+			String password, Plan plan, Set<ProveedorVendible> vendibles, LocalDate birthDate,
 			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType) {
 		super(name, surname, email, isActive, location, birthDate, password, authorities, role);
 		this.dni = dni;
@@ -82,11 +84,11 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 		this.dni = dni;
 	}
 
-	public PlanType getPlan() {
+	public Plan getPlan() {
 		return plan;
 	}
 
-	public void setPlan(PlanType plan) {
+	public void setPlan(Plan plan) {
 		this.plan = plan;
 	}
 

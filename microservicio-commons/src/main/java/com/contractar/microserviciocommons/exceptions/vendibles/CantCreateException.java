@@ -5,7 +5,7 @@ import com.contractar.microserviciocommons.exceptions.CustomException;
 public class CantCreateException extends CustomException{
 
 	private static final long serialVersionUID = -4002800964405399390L;
-	private static final String message = "¡Alguno de los campos es nulo o inválido!";
+	public static final String message = "¡Alguno de los campos es nulo o inválido!";
 
 	public CantCreateException() {
 		super(message);

@@ -7,9 +7,8 @@ import java.util.Optional;
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
-import com.contractar.microservicioadapter.enums.Plan;
+import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microservicioadapter.enums.Proveedor;
-import com.contractar.microserviciocommons.plans.PlanType;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -21,7 +20,7 @@ public class ProveedorDTO extends UsuarioDTO {
 	private String dni;
 
 	@NotNull
-	private Plan plan;
+	private PlanType plan;
 
 	@JsonIgnore
 	@NotNull
@@ -44,7 +43,7 @@ public class ProveedorDTO extends UsuarioDTO {
 	public ProveedorDTO(ProveedorAccessor proveedor) {
 		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
-		this.plan = proveedor.getPlan();
+		this.plan = proveedor.getPlan().getType();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent((id) -> {
@@ -60,7 +59,7 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.dni = dni;
 	}
 
-	public Plan getPlan() {
+	public PlanType getPlan() {
 		return plan;
 	}
 

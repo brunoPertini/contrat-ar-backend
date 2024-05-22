@@ -1,5 +1,6 @@
 package com.contractar.microservicioadapter.enums;
 
-public interface Plan {
-
+public enum PlanType {
+	FREE,
+	PAID,
 }
