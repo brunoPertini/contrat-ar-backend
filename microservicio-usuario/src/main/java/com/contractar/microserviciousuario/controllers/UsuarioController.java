@@ -62,6 +62,22 @@ public class UsuarioController {
 				usuario.getLocation(),
 				usuario.getPhone());
 	};
+	
+	private static ProveedorDTO toProveedorDTO(Proveedor proveedor) {
+		return new ProveedorDTO(
+				proveedor.getId(),
+				proveedor.getName(),
+				proveedor.getSurname(),
+				proveedor.getEmail(),
+				proveedor.isActive(),
+				proveedor.getBirthDate(),
+				proveedor.getLocation(),
+				proveedor.getDni(),
+				proveedor.getPlan().getType(),
+				proveedor.getProveedorType(),
+				proveedor.getPhone(),
+				proveedor.getFotoPerfilUrl());
+	}
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -70,13 +86,13 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_PROVEEDOR)
-	public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
+	public ResponseEntity<ProveedorDTO> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
 		Proveedor createdUsuario = usuarioService.createProveedor(usuario);
-		return new ResponseEntity<Proveedor>(createdUsuario, HttpStatus.CREATED);
+		return new ResponseEntity<>(toProveedorDTO(createdUsuario), HttpStatus.CREATED);
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_CLIENTE)
-	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) {
+	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) throws UserCreationException{
 		Cliente createdUsuario = usuarioService.createCliente(usuario);
 		return new ResponseEntity<>(toUsuarioDTO(createdUsuario), HttpStatus.CREATED);
 	}
@@ -105,20 +121,7 @@ public class UsuarioController {
 		Usuario user = this.usuarioService.findById(userId, false);
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
-			return new ResponseEntity<>(new ProveedorDTO(
-					proveedor.getId(),
-					proveedor.getName(),
-					proveedor.getSurname(),
-					proveedor.getEmail(),
-					proveedor.isActive(),
-					proveedor.getBirthDate(),
-					proveedor.getLocation(),
-					proveedor.getDni(),
-					proveedor.getPlan().getType(),
-					proveedor.getProveedorType(),
-					proveedor.getPhone(),
-					proveedor.getFotoPerfilUrl())
-					, HttpStatus.OK);
+			return new ResponseEntity<>(toProveedorDTO(proveedor), HttpStatus.OK);
 		};
 			
 		return new ResponseEntity<>(toUsuarioDTO(user)

@@ -33,17 +33,19 @@ public class AdminController {
 		adminService.confirmChangeRequest(id);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
-	
+
 	@GetMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
-	public ResponseEntity<?> requestChangeExists(@RequestParam(required = true, name="sourceTableId") Long sourceTableId,
-			@RequestParam(required = true, name="searchAttributes") List<String> searchAttributes) {
+	public ResponseEntity<?> requestChangeExists(
+			@RequestParam(required = true, name = "sourceTableId") Long sourceTableId,
+			@RequestParam(required = true, name = "searchAttributes") List<String> searchAttributes) {
 		boolean requestExists = adminService.requestExists(sourceTableId, searchAttributes);
-		return requestExists ? new ResponseEntity<>(HttpStatus.OK) :  new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		return requestExists ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
 	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
 	public ResponseEntity<Void> updateUserCommonInfo(@RequestBody @Valid UsuarioSensibleInfoDTO body,
 			@PathVariable("id") Long id) throws ChangeAlreadyRequestedException {
+
 		try {
 			adminService.addChangeRequestEntry(body, id);
 			return new ResponseEntity<>(HttpStatusCode.valueOf(200));
