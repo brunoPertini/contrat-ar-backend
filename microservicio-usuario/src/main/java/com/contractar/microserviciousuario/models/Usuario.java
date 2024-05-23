@@ -65,6 +65,8 @@ public class Usuario extends User implements Serializable {
 	@OneToOne
 	@JoinColumn(name = "role")
 	private Role role;
+	
+	private LocalDate createdAt;
 
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
@@ -175,5 +177,13 @@ public class Usuario extends User implements Serializable {
 
 	public void setPhone(String phone) {
 		this.phone = phone;
+	}
+	
+	public LocalDate getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDate createdAt) {
+		this.createdAt = createdAt;
 	}
 }

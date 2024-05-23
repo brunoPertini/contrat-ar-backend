@@ -114,7 +114,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
 		
 		http.csrf().disable();
-		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll()
+		http.authorizeRequests().antMatchers("/actuator/**", "/error", "/geo/**").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId")
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**") // Registro de usuarios
@@ -133,7 +133,6 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, clientesUrls).access(clientesOperationsAccsesRule)
 				.antMatchers(proveedorUrls).access(vendiblesOperationsAccsesRule)
-				.antMatchers("/geo/**").hasAnyAuthority(clienteRole, proveedorProductoRole, proveedorServicioRole, adminRole)
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 

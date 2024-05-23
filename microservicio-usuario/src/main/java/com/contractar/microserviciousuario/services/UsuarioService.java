@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,6 +96,7 @@ public class UsuarioService {
 		Optional<Role> roleOpt = roleRepository.findByNombre(roleName);
 		if (roleOpt.isPresent()) {
 			proveedor.setRole(roleOpt.get());
+			proveedor.setCreatedAt(LocalDate.now());
 			Proveedor newProveedor = proveedorRepository.save(proveedor);
 			requestUsuarioActiveFlag(newProveedor.getId());
 			return newProveedor;
@@ -108,6 +110,7 @@ public class UsuarioService {
 		Role clienteRole = roleRepository.findByNombre(RolesValues.CLIENTE.toString()).get();
 		cliente.setRole(clienteRole);
 		Cliente newCliente = clienteRepository.save(cliente);
+		newCliente.setCreatedAt(LocalDate.now());
 		requestUsuarioActiveFlag(newCliente.getId());
 		return newCliente;
 	}
