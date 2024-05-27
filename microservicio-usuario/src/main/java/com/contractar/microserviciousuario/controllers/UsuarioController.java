@@ -86,15 +86,24 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_PROVEEDOR)
-	public ResponseEntity<ProveedorDTO> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
-		Proveedor createdUsuario = usuarioService.createProveedor(usuario);
-		return new ResponseEntity<>(toProveedorDTO(createdUsuario), HttpStatus.CREATED);
+	public ResponseEntity<?> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
+		try {
+			Proveedor createdUsuario = usuarioService.createProveedor(usuario);
+			return new ResponseEntity<>(toProveedorDTO(createdUsuario), HttpStatus.CREATED);
+		} catch(Exception e) {
+			throw new UserCreationException();
+		}
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_CLIENTE)
 	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) throws UserCreationException{
-		Cliente createdUsuario = usuarioService.createCliente(usuario);
-		return new ResponseEntity<>(toUsuarioDTO(createdUsuario), HttpStatus.CREATED);
+		try {
+			Cliente createdUsuario = usuarioService.createCliente(usuario);
+			return new ResponseEntity<>(toUsuarioDTO(createdUsuario), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new UserCreationException();
+		}
+		
 	}
 
 	@SuppressWarnings("rawtypes")
