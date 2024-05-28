@@ -23,6 +23,7 @@ public abstract class UserDeserializer extends JsonDeserializer {
 	protected String email;
 	protected LocalDate birthDate;
 	protected Point location;
+	protected String phone;
 
 	protected void setCommonUserInfo(JsonNode node, List<GrantedAuthority> grantedAuthorities) throws IOException {
 		name = node.get("name").asText();
@@ -30,6 +31,7 @@ public abstract class UserDeserializer extends JsonDeserializer {
 		password = node.get("password").asText();
 		email = node.get("email").asText();
 		birthDate = LocalDate.parse(node.get("birthDate").asText());
+		phone = node.get("phone").asText();
 
 		if (Optional.ofNullable(node.get("authorities")).isPresent()) {
 			Iterator<JsonNode> elements = node.get("authorities").elements();

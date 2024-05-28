@@ -23,7 +23,8 @@ public class ClienteDeserializer extends UserDeserializer{
 		
 		setCommonUserInfo(node, grantedAuthorities);
 
-		return new Cliente(null, name, surname, email, false, location, birthDate, password, grantedAuthorities, new Role(RolesValues.CLIENTE.toString()));
+		return new Cliente(null, name, surname, email, false, location, birthDate, password,
+				grantedAuthorities, new Role(RolesValues.CLIENTE.toString()), phone);
 	}
 
 }

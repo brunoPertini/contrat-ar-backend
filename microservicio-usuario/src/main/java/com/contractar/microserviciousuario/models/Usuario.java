@@ -73,7 +73,7 @@ public class Usuario extends User implements Serializable {
 	}
 	
 	public Usuario(String name, String surname, String email, boolean isActive, Point location,
-			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role, String phone) {
 		super(name + surname, password, false, true, true, true, authorities);
 		this.name = name;
 		this.surname = surname;
@@ -83,10 +83,11 @@ public class Usuario extends User implements Serializable {
 		this.birthDate = birthDate;
 		this.password = password;
 		this.role = role;
+		this.phone = phone;
 	}
 
 	public Usuario(Long id, String name, String surname, String email, boolean isActive, Point location,
-			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role , String phone) {
 		super(name + surname, password, false, true, true, true, authorities);
 		this.id = id;
 		this.name = name;
@@ -97,6 +98,7 @@ public class Usuario extends User implements Serializable {
 		this.birthDate = birthDate;
 		this.password = password;
 		this.role = role;
+		this.phone = phone;
 	}
 
 	public Long getId() {

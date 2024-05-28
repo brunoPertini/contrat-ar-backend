@@ -29,8 +29,9 @@ public class Cliente extends Usuario {
 	}
 
 	public Cliente(Long id, String name, String surname, String email, boolean isActive,
-	Point location, LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
-		super(id, name, surname, email, isActive, location, birthDate, password, authorities, role);
+	Point location, LocalDate birthDate, String password, List<GrantedAuthority> authorities,
+	Role role, String phone) {
+		super(id, name, surname, email, isActive, location, birthDate, password, authorities, role, phone);
 	}
 	
 	public Set<DistanciaProveedor> getDistances() {

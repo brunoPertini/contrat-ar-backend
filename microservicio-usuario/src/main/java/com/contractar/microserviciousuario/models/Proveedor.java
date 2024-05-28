@@ -66,7 +66,7 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	public Proveedor(String name, String surname, String email, boolean isActive, Point location, String dni,
 			String password, Plan plan, Set<ProveedorVendible> vendibles, LocalDate birthDate,
 			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType, String fotoPerfilUrl) {
-		super(name, surname, email, isActive, location, birthDate, password, authorities, role);
+		super(name, surname, email, isActive, location, birthDate, password, authorities, role, null);
 		this.dni = dni;
 		this.plan = plan;
 		this.proveedorType = proveedorType;
