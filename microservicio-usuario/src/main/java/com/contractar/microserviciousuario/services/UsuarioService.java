@@ -44,6 +44,8 @@ import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 
 @Service
 public class UsuarioService {
@@ -64,6 +66,9 @@ public class UsuarioService {
 
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
+	
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
@@ -97,6 +102,7 @@ public class UsuarioService {
 		if (roleOpt.isPresent()) {
 			proveedor.setRole(roleOpt.get());
 			proveedor.setCreatedAt(LocalDate.now());
+			proveedor.setPassword(passwordEncoder.encode(proveedor.getPassword()));
 			Proveedor newProveedor = proveedorRepository.save(proveedor);
 			requestUsuarioActiveFlag(newProveedor.getId());
 			return newProveedor;
@@ -109,6 +115,7 @@ public class UsuarioService {
 	public Cliente createCliente(Cliente cliente) throws UserCreationException {
 		Role clienteRole = roleRepository.findByNombre(RolesValues.CLIENTE.toString()).get();
 		cliente.setRole(clienteRole);
+		cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
 		Cliente newCliente = clienteRepository.save(cliente);
 		newCliente.setCreatedAt(LocalDate.now());
 		requestUsuarioActiveFlag(newCliente.getId());
