@@ -118,7 +118,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.GET, "/plan").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId")
 				.access("@securityUtils.hasValidClientId(request)")
-				.antMatchers(HttpMethod.POST, "/usuarios/**") // Registro de usuarios
+				.antMatchers(HttpMethod.POST, "/usuarios/**", "/proveedor/{dni}/upload") // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.PUT, adminUrls[2]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, adminUrls[0]).hasAuthority(adminRole)

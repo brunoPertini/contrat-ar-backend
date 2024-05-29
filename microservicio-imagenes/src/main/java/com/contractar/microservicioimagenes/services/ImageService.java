@@ -142,5 +142,13 @@ public class ImageService {
 		return saveImageFile(file, UPLOAD_DIR_TEMPLATE);
 
 	}
+	
+	public String saveTemporalProveedorProfilePhoto(MultipartFile file, String dni)
+			throws IOException, ImageUploadException {
+		final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator + dni;
+
+		return saveImageFile(file, UPLOAD_DIR_TEMPLATE);
+
+	}
 
 }

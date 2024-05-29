@@ -50,6 +50,18 @@ public class ImageController {
 		}
 	}
 	
+	@PostMapping(ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL)
+	public ResponseEntity<?> uploadProfilePhoto(@RequestParam("file") MultipartFile file, @PathVariable("dni") String dni) {
+		try {
+			String fileFullUrl = imageService.saveTemporalProveedorProfilePhoto(file, dni);
+			return new ResponseEntity<String>(fileFullUrl, HttpStatus.OK);
+		} catch (IOException | ImageUploadException e) {
+			return new ExceptionFactory().getResponseException(
+					"Error al cargar la imagen, por favor verifique que el archivo no esté dañado",
+					HttpStatus.CONFLICT);
+		}
+	}
+	
 	@GetMapping(ImagenesControllerUrls.IMAGE_BASE_URL)
 	public ResponseEntity<?> imageExists(@RequestParam(name = "imagePath") String fileName) {
 		boolean imageExists = imageService.imageIsStored(fileName);
