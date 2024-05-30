@@ -198,7 +198,7 @@ public class UsuarioService {
 
 		Usuario usuario = usuarioRepository.findByEmail(email);
 
-		if (usuario != null) {
+		if (usuario != null && usuario.isActive()) {
 			return usuario;
 		}
 		throw new UserNotFoundException();

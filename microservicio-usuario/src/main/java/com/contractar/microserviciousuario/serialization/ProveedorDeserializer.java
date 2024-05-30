@@ -10,11 +10,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.Role;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,10 +51,15 @@ public class ProveedorDeserializer extends UserDeserializer {
 
 		String dni = node.get("dni").asText();
 		String fotoPerfilUrl = node.get("fotoPerfilUrl").asText();
+		
+		
 		ProveedorType proveedorType = ProveedorType.valueOf(node.get("proveedorType").asText());
+		Plan plan = getPlanResponse.getBody();
+		Role chosenRole = proveedorType.equals(ProveedorType.PRODUCTOS) ? new Role(RolesValues.PROVEEDOR_PRODUCTOS.toString()) 
+				: new Role(RolesValues.PROVEEDOR_SERVICIOS.toString());
 
-		return new Proveedor(name, surname, email, false, location, dni, password, getPlanResponse.getBody(),
-				null, birthDate, grantedAuthorities, null, proveedorType, fotoPerfilUrl);
+		return new Proveedor(name, surname, email, false, location, dni, password, plan,
+				null, birthDate, grantedAuthorities, chosenRole, proveedorType, fotoPerfilUrl, phone);
 
 	}
 }
