@@ -123,7 +123,6 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, "/usuarios/**", ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL) // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.PUT, adminUrls[2]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)
-				.antMatchers(HttpMethod.PUT, adminUrls[0]).hasAuthority(adminRole)
 				.antMatchers(HttpMethod.PATCH, adminUrls[0]).hasAuthority(adminRole)
 				.antMatchers(HttpMethod.GET, adminUrls[1]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole, adminRole)
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)

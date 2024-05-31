@@ -7,5 +7,5 @@ public final class AdminControllerUrls {
 	
 	public static final String ADMIN_USUARIOS_BY_ID = "/admin/usuarios/{id}";
 	
-	public static final String ADMIN_PROVEEDOR_BY_ID = "/admin/usuarios/proveedor/{id}";
+	public static final String ADMIN_PROVEEDOR_BY_ID = "/admin/change-requests/usuarios/proveedor/{id}";
 }
