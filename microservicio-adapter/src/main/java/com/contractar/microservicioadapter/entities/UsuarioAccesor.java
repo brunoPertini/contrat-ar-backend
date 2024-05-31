@@ -16,14 +16,14 @@ public interface UsuarioAccesor {
 	public String getEmail();
 
 	public boolean isActive();
-	
+
 	public Point getLocation();
 
 	public LocalDate getBirthDate();
 
 	public String getPassword();
-	
-	public String getPhone();	
+
+	public String getPhone();
 
 	public RoleAccesor getRole();
 
