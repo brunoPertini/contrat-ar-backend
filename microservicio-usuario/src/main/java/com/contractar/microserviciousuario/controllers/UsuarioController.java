@@ -50,6 +50,34 @@ public class UsuarioController {
 	
 	@Autowired
 	private AdminService adminService;
+	
+	private static UsuarioDTO toUsuarioDTO(Usuario usuario) {
+		return new UsuarioDTO(
+				usuario.getId(),
+				usuario.getName(),
+				usuario.getSurname(),
+				usuario.getEmail(),
+				usuario.isActive(),
+				usuario.getBirthDate(),
+				usuario.getLocation(),
+				usuario.getPhone());
+	};
+	
+	private static ProveedorDTO toProveedorDTO(Proveedor proveedor) {
+		return new ProveedorDTO(
+				proveedor.getId(),
+				proveedor.getName(),
+				proveedor.getSurname(),
+				proveedor.getEmail(),
+				proveedor.isActive(),
+				proveedor.getBirthDate(),
+				proveedor.getLocation(),
+				proveedor.getDni(),
+				proveedor.getPlan().getType(),
+				proveedor.getProveedorType(),
+				proveedor.getPhone(),
+				proveedor.getFotoPerfilUrl());
+	}
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -58,15 +86,24 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_PROVEEDOR)
-	public ResponseEntity<Proveedor> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
-		Proveedor createdUsuario = usuarioService.createProveedor(usuario);
-		return new ResponseEntity<Proveedor>(createdUsuario, HttpStatus.CREATED);
+	public ResponseEntity<?> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
+		try {
+			Proveedor createdUsuario = usuarioService.createProveedor(usuario);
+			return new ResponseEntity<>(toProveedorDTO(createdUsuario), HttpStatus.CREATED);
+		} catch(Exception e) {
+			throw new UserCreationException();
+		}
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_CLIENTE)
-	public ResponseEntity<Cliente> crearCliente(@RequestBody @Valid Cliente usuario) {
-		Cliente createdUsuario = usuarioService.createCliente(usuario);
-		return new ResponseEntity<Cliente>(createdUsuario, HttpStatus.CREATED);
+	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) throws UserCreationException{
+		try {
+			Cliente createdUsuario = usuarioService.createCliente(usuario);
+			return new ResponseEntity<>(toUsuarioDTO(createdUsuario), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new UserCreationException();
+		}
+		
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -93,31 +130,10 @@ public class UsuarioController {
 		Usuario user = this.usuarioService.findById(userId, false);
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
-			return new ResponseEntity<>(new ProveedorDTO(
-					proveedor.getId(),
-					proveedor.getName(),
-					proveedor.getSurname(),
-					proveedor.getEmail(),
-					proveedor.isActive(),
-					proveedor.getBirthDate(),
-					proveedor.getLocation(),
-					proveedor.getDni(),
-					proveedor.getPlan().getType(),
-					proveedor.getProveedorType(),
-					proveedor.getPhone(),
-					proveedor.getFotoPerfilUrl())
-					, HttpStatus.OK);
+			return new ResponseEntity<>(toProveedorDTO(proveedor), HttpStatus.OK);
 		};
 			
-		return new ResponseEntity<>(new UsuarioDTO(
-				user.getId(),
-				user.getName(),
-				user.getSurname(),
-				user.getEmail(),
-				user.isActive(),
-				user.getBirthDate(),
-				user.getLocation(),
-				user.getPhone())
+		return new ResponseEntity<>(toUsuarioDTO(user)
 				, HttpStatus.OK);
 	}
 

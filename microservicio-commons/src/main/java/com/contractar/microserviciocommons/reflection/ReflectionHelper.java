@@ -89,11 +89,16 @@ public final class ReflectionHelper {
 	public static Map<String, Object> getObjectFields(Object obj) throws IllegalAccessException {
 		Map<String, Object> map = new HashMap<>();
 		Class<?> clazz = obj.getClass();
-		for (Field field : clazz.getDeclaredFields()) {
-			field.setAccessible(true);
-			Object value = field.get(obj);
-			map.put(field.getName(), value);
+		while (!clazz.getSimpleName().equals("Object")) {
+			for (Field field : clazz.getDeclaredFields()) {
+				field.setAccessible(true);
+				Object value = field.get(obj);
+				map.put(field.getName(), value);
+			}
+			
+			clazz = clazz.getSuperclass();
 		}
+		
 		return map;
 	}
 	

@@ -25,6 +25,8 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import com.contractar.microserviciogateway.constants.RolesNames.RolesValues;
 
+import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
+
 @Configuration
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
@@ -114,10 +116,11 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
 		
 		http.csrf().disable();
-		http.authorizeRequests().antMatchers("/actuator/**", "/error").permitAll()
+		http.authorizeRequests().antMatchers("/actuator/**", "/error", "/geo/**").permitAll()
+				.antMatchers(HttpMethod.GET, "/plan").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId")
 				.access("@securityUtils.hasValidClientId(request)")
-				.antMatchers(HttpMethod.POST, "/usuarios/**") // Registro de usuarios
+				.antMatchers(HttpMethod.POST, "/usuarios/**", ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL) // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.PUT, adminUrls[2]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, adminUrls[0]).hasAuthority(adminRole)
@@ -133,7 +136,6 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, clientesUrls).access(clientesOperationsAccsesRule)
 				.antMatchers(proveedorUrls).access(vendiblesOperationsAccsesRule)
-				.antMatchers("/geo/**").hasAnyAuthority(clienteRole, proveedorProductoRole, proveedorServicioRole, adminRole)
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 

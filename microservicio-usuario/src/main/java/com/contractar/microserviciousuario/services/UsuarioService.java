@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -21,12 +23,17 @@ import com.contractar.microserviciousuario.repository.ClienteRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.RoleRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
+import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioCommonInfoUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstractDTO;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -37,6 +44,8 @@ import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 
 @Service
 public class UsuarioService {
@@ -57,6 +66,9 @@ public class UsuarioService {
 
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
+	
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
@@ -66,26 +78,48 @@ public class UsuarioService {
 	
 	@Value("${microservicio-imagenes.url}")
 	private String microservicioImagenesUrl;
+	
+	@Value("${microservicio-usuario.url}")
+	private String microservicioUsuarioUrl;
+	
+	private void requestUsuarioActiveFlag(Long userId) throws UserCreationException {
+		String url = microservicioUsuarioUrl + AdminControllerUrls.ADMIN_USUARIOS_BY_ID.replace("{id}", userId.toString());
+		try {
+			httpClient.put(url, new UsuarioAbstractDTO(true));
+		} catch (RestClientException e) {
+			throw new UserCreationException();
+		}
+	}
 
 	public Usuario create(Usuario usuario) {
 		return usuarioRepository.save(usuario);
 	}
 
+	@Transactional(rollbackOn = {UserCreationException.class})
 	public Proveedor createProveedor(Proveedor proveedor) throws UserCreationException {
 		String roleName = "PROVEEDOR_" + proveedor.getProveedorType().toString();
 		Optional<Role> roleOpt = roleRepository.findByNombre(roleName);
 		if (roleOpt.isPresent()) {
 			proveedor.setRole(roleOpt.get());
-			return proveedorRepository.save(proveedor);
+			proveedor.setCreatedAt(LocalDate.now());
+			proveedor.setPassword(passwordEncoder.encode(proveedor.getPassword()));
+			Proveedor newProveedor = proveedorRepository.save(proveedor);
+			requestUsuarioActiveFlag(newProveedor.getId());
+			return newProveedor;
 		}
 		throw new UserCreationException();
 
 	}
 
-	public Cliente createCliente(Cliente cliente) {
+	@Transactional(rollbackOn = {UserCreationException.class})
+	public Cliente createCliente(Cliente cliente) throws UserCreationException {
 		Role clienteRole = roleRepository.findByNombre(RolesValues.CLIENTE.toString()).get();
 		cliente.setRole(clienteRole);
-		return clienteRepository.save(cliente);
+		cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
+		Cliente newCliente = clienteRepository.save(cliente);
+		newCliente.setCreatedAt(LocalDate.now());
+		requestUsuarioActiveFlag(newCliente.getId());
+		return newCliente;
 	}
 
 	public Cliente updateCliente(Long clienteId, UsuarioCommonInfoUpdateDTO newInfo) throws Exception {
@@ -164,7 +198,7 @@ public class UsuarioService {
 
 		Usuario usuario = usuarioRepository.findByEmail(email);
 
-		if (usuario != null) {
+		if (usuario != null && usuario.isActive()) {
 			return usuario;
 		}
 		throw new UserNotFoundException();

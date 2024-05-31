@@ -29,10 +29,9 @@ public class UserDetailsDeserializer extends UserDeserializer {
 				? new Role((node.get("role").get("nombre").asText()))
 				: null;
 
-		Usuario usuario = new Usuario(null, name, surname, email, true, location, birthDate, password,
-				grantedAuthorities, role);
+		return new Usuario(null, name, surname, email, true, location, birthDate, password,
+				grantedAuthorities, role, phone);
 
-		return usuario;
 	}
 
 }

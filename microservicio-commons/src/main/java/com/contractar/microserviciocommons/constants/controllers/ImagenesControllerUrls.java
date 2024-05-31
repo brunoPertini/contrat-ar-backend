@@ -8,4 +8,6 @@ public final class ImagenesControllerUrls {
 	
 	public static final String UPLOAD_PROVEEDOR_PHOTO_URL = IMAGE_BASE_URL + "/proveedor/{proveedorId}/upload";
 	
+	public static final String UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL = IMAGE_BASE_URL + "/proveedor/{dni}/temporalUpload";
+	
 }

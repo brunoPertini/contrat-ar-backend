@@ -49,7 +49,8 @@ public class Usuario extends User implements Serializable {
 	@NotBlank
 	private String email;
 
-	private boolean isActive;
+	@Column(nullable = false)
+	private boolean active;
 
 	@NotNull
 	@JsonDeserialize(using = UbicacionDeserializer.class)
@@ -64,36 +65,40 @@ public class Usuario extends User implements Serializable {
 	@OneToOne
 	@JoinColumn(name = "role")
 	private Role role;
+	
+	private LocalDate createdAt;
 
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 	}
 	
 	public Usuario(String name, String surname, String email, boolean isActive, Point location,
-			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role, String phone) {
 		super(name + surname, password, false, true, true, true, authorities);
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
-		this.isActive = isActive;
+		this.active = isActive;
 		this.location = location;
 		this.birthDate = birthDate;
 		this.password = password;
 		this.role = role;
+		this.phone = phone;
 	}
 
 	public Usuario(Long id, String name, String surname, String email, boolean isActive, Point location,
-			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role) {
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role , String phone) {
 		super(name + surname, password, false, true, true, true, authorities);
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
-		this.isActive = isActive;
+		this.active = isActive;
 		this.location = location;
 		this.birthDate = birthDate;
 		this.password = password;
 		this.role = role;
+		this.phone = phone;
 	}
 
 	public Long getId() {
@@ -129,11 +134,11 @@ public class Usuario extends User implements Serializable {
 	}
 
 	public boolean isActive() {
-		return isActive;
+		return active;
 	}
 
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
+	public void setIsActive(boolean isActive) {
+		this.active = isActive;
 	}
 
 	public Point getLocation() {
@@ -174,5 +179,13 @@ public class Usuario extends User implements Serializable {
 
 	public void setPhone(String phone) {
 		this.phone = phone;
+	}
+	
+	public LocalDate getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDate createdAt) {
+		this.createdAt = createdAt;
 	}
 }

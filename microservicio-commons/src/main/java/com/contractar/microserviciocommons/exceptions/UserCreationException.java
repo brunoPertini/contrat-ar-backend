@@ -3,7 +3,7 @@ package com.contractar.microserviciocommons.exceptions;
 public class UserCreationException extends CustomException {
 	
 	private static final long serialVersionUID = 3647111257507357592L;
-	private static final String message = "Error creando el usuario, por favor revise la información provista";
+	private static final String message = "Error creando el usuario, por favor revise la informacion provista";
 	
 	public UserCreationException() {
 		super(message);

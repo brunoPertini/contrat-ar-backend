@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
+import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
@@ -30,7 +31,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
 	}
 	
-	@ExceptionHandler(value = { ImageNotUploadedException.class,
+	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class,
 			IllegalAccessException.class, InvocationTargetException.class })
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {

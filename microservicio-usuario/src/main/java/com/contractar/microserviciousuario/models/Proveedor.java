@@ -48,11 +48,8 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	@OneToMany(mappedBy = "proveedor", fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<ProveedorVendible> vendibles;
 	
+	@NotBlank
 	private String fotoPerfilUrl;
-	
-	public Proveedor() {
-		super();
-	}
 
 	public Set<ProveedorVendible> getVendibles() {
 		return vendibles;
@@ -61,14 +58,19 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	public void setVendibles(Set<ProveedorVendible> vendibles) {
 		this.vendibles = vendibles;
 	}
+	
+	public Proveedor() {
+		super();
+	}
 
 	public Proveedor(String name, String surname, String email, boolean isActive, Point location, String dni,
 			String password, Plan plan, Set<ProveedorVendible> vendibles, LocalDate birthDate,
-			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType) {
-		super(name, surname, email, isActive, location, birthDate, password, authorities, role);
+			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType, String fotoPerfilUrl, String phone) {
+		super(name, surname, email, isActive, location, birthDate, password, authorities, role, phone);
 		this.dni = dni;
 		this.plan = plan;
 		this.proveedorType = proveedorType;
+		this.fotoPerfilUrl = fotoPerfilUrl;
 		if (vendibles != null) {
 			this.vendibles = vendibles;
 		} else {
