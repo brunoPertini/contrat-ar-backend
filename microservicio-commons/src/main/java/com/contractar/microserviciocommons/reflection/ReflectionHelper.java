@@ -93,7 +93,9 @@ public final class ReflectionHelper {
 			for (Field field : clazz.getDeclaredFields()) {
 				field.setAccessible(true);
 				Object value = field.get(obj);
-				map.put(field.getName(), value);
+				if (value != null) {
+					map.put(field.getName(), value);
+				}
 			}
 			
 			clazz = clazz.getSuperclass();
