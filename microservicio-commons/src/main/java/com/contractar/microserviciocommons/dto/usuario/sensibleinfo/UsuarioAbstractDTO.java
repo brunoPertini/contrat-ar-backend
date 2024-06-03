@@ -1,7 +1,7 @@
 package com.contractar.microserviciocommons.dto.usuario.sensibleinfo;
 
 public class UsuarioAbstractDTO {
-	private boolean active;
+	private Boolean active;
 	
 	public UsuarioAbstractDTO() {}
 
