@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciousuario.models.VendibleCategory;
 import com.contractar.microserviciovendible.services.VendibleService;
 
@@ -25,6 +26,15 @@ import jakarta.validation.Valid;
 public class VendibleController {
 	@Autowired
 	private VendibleService vendibleService;
+	
+	@GetMapping(VendiblesControllersUrls.INTERNAL_GET_VENDIBLE)
+	public ResponseEntity<Vendible> getVendibleInternal(@RequestParam(required = true) Long vendibleId) {
+		try {
+			return new ResponseEntity<>(this.vendibleService.findVendibleEntityById(vendibleId), HttpStatusCode.valueOf(200));
+		} catch (VendibleNotFoundException e) {
+			return new ResponseEntity(HttpStatusCode.valueOf(404));
+		}
+	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE)

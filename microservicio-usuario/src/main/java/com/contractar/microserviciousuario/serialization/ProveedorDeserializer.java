@@ -26,6 +26,8 @@ public class ProveedorDeserializer extends UserDeserializer {
 	private String microservicioUsuarioUrl;
 
 	private RestTemplate restTemplate;
+	
+	public ProveedorDeserializer() {}
 
 	public ProveedorDeserializer(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
