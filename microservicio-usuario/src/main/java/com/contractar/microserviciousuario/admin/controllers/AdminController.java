@@ -60,4 +60,9 @@ public class AdminController {
 		adminService.addChangeRequestEntry(plan, proveedorId);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
+	
+	@GetMapping(AdminControllerUrls.USUARIOS_BASE_URL)
+	public ResponseEntity<?> getUsuarios() {
+		return new ResponseEntity<>(adminService.getAllUsuariosByType(), HttpStatusCode.valueOf(200));
+	}
 }

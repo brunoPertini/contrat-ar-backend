@@ -3,16 +3,22 @@ package com.contractar.microserviciousuario.admin.services;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
+import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
+import com.contractar.microserviciousuario.admin.dtos.UsuariosByTypeResponse;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
+import com.contractar.microserviciousuario.admin.repositories.AdminUsuariosRepository;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepositoryImpl;
+import com.contractar.microserviciousuario.helpers.DtoHelper;
 
 @Service
 public class AdminService {
@@ -21,6 +27,9 @@ public class AdminService {
 
 	@Autowired
 	private ChangeRequestRepositoryImpl repositoryImpl;
+	
+	@Autowired
+	private AdminUsuariosRepository adminUsuariosRepository;
 	
 	
 	public boolean requestExists(Long sourceTableId, List<String> attributes) {
@@ -85,5 +94,23 @@ public class AdminService {
 		ChangeRequest change = requestOpt.get();
 
 		repositoryImpl.applyChangeRequest(change);
+	}
+	
+	public UsuariosByTypeResponse getAllUsuariosByType() {
+		UsuariosByTypeResponse response = new UsuariosByTypeResponse();
+
+		List<ProveedorDTO> proveedores = adminUsuariosRepository.getAllProveedores()
+				.stream()
+				.map(DtoHelper::toProveedorDTO)
+				.collect(Collectors.toList());
+	
+		List<UsuarioDTO> clientes = adminUsuariosRepository.getAllClientes()
+				.stream()
+				.map(DtoHelper::toUsuarioDTO)
+				.collect(Collectors.toList());
+		
+		response.getUsuarios().put("proveedores", proveedores);
+		response.getUsuarios().put("clientes", clientes);
+		return response;
 	}
 }
