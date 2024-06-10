@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.admin.controllers;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciousuario.admin.dtos.UsuariosByTypeResponse;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
@@ -29,6 +31,10 @@ import jakarta.validation.Valid;
 public class AdminController {
 	@Autowired
 	private AdminService adminService;
+
+	private enum UsuariosTypeFilter {
+		proveedores, clientes,
+	};
 
 	@PatchMapping(AdminControllerUrls.CHANGE_REQUEST_BY_ID)
 	public ResponseEntity<?> confirmUserRequestChange(@PathVariable("id") Long id) throws ChangeConfirmException {
@@ -64,7 +70,17 @@ public class AdminController {
 	}
 
 	@GetMapping(AdminControllerUrls.USUARIOS_BASE_URL)
-	public ResponseEntity<?> getUsuarios() {
-		return new ResponseEntity<>(adminService.getAllUsuariosByType(), HttpStatusCode.valueOf(200));
+	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = false) UsuariosTypeFilter usuarioType,
+			@RequestParam(name = "name", required = false) String name,
+			@RequestParam(name = "surname", required = false) String surname) {
+		Supplier<UsuariosByTypeResponse> toCallService = () -> {
+			if (name == null && surname == null) {
+				return adminService.getAllUsuariosByType(usuarioType != null ? usuarioType.toString() : null);
+			}
+
+			return adminService.getAllUsuariosByTypeAndNameOrSurname(usuarioType.toString(), name, surname);
+		};
+
+		return new ResponseEntity<>(toCallService.get(), HttpStatusCode.valueOf(200));
 	}
 }
