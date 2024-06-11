@@ -16,6 +16,7 @@ import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
+import com.contractar.microserviciousuario.admin.dtos.UsuarioAdminDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuariosByTypeResponse;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
@@ -109,16 +110,16 @@ public class AdminService {
 		return  () -> {
 			return proveedorAdminRepository.findAll()
 					.stream()
-					.map(DtoHelper::toProveedorDTO)
+					.map(DtoHelper::toProveedorAdminDTO)
 					.collect(Collectors.toList());
 		};
 	}
 	
-	private Supplier<List<UsuarioDTO>> getClientes() {
+	private Supplier<List<UsuarioAdminDTO>> getClientes() {
 			return () -> {
 				return clienteAdminRepository.findAll()
 						.stream()
-						.map(DtoHelper::toUsuarioDTO)
+						.map(DtoHelper::toUsuarioAdminDTO)
 						.collect(Collectors.toList());
 			};
 	};

@@ -26,5 +26,7 @@ public interface UsuarioAccesor {
 	public String getPhone();
 
 	public RoleAccesor getRole();
+	
+	public LocalDate getCreatedAt();
 
 }
