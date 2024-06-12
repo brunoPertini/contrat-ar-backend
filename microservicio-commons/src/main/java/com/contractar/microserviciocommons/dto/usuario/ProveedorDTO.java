@@ -47,6 +47,7 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
+		this.dni = proveedor.getDni();
 	}
 
 	public String getDni() {

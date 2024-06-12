@@ -3,16 +3,25 @@ package com.contractar.microserviciousuario.admin.services;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorAdminDTO;
+import com.contractar.microserviciousuario.admin.dtos.UsuariosByTypeResponse;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepositoryImpl;
+import com.contractar.microserviciousuario.admin.repositories.UsuarioAdminCustomRepository;
+import com.contractar.microserviciousuario.helpers.DtoHelper;
+import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.Usuario;
 
 @Service
 public class AdminService {
@@ -21,6 +30,9 @@ public class AdminService {
 
 	@Autowired
 	private ChangeRequestRepositoryImpl repositoryImpl;
+	
+	@Autowired
+	private UsuarioAdminCustomRepository usuarioAdminCustomRepository;
 	
 	
 	public boolean requestExists(Long sourceTableId, List<String> attributes) {
@@ -85,5 +97,26 @@ public class AdminService {
 		ChangeRequest change = requestOpt.get();
 
 		repositoryImpl.applyChangeRequest(change);
+	}
+	
+	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters) throws IllegalAccessException {
+		UsuariosByTypeResponse response = new UsuariosByTypeResponse();
+		
+		List<? extends Usuario> filteredUsuarios = usuarioAdminCustomRepository.getFilteredUsuarios(usuarioType, filters);
+				
+
+		if (usuarioType.equals("proveedores")) {
+			response.getUsuarios().put("proveedores", filteredUsuarios
+					.stream()
+					.map(u -> new ProveedorAdminDTO((Proveedor) u))
+					.collect(Collectors.toList()));
+		} else {
+			response.getUsuarios().put("clientes", filteredUsuarios
+					.stream()
+					.map(DtoHelper::toUsuarioAdminDTO)
+					.collect(Collectors.toList()));
+		}
+		
+		return response;
 	}
 }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microservicioadapter.entities.UsuarioAccesor;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -34,6 +35,17 @@ public class UsuarioDTO {
 	private Point location;
 
 	public UsuarioDTO() {
+	}
+	
+	public UsuarioDTO(UsuarioAccesor u) {
+		this.id = u.getId();
+		this.name = u.getName();
+		this.surname = u.getSurname();
+		this.email = u.getEmail();
+		this.isActive = u.isActive();
+		this.birthDate = u.getBirthDate();
+		this.location = u.getLocation();
+		this.phone = u.getPhone();
 	}
 
 	public UsuarioDTO(Long id, String name, String surname, String email, boolean isActive, LocalDate birthDate,

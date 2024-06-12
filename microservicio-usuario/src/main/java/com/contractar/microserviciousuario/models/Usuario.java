@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import com.contractar.microservicioadapter.entities.UsuarioAccesor;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciousuario.serialization.UserDetailsDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -27,7 +28,7 @@ import jakarta.validation.constraints.*;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @JsonDeserialize(using = UserDetailsDeserializer.class)
-public class Usuario extends User implements Serializable {
+public class Usuario extends User implements Serializable, UsuarioAccesor {
 	private static final long serialVersionUID = -1655979560902202392L;
 
 	@jakarta.persistence.Id

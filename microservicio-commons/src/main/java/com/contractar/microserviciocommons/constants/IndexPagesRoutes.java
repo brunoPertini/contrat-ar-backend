@@ -11,11 +11,14 @@ public final class IndexPagesRoutes {
 	
 	public static final String DEFAULT = "/";
 	
+	public static final String ADMIN = "/admin";
+	
 	public static Map<String,String> getAllRoutes() {
 		return Map.of("DEFAULT", IndexPagesRoutes.DEFAULT,
 					  "CLIENTE", IndexPagesRoutes.CLIENTE,
 					  "PROVEEDOR_SERVICIOS", IndexPagesRoutes.PROVEEDOR_SERVICIOS,
-					  "PROVEEDOR_PRODUCTOS", IndexPagesRoutes.PROVEEDOR_PRODUCTOS);
+					  "PROVEEDOR_PRODUCTOS", IndexPagesRoutes.PROVEEDOR_PRODUCTOS,
+					  "ADMIN", IndexPagesRoutes.ADMIN);
 	}
 }
 
