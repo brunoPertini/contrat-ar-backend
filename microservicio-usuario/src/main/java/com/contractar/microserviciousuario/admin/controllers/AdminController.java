@@ -1,24 +1,22 @@
 package com.contractar.microserviciousuario.admin.controllers;
 
 import java.util.List;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
-import com.contractar.microserviciousuario.admin.dtos.UsuariosByTypeResponse;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
@@ -70,18 +68,9 @@ public class AdminController {
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
-	@GetMapping(AdminControllerUrls.USUARIOS_BASE_URL)
-	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = false) UsuariosTypeFilter usuarioType,
-			@RequestParam(name = "name", required = false) String name,
-			@RequestParam(name = "surname", required = false) String surname) {
-		Supplier<UsuariosByTypeResponse> toCallService = () -> {
-			if (!StringUtils.hasLength(name) && !StringUtils.hasLength(surname)) {
-				return adminService.getAllUsuariosByType(usuarioType != null ? usuarioType.toString() : null);
-			}
-
-			return adminService.getAllUsuariosByTypeAndNameOrSurname(usuarioType.toString(), name, surname);
-		};
-
-		return new ResponseEntity<>(toCallService.get(), HttpStatusCode.valueOf(200));
+	@PostMapping(AdminControllerUrls.USUARIOS_BASE_URL)
+	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = true) UsuariosTypeFilter usuarioType,
+			@RequestBody UsuarioFiltersDTO filters) throws IllegalAccessException {
+		return new ResponseEntity<>(adminService.getAllFilteredUsuarios(usuarioType.toString(), filters), HttpStatusCode.valueOf(200));
 	}
 }

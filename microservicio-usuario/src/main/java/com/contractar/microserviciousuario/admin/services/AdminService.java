@@ -3,26 +3,22 @@ package com.contractar.microserviciousuario.admin.services;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microservicioadapter.enums.PlanType;
-import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
+import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
-import com.contractar.microserviciousuario.admin.dtos.UsuarioAdminDTO;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorAdminDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuariosByTypeResponse;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepositoryImpl;
-import com.contractar.microserviciousuario.admin.repositories.ClienteAdminRepository;
-import com.contractar.microserviciousuario.admin.repositories.ProveedorAdminRepository;
+import com.contractar.microserviciousuario.admin.repositories.UsuarioAdminCustomRepository;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Usuario;
@@ -36,10 +32,7 @@ public class AdminService {
 	private ChangeRequestRepositoryImpl repositoryImpl;
 	
 	@Autowired
-	private ProveedorAdminRepository proveedorAdminRepository;
-	
-	@Autowired
-	private ClienteAdminRepository clienteAdminRepository;
+	private UsuarioAdminCustomRepository usuarioAdminCustomRepository;
 	
 	
 	public boolean requestExists(Long sourceTableId, List<String> attributes) {
@@ -106,80 +99,23 @@ public class AdminService {
 		repositoryImpl.applyChangeRequest(change);
 	}
 	
-	private Supplier<List<ProveedorDTO>> getProveedores() {
-		return  () -> {
-			return proveedorAdminRepository.findAll()
-					.stream()
-					.map(DtoHelper::toProveedorAdminDTO)
-					.collect(Collectors.toList());
-		};
-	}
-	
-	private Supplier<List<UsuarioAdminDTO>> getClientes() {
-			return () -> {
-				return clienteAdminRepository.findAll()
-						.stream()
-						.map(DtoHelper::toUsuarioAdminDTO)
-						.collect(Collectors.toList());
-			};
-	};
-	
-	public UsuariosByTypeResponse getAllUsuariosByType(@Nullable String usuarioType) {
+	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters) throws IllegalAccessException {
 		UsuariosByTypeResponse response = new UsuariosByTypeResponse();
+		
+		List<? extends Usuario> filteredUsuarios = usuarioAdminCustomRepository.getFilteredUsuarios(usuarioType, filters);
 				
-		Optional.ofNullable(usuarioType).ifPresentOrElse((type) -> {
-			if (type.equals("proveedores")) {
-				response.getUsuarios().put("proveedores", getProveedores().get());
-			} else {
-				response.getUsuarios().put("clientes", getClientes().get());
-			}
-		}, () -> {
-			response.getUsuarios().put("proveedores", getProveedores().get());
-			response.getUsuarios().put("clientes", getClientes().get());
-		});
-		
-		
-		
-		return response;
-	}
-	
-	public UsuariosByTypeResponse getAllUsuariosByTypeAndNameOrSurname(@NonNull String usuarioType, String name, String surname) {
-		UsuariosByTypeResponse response = new UsuariosByTypeResponse();
-		boolean bothExist = name != null && surname != null;
-		
-		Supplier<List<? extends Usuario>> repositoryFunction = () -> {
-			if (bothExist) {
-				return usuarioType.equals("proveedores") ? proveedorAdminRepository.findAllByNameContainingIgnoreCaseAndSurnameContainingIgnoreCase(name, surname) :
-					clienteAdminRepository.findAllByNameContainingIgnoreCaseAndSurnameContainingIgnoreCase(name, surname);
-			} else if (name != null) {
-				return usuarioType.equals("proveedores") ? proveedorAdminRepository.findAllByNameContainingIgnoreCase(name) : 
-					clienteAdminRepository.findAllByNameContainingIgnoreCase(name);
-			} else {
-				return usuarioType.equals("proveedores") ? proveedorAdminRepository.findAllBySurnameContainingIgnoreCase(name) : 
-					clienteAdminRepository.findAllBySurnameContainingIgnoreCase(name);
-			}
-		};
-		
-		List<? extends Usuario> filteredUsuarios = repositoryFunction.get();
-		
-		
-		
+
 		if (usuarioType.equals("proveedores")) {
 			response.getUsuarios().put("proveedores", filteredUsuarios
 					.stream()
-					.map(u -> {
-						Proveedor p = (Proveedor) u;
-						return new ProveedorDTO(p);
-					})
+					.map(u -> new ProveedorAdminDTO((Proveedor) u))
 					.collect(Collectors.toList()));
 		} else {
 			response.getUsuarios().put("clientes", filteredUsuarios
 					.stream()
-					.map(DtoHelper::toUsuarioDTO)
+					.map(DtoHelper::toUsuarioAdminDTO)
 					.collect(Collectors.toList()));
 		}
-		
-		
 		
 		return response;
 	}
