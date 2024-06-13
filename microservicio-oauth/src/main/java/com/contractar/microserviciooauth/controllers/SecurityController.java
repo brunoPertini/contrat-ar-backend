@@ -75,7 +75,7 @@ public class SecurityController {
 		return new ResponseEntity<String>(jwt, HttpStatus.OK);
 	}
 
-	@GetMapping("/oauth/public_key")
+	@GetMapping(SecurityControllerUrls.GET_PUBLIC_KEY)
 	public ResponseEntity<String> getPublicKey() {
 		byte[] publicKeyBytes = storePublicKey.getEncoded();
 
