@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microservicioadapter.enums.PlanType;
@@ -99,10 +100,10 @@ public class AdminService {
 		repositoryImpl.applyChangeRequest(change);
 	}
 	
-	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters) throws IllegalAccessException {
+	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters, @Nullable Boolean showOnlyActives) throws IllegalAccessException {
 		UsuariosByTypeResponse response = new UsuariosByTypeResponse();
 		
-		List<? extends Usuario> filteredUsuarios = usuarioAdminCustomRepository.getFilteredUsuarios(usuarioType, filters);
+		List<? extends Usuario> filteredUsuarios = usuarioAdminCustomRepository.getFilteredUsuarios(usuarioType, filters, showOnlyActives);
 				
 
 		if (usuarioType.equals("proveedores")) {

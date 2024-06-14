@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.HttpMethod;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
-import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 
@@ -37,8 +36,8 @@ public class SecurityConfig {
 	
 	@Bean
 	public JwtDecoder jwtDecoder() throws Exception {
-		final String pKeyMock = securityHelper.fetchPublicKey();
-		return NimbusJwtDecoder.withPublicKey(securityHelper.getRSAPublicKeyFromString(pKeyMock)).build();
+		final String pKey = securityHelper.fetchPublicKey();
+		return NimbusJwtDecoder.withPublicKey(securityHelper.getRSAPublicKeyFromString(pKey)).build();
 	}
 
     @Bean
@@ -52,9 +51,7 @@ public class SecurityConfig {
                 .disable()
             .authorizeHttpRequests(authorize -> authorize.requestMatchers(HttpMethod.POST, AdminControllerUrls.USUARIOS_BASE_URL)
             .hasAuthority(adminRole)
-            .requestMatchers(HttpMethod.GET, UsersControllerUrls.GET_USUARIOS)
-            .permitAll()
-            .anyRequest().authenticated()
+            .anyRequest().permitAll()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt());
         

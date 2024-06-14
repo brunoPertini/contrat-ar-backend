@@ -3,8 +3,10 @@ package com.contractar.microserviciousuario.admin.repositories;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
@@ -25,7 +27,7 @@ public class UsuarioAdminCustomRepository {
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	public List<? extends Usuario> getFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters)
+	public List<? extends Usuario> getFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters, @Nullable Boolean showOnlyActives)
 			throws IllegalAccessException {
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		Class<? extends Usuario> resolvedClass = usuarioType.equals("proveedores") ? Proveedor.class : Cliente.class;
@@ -38,11 +40,18 @@ public class UsuarioAdminCustomRepository {
 
 		if (!filtersFields.isEmpty()) {
 			filtersFields.entrySet().forEach(entry -> {
-				predicates.add(cb.like(usuario.get(entry.getKey()), "%" + entry.getValue().toString() + "%"));
+				predicates.add(cb.like(usuario.get(entry.getKey()), "%" + entry.getValue().toString() + "%"));		
 			});
 
-			cq.where(predicates.toArray(new Predicate[0]));
 		}
+		
+		Optional.ofNullable(showOnlyActives).ifPresent(onlyActives -> {
+			if (onlyActives) {
+				predicates.add(cb.isTrue(usuario.get("active")));
+			}
+		});
+		
+		cq.where(predicates.toArray(new Predicate[0]));
 
 		return entityManager.createQuery(cq).getResultList();
 	}
