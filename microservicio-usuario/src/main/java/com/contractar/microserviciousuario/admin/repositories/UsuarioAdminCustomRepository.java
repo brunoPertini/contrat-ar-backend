@@ -51,7 +51,9 @@ public class UsuarioAdminCustomRepository {
 			}
 		});
 		
-		cq.where(predicates.toArray(new Predicate[0]));
+		if (!predicates.isEmpty()) {
+			cq.where(predicates.toArray(new Predicate[0]));
+		}
 
 		return entityManager.createQuery(cq).getResultList();
 	}
