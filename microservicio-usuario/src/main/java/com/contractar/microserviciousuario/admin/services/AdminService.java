@@ -100,10 +100,11 @@ public class AdminService {
 		repositoryImpl.applyChangeRequest(change);
 	}
 	
-	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters, @Nullable Boolean showOnlyActives) throws IllegalAccessException {
+	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters,
+			@Nullable Boolean showOnlyActives, Long planId) throws IllegalAccessException {
 		UsuariosByTypeResponse response = new UsuariosByTypeResponse();
 		
-		List<? extends Usuario> filteredUsuarios = usuarioAdminCustomRepository.getFilteredUsuarios(usuarioType, filters, showOnlyActives);
+		List<? extends Usuario> filteredUsuarios = usuarioAdminCustomRepository.getFilteredUsuarios(usuarioType, filters, showOnlyActives, planId);
 				
 
 		if (usuarioType.equals("proveedores")) {

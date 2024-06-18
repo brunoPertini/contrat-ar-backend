@@ -27,7 +27,8 @@ public class UsuarioAdminCustomRepository {
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	public List<? extends Usuario> getFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters, @Nullable Boolean showOnlyActives)
+	public List<? extends Usuario> getFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters,
+			@Nullable Boolean showOnlyActives, @Nullable Long planId)
 			throws IllegalAccessException {
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		Class<? extends Usuario> resolvedClass = usuarioType.equals("proveedores") ? Proveedor.class : Cliente.class;
@@ -39,7 +40,10 @@ public class UsuarioAdminCustomRepository {
 		Map<String, Object> filtersFields = ReflectionHelper.getObjectFields(filters);
 
 		if (!filtersFields.isEmpty()) {
-			filtersFields.entrySet().forEach(entry -> {
+			filtersFields.entrySet()
+			.stream()
+			.filter(e -> e.getValue() != null && !e.getValue().equals("") )
+			.forEach(entry -> {
 				predicates.add(cb.like(usuario.get(entry.getKey()), "%" + entry.getValue().toString() + "%"));		
 			});
 
@@ -50,6 +54,8 @@ public class UsuarioAdminCustomRepository {
 				predicates.add(cb.isTrue(usuario.get("active")));
 			}
 		});
+		
+		Optional.ofNullable(planId).ifPresent(plan -> predicates.add(cb.equal(usuario.get("plan").get("id"), planId)));
 		
 		if (!predicates.isEmpty()) {
 			cq.where(predicates.toArray(new Predicate[0]));
