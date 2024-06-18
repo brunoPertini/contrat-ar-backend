@@ -4,16 +4,14 @@ public class UsuarioFiltersDTO {
 	private String name;
 	private String surname;
 	private String email;
-	private Long plan;
 	
 	public UsuarioFiltersDTO() {
 	}
 
-	public UsuarioFiltersDTO(String name, String surname, String email, Long plan) {
+	public UsuarioFiltersDTO(String name, String surname, String email) {
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
-		this.plan = plan;
 	}
 
 	public String getName() {
@@ -39,13 +37,4 @@ public class UsuarioFiltersDTO {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	
-	public Long getPlan() {
-		return plan;
-	}
-
-	public void setPlan(Long plan) {
-		this.plan = plan;
-	}
-
 }

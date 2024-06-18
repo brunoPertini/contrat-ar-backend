@@ -1,8 +1,10 @@
 package com.contractar.microserviciocommons.infra;
 
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
@@ -42,7 +44,7 @@ public class SecurityHelper {
 		}
 	}
 	
-	public RSAPublicKey getRSAPublicKeyFromString(String key) throws Exception {
+	public RSAPublicKey getRSAPublicKeyFromString(String key) throws IllegalArgumentException, NoSuchAlgorithmException, InvalidKeySpecException {
         String publicKeyPEM = key.replace("-----BEGIN PUBLIC KEY-----", "")
                                  .replace("-----END PUBLIC KEY-----", "")
                                  .replaceAll("\\s", "");
