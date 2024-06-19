@@ -70,7 +70,7 @@ public class AdminController {
 	@CrossOrigin(origins = "http://localhost:3000")
 	@PostMapping(AdminControllerUrls.USUARIOS_BASE_URL)
 	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = true) UsuariosTypeFilter usuarioType,
-			@RequestParam(name = "planId", required = false) Long planId,
+			@RequestParam(name = "plan", required = false) Long planId,
 			@RequestParam(name = "showOnlyActives", required=false) Boolean onlyActives,
 			@RequestBody UsuarioFiltersDTO filters) throws IllegalAccessException {
 		return new ResponseEntity<>(adminService.getAllFilteredUsuarios(usuarioType.toString(), filters, onlyActives, planId), HttpStatusCode.valueOf(200));
