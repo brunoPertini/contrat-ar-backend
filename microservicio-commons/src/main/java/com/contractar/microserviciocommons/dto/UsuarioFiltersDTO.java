@@ -4,7 +4,7 @@ public class UsuarioFiltersDTO {
 	private String name;
 	private String surname;
 	private String email;
-
+	
 	public UsuarioFiltersDTO() {
 	}
 
@@ -37,5 +37,4 @@ public class UsuarioFiltersDTO {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-
 }

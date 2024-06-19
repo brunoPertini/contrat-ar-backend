@@ -7,7 +7,7 @@ public final class RolesNames {
 	
 	public static final String PROVEEDOR_PRODUCTOS = "ROLE_PROVEEDOR_PRODUCTOS";
 	
-	public static final String ADMIN = "ADMIN";
+	public static final String ADMIN = "ROLE_ADMIN";
 	
 	public enum RolesValues {
 		CLIENTE,
