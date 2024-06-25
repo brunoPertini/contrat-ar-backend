@@ -100,7 +100,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
             corsConfiguration.addAllowedOrigin(acceptedOrigins.get("dev"));
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
-            corsConfiguration.setAllowCredentials(true);
+            corsConfiguration.setAllowCredentials(false);
             return corsConfiguration;
         });
 		
@@ -109,10 +109,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		String proveedorServicioRole = RolesValues.PROVEEDOR_SERVICIOS.name();
 		String adminRole = RolesValues.ADMIN.name();
 		
-		String vendiblesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole +
-				"','" + proveedorServicioRole + "','" + adminRole+ "')";
+		String vendiblesOperationsAccsesRule = "hasAuthority('" + adminRole+ "') or @securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole +
+				"','" + proveedorServicioRole + "')";
 		
-		String clientesOperationsAccsesRule = "@securityUtils.userIdsMatch(request, \"cliente\") and hasAnyAuthority('" + clienteRole + "','" + adminRole+ "')";
+		String clientesOperationsAccsesRule = "hasAuthority('" + adminRole+ "') or @securityUtils.userIdsMatch(request, \"cliente\") and hasAnyAuthority('" + clienteRole + "')";
 
 		
 		http.csrf().disable();

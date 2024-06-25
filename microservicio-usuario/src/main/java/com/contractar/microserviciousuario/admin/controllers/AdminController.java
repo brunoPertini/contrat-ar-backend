@@ -67,7 +67,6 @@ public class AdminController {
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
-	@CrossOrigin(origins = "http://localhost:3000")
 	@PostMapping(AdminControllerUrls.USUARIOS_BASE_URL)
 	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = true) UsuariosTypeFilter usuarioType,
 			@RequestParam(name = "plan", required = false) Long planId,
