@@ -1,11 +1,11 @@
 package com.contractar.microserviciousuario.admin.controllers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
@@ -30,7 +31,7 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
 
-	private enum UsuariosTypeFilter {
+	public static enum UsuariosTypeFilter {
 		proveedores, clientes,
 	};
 
@@ -64,6 +65,13 @@ public class AdminController {
 	public ResponseEntity<Void> updateProveedorPlan(@RequestBody PlanType plan, @PathVariable("id") Long proveedorId)
 			throws ChangeAlreadyRequestedException {
 		adminService.addChangeRequestEntry(plan, proveedorId);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
+	
+	@PatchMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
+	public ResponseEntity<Void> updateUsuario (@PathVariable("id")Long userId, @RequestBody @Valid UsuarioPersonalDataUpdateDTO body,
+			@RequestParam UsuariosTypeFilter usuarioType) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+		adminService.updateUsuarioPersonalData(userId, body, usuarioType);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
