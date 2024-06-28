@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +50,25 @@ public class AdminService {
 
 	@Autowired
 	private ProveedorRepository proveedorRepository;
+
+	private final Map<String, Function<Long, ? extends Usuario>> fetchEntity = Map
+			.of(UsuariosTypeFilter.clientes.name(), (clienteId) -> {
+				try {
+					return clienteRepository.findById(clienteId).map(cliente -> cliente)
+							.orElseThrow(() -> new UserNotFoundException());
+				} catch (UserNotFoundException e) {
+					throw new RuntimeException(e);
+				}
+
+			}, UsuariosTypeFilter.proveedores.name(), (proveedorId) -> {
+				try {
+					return proveedorRepository.findById(proveedorId).map(proveedor -> proveedor)
+							.orElseThrow(() -> new UserNotFoundException());
+				} catch (UserNotFoundException e) {
+					throw new RuntimeException(e);
+				}
+
+			});
 
 	public boolean requestExists(Long sourceTableId, List<String> attributes) {
 		return !attributes.isEmpty() && repositoryImpl.getMatchingChangeRequest(sourceTableId, attributes) != null;
@@ -133,43 +151,24 @@ public class AdminService {
 
 		return response;
 	}
-
-	public void updateUsuarioPersonalData(Long userId, UsuarioPersonalDataUpdateDTO newInfo,
-			UsuariosTypeFilter usuarioType)
-			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
-		final Map<String, Function<Long, ? extends Usuario>> fetchEntity = Map.of(UsuariosTypeFilter.clientes.name(),
-				(clienteId) -> {
-					try {
-						return clienteRepository.findById(clienteId).map(cliente -> cliente)
-								.orElseThrow(() -> new UserNotFoundException());
-					} catch (UserNotFoundException e) {
-						throw new RuntimeException(e);
-					}
-
-				}, UsuariosTypeFilter.proveedores.name(), (proveedorId) -> {
-					try {
-						return proveedorRepository.findById(proveedorId).map(proveedor -> proveedor)
-								.orElseThrow(() -> new UserNotFoundException());
-					} catch (UserNotFoundException e) {
-						throw new RuntimeException(e);
-					}
-
-				});
-
-		Usuario usuarioEntity = fetchEntity.get(usuarioType.name()).apply(userId);
-		String entityClassFullName = ReflectionHelper.getObjectClassFullName(usuarioEntity);
-		
-		if (usuarioType.equals(UsuariosTypeFilter.proveedores)) {
-			ProveedorPersonalDataUpdateDTO  concreteProveedorDTO = (ProveedorPersonalDataUpdateDTO) newInfo;
-			String proveedorDtoClassFullName = ReflectionHelper.getObjectClassFullName(concreteProveedorDTO);
-			ReflectionHelper.applySetterFromExistingFields(concreteProveedorDTO, usuarioEntity, proveedorDtoClassFullName, entityClassFullName);
-			proveedorRepository.save((Proveedor) usuarioEntity);
+	
+	public void updateClientePersonalData(Long userId, UsuarioPersonalDataUpdateDTO newInfo) throws ClassNotFoundException,
+	IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		Cliente entity = (Cliente) fetchEntity.get(UsuariosTypeFilter.clientes.name()).apply(userId);
+		String entityClassFullName = ReflectionHelper.getObjectClassFullName(entity);
+		String clienteDtoClassFullName = ReflectionHelper.getObjectClassFullName(newInfo);
+		ReflectionHelper.applySetterFromExistingFields(newInfo, entity, clienteDtoClassFullName, entityClassFullName);
+		clienteRepository.save(entity);
 			
-		} else {
-			String proveedorDtoClassFullName = ReflectionHelper.getObjectClassFullName(newInfo);
-			ReflectionHelper.applySetterFromExistingFields(newInfo, usuarioEntity, proveedorDtoClassFullName, entityClassFullName);
-			clienteRepository.save((Cliente) usuarioEntity);
-		}
-		
+	}
+
+	public void updateProveedorPersonalData(Long userId, ProveedorPersonalDataUpdateDTO newInfo) throws ClassNotFoundException,
+	IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		Proveedor entity = (Proveedor) fetchEntity.get(UsuariosTypeFilter.proveedores.name()).apply(userId);
+		String entityClassFullName = ReflectionHelper.getObjectClassFullName(entity);
+		String proveedorDtoClassFullName = ReflectionHelper.getObjectClassFullName(newInfo);
+		ReflectionHelper.applySetterFromExistingFields(newInfo, entity, proveedorDtoClassFullName, entityClassFullName);
+		proveedorRepository.save(entity);
+			
 	}
 }

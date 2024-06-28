@@ -37,6 +37,7 @@ import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstr
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
+import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
@@ -194,14 +195,17 @@ public class UsuarioService {
 		throw new UserNotFoundException();
 	}
 
-	public Usuario findByEmail(String email) throws UserNotFoundException {
+	public Usuario findByEmail(String email) throws UserNotFoundException, UserInactiveException {
 
 		Usuario usuario = usuarioRepository.findByEmail(email);
 
-		if (usuario != null && usuario.isActive()) {
-			return usuario;
-		}
-		throw new UserNotFoundException();
+		if (usuario == null)
+			throw new UserNotFoundException();
+		
+		if (!usuario.isActive())
+			throw new UserInactiveException();
+		
+		return usuario;
 	}
 
 	public Usuario findById(Long id, boolean handleLoginExceptions) throws UserNotFoundException {

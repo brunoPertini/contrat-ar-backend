@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
@@ -68,10 +69,17 @@ public class AdminController {
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 	
+	@PatchMapping(AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID)
+	public ResponseEntity<Void> updateProveedor (@PathVariable("id")Long userId, @RequestBody @Valid ProveedorPersonalDataUpdateDTO body) throws ClassNotFoundException,
+	IllegalAccessException, InvocationTargetException {
+		adminService.updateProveedorPersonalData(userId, body);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
+	
 	@PatchMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
-	public ResponseEntity<Void> updateUsuario (@PathVariable("id")Long userId, @RequestBody @Valid UsuarioPersonalDataUpdateDTO body,
-			@RequestParam UsuariosTypeFilter usuarioType) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
-		adminService.updateUsuarioPersonalData(userId, body, usuarioType);
+	public ResponseEntity<Void> updateProveedor (@PathVariable("id")Long userId, @RequestBody @Valid UsuarioPersonalDataUpdateDTO body) throws ClassNotFoundException,
+	IllegalAccessException, InvocationTargetException {
+		adminService.updateClientePersonalData(userId, body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 

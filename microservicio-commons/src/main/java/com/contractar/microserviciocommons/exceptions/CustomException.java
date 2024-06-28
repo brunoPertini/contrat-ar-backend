@@ -5,11 +5,11 @@ public abstract class CustomException extends Exception{
 	
 	protected int STATUS_CODE = 500;
 	
-	public CustomException(String message) {
+	protected CustomException(String message) {
 		super(message);
 	}
 	
-	public CustomException(String message, Throwable err) {
+	protected CustomException(String message, Throwable err) {
 		super(message, err);
 	}
 

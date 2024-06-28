@@ -138,7 +138,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 		return active;
 	}
 
-	public void setIsActive(boolean isActive) {
+	public void setActive(boolean isActive) {
 		this.active = isActive;
 	}
 

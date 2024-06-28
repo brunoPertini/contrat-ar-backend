@@ -22,6 +22,7 @@ import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
+import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
@@ -89,7 +90,7 @@ public class UsuarioController {
 
 	@GetMapping(UsersControllerUrls.GET_USUARIOS)
 	public ResponseEntity<UsuarioOauthDTO> findByParam(@RequestParam(required = false) String email,
-			@RequestParam(required = false) Long id) throws UserNotFoundException {
+			@RequestParam(required = false) Long id) throws UserNotFoundException, UserInactiveException {
 		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id, true);
 
 		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getName(), usuario.getSurname(),
