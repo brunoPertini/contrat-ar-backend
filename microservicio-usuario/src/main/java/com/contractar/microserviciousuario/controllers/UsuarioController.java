@@ -116,6 +116,14 @@ public class UsuarioController {
 
 		return new ResponseEntity<>(usuarioDTO, HttpStatus.OK);
 	}
+	
+	@GetMapping(UsersControllerUrls.GET_USUARIO_FIELD)
+	public ResponseEntity<Object> getUsuarioFields(@PathVariable("userId") Long userId, 
+			@PathVariable("fieldName") String field) throws UserNotFoundException, IllegalAccessException {
+		Object fieldValue = usuarioService.getUsuarioField(field, userId);
+		return fieldValue != null ? new ResponseEntity<>(fieldValue, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		
+	}
 
 	@SuppressWarnings("rawtypes")
 	@GetMapping(UsersControllerUrls.GET_PROVEEDOR)

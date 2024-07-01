@@ -2,6 +2,7 @@ package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -273,5 +274,15 @@ public class UsuarioService {
 			return new ExceptionFactory().getResponseException(castedException.getMessage(),
 					HttpStatusCode.valueOf(castedException.getStatusCode()));
 		}
+	}
+	
+	public Object getUsuarioField(String field, Long userId) throws UserNotFoundException, IllegalAccessException {
+		Usuario user = this.findById(userId, false);
+		Map<String, Object> fields = ReflectionHelper.getObjectFields(user);
+		if (!fields.containsKey(field)) {
+			return null;
+		}
+		
+		return fields.get(field);
 	}
 }

@@ -14,6 +14,8 @@ public final class UsersControllerUrls {
 	
 	public static final String GET_USUARIO_INFO = "/usuarios/{userId}/info";
 	
+	public static final String GET_USUARIO_FIELD = "/usuarios/{userId}/field/{fieldName}";
+	
 	public static final String USUARIO_BASE_URL = "/usuarios/{usuarioId}";
 	
 	public static final String CREATE_CLIENTE = "/usuarios/cliente";
