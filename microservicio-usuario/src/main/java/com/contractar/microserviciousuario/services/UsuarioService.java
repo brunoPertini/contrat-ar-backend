@@ -2,6 +2,7 @@ package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstr
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
+import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
@@ -194,14 +196,17 @@ public class UsuarioService {
 		throw new UserNotFoundException();
 	}
 
-	public Usuario findByEmail(String email) throws UserNotFoundException {
+	public Usuario findByEmail(String email) throws UserNotFoundException, UserInactiveException {
 
 		Usuario usuario = usuarioRepository.findByEmail(email);
 
-		if (usuario != null && usuario.isActive()) {
-			return usuario;
-		}
-		throw new UserNotFoundException();
+		if (usuario == null)
+			throw new UserNotFoundException();
+		
+		if (!usuario.isActive())
+			throw new UserInactiveException();
+		
+		return usuario;
 	}
 
 	public Usuario findById(Long id, boolean handleLoginExceptions) throws UserNotFoundException {
@@ -269,5 +274,15 @@ public class UsuarioService {
 			return new ExceptionFactory().getResponseException(castedException.getMessage(),
 					HttpStatusCode.valueOf(castedException.getStatusCode()));
 		}
+	}
+	
+	public Object getUsuarioField(String field, Long userId) throws UserNotFoundException, IllegalAccessException {
+		Usuario user = this.findById(userId, false);
+		Map<String, Object> fields = ReflectionHelper.getObjectFields(user);
+		if (!fields.containsKey(field)) {
+			return null;
+		}
+		
+		return fields.get(field);
 	}
 }

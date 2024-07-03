@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
+import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
@@ -44,10 +46,10 @@ import jakarta.validation.Valid;
 public class UsuarioController {
 	@Autowired
 	private UsuarioService usuarioService;
-	
+
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
-	
+
 	@Autowired
 	private AdminService adminService;
 
@@ -62,20 +64,20 @@ public class UsuarioController {
 		try {
 			Proveedor createdUsuario = usuarioService.createProveedor(usuario);
 			return new ResponseEntity<>(DtoHelper.toProveedorDTO(createdUsuario), HttpStatus.CREATED);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			throw new UserCreationException();
 		}
 	}
 
 	@PostMapping(UsersControllerUrls.CREATE_CLIENTE)
-	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) throws UserCreationException{
+	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) throws UserCreationException {
 		try {
 			Cliente createdUsuario = usuarioService.createCliente(usuario);
 			return new ResponseEntity<>(DtoHelper.toUsuarioDTO(createdUsuario), HttpStatus.CREATED);
 		} catch (Exception e) {
 			throw new UserCreationException();
 		}
-		
+
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -88,25 +90,39 @@ public class UsuarioController {
 
 	@GetMapping(UsersControllerUrls.GET_USUARIOS)
 	public ResponseEntity<UsuarioOauthDTO> findByParam(@RequestParam(required = false) String email,
-			@RequestParam(required = false) Long id) throws UserNotFoundException {
+			@RequestParam(required = false) Long id) throws UserNotFoundException, UserInactiveException {
 		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id, true);
 
 		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getName(), usuario.getSurname(),
-				usuario.getEmail(), usuario.isActive(), usuario.getPassword(),
-				new ArrayList<SimpleGrantedAuthority>(), usuario.getRole());
+				usuario.getEmail(), usuario.isActive(), usuario.getPassword(), new ArrayList<SimpleGrantedAuthority>(),
+				usuario.getRole());
 		return new ResponseEntity<UsuarioOauthDTO>(usuarioOauthDTO, HttpStatus.OK);
 	}
-	
+
 	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
-	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId) throws UserNotFoundException {
+	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId)
+			throws UserNotFoundException {
 		Usuario user = this.usuarioService.findById(userId, false);
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
-			return new ResponseEntity<>(DtoHelper.toProveedorDTO(proveedor), HttpStatus.OK);
-		};
-			
-		return new ResponseEntity<>(DtoHelper.toUsuarioDTO(user)
-				, HttpStatus.OK);
+			ProveedorDTO proveedorDTO = DtoHelper.toProveedorDTO(proveedor);
+			proveedorDTO.setRole(proveedor.getRole());
+			return new ResponseEntity<>(proveedorDTO, HttpStatus.OK);
+		}
+		;
+
+		UsuarioDTO usuarioDTO = DtoHelper.toUsuarioDTO(user);
+		usuarioDTO.setRole(user.getRole());
+
+		return new ResponseEntity<>(usuarioDTO, HttpStatus.OK);
+	}
+	
+	@GetMapping(UsersControllerUrls.GET_USUARIO_FIELD)
+	public ResponseEntity<Object> getUsuarioFields(@PathVariable("userId") Long userId, 
+			@PathVariable("fieldName") String field) throws UserNotFoundException, IllegalAccessException {
+		Object fieldValue = usuarioService.getUsuarioField(field, userId);
+		return fieldValue != null ? new ResponseEntity<>(fieldValue, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -125,38 +141,37 @@ public class UsuarioController {
 		usuarioService.addVendible(vendibleId, proveedorId, proveedorVendible);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
-	
+
 	@DeleteMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<Void> unBindVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId) throws VendibleNotFoundException {
+	public ResponseEntity<Void> unBindVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId)
+			throws VendibleNotFoundException {
 		proveedorVendibleService.unBindVendible(vendibleId, proveedorId);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(204));
 	}
-	
+
 	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId,
-			@PathVariable Long proveedorId, @Valid @RequestBody ProveedorVendibleUpdateDTO body) throws VendibleNotFoundException, VendibleUpdateException {
+	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
+			@Valid @RequestBody ProveedorVendibleUpdateDTO body)
+			throws VendibleNotFoundException, VendibleUpdateException {
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
-	
-	
-	  @PutMapping(UsersControllerUrls.USUARIO_BASE_URL) 
-	  public ResponseEntity<?> changeUserSensibleInfo(@PathVariable Long usuarioId, @RequestBody UsuarioSensibleInfoDTO body) throws ChangeAlreadyRequestedException {
-		  try {
-			  adminService.addChangeRequestEntry(body, usuarioId);
-			  return ResponseEntity
-					  .ok()
-					  .build();
-		  } catch (IllegalAccessException e) {
-			  return new ExceptionFactory().getResponseException(
-					  "Hay algún error con los campos que estas tratando de actualizar",
-					  HttpStatusCode.valueOf(409));
-		  }
-	  }
-	 
-	
+
+	@PutMapping(UsersControllerUrls.USUARIO_BASE_URL)
+	public ResponseEntity<?> changeUserSensibleInfo(@PathVariable Long usuarioId,
+			@RequestBody UsuarioSensibleInfoDTO body) throws ChangeAlreadyRequestedException {
+		try {
+			adminService.addChangeRequestEntry(body, usuarioId);
+			return ResponseEntity.ok().build();
+		} catch (IllegalAccessException e) {
+			return new ExceptionFactory().getResponseException(
+					"Hay algún error con los campos que estas tratando de actualizar", HttpStatusCode.valueOf(409));
+		}
+	}
+
 	@GetMapping(GeoControllersUrls.TRANSLATE_COORDINATES)
-	public ResponseEntity<?> translateAddress(@RequestParam("latitude") double latitude, @RequestParam("longitude") double longitude) {
+	public ResponseEntity<?> translateAddress(@RequestParam("latitude") double latitude,
+			@RequestParam("longitude") double longitude) {
 		return new ResponseEntity<>(this.usuarioService.translateCoordinates(latitude, longitude), HttpStatus.OK);
 	}
 }

@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.locationtech.jts.geom.Point;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +23,6 @@ import com.contractar.microserviciocommons.constants.controllers.UsersController
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
@@ -39,6 +39,7 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -52,6 +53,9 @@ public class ProveedorVendibleService {
 
 	@Autowired
 	private SecurityHelper securityHelper;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Value("${microservicio-vendible.url}")
 	private String SERVICIO_VENDIBLE_URL;
@@ -165,10 +169,11 @@ public class ProveedorVendibleService {
 
 		Long clienteId = getClientIdResponse.getBody();
 
-		String getClientUrl = SERVICIO_USUARIO_URL
-				+ (UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", clienteId.toString()));
+		String getUserFieldUrl = SERVICIO_USUARIO_URL
+				+ (UsersControllerUrls.GET_USUARIO_FIELD.replace("{userId}", clienteId.toString())
+						.replace("{fieldName}", "location"));
 
-		UsuarioDTO loggedClient = httpClient.getForObject(getClientUrl, UsuarioDTO.class);
+		Object userLocationObj = httpClient.getForObject(getUserFieldUrl, Object.class);
 
 		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null, minPrice, maxPrice,
 				null);
@@ -192,9 +197,11 @@ public class ProveedorVendibleService {
 		List<Double> toSortDistances = new ArrayList<>();
 
 		List<Integer> toSortPrices = new ArrayList<>();
+		
+		Point userLocation = objectMapper.convertValue(userLocationObj, Point.class);
 
 		results.forEach(proveedorVendible -> {
-			double distance = DistanceCalculator.calculateDistance(loggedClient.getLocation(),
+			double distance = DistanceCalculator.calculateDistance(userLocation,
 					proveedorVendible.getLocation());
 
 			toSortDistances.add(distance);

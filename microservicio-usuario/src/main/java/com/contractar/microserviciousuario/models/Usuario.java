@@ -59,22 +59,22 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 
 	@NotNull
 	private LocalDate birthDate;
-	
+
 	@Column(length = 30)
 	private String phone;
 
 	@OneToOne
 	@JoinColumn(name = "role")
 	private Role role;
-	
+
 	private LocalDate createdAt;
 
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 	}
-	
-	public Usuario(String name, String surname, String email, boolean isActive, Point location,
-			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role, String phone) {
+
+	public Usuario(String name, String surname, String email, boolean isActive, Point location, LocalDate birthDate,
+			String password, List<GrantedAuthority> authorities, Role role, String phone) {
 		super(name + surname, password, false, true, true, true, authorities);
 		this.name = name;
 		this.surname = surname;
@@ -88,7 +88,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	}
 
 	public Usuario(Long id, String name, String surname, String email, boolean isActive, Point location,
-			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role , String phone) {
+			LocalDate birthDate, String password, List<GrantedAuthority> authorities, Role role, String phone) {
 		super(name + surname, password, false, true, true, true, authorities);
 		this.id = id;
 		this.name = name;
@@ -138,7 +138,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 		return active;
 	}
 
-	public void setIsActive(boolean isActive) {
+	public void setActive(boolean isActive) {
 		this.active = isActive;
 	}
 
@@ -173,7 +173,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	public void setRole(Role role) {
 		this.role = role;
 	}
-	
+
 	public String getPhone() {
 		return phone;
 	}
@@ -181,7 +181,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-	
+
 	public LocalDate getCreatedAt() {
 		return createdAt;
 	}

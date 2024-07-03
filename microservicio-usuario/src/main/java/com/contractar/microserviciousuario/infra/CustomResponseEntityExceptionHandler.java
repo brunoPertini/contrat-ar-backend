@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
+import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
@@ -33,7 +34,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	
 	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class,
-			IllegalAccessException.class, InvocationTargetException.class })
+			IllegalAccessException.class, InvocationTargetException.class,
+			UserInactiveException.class})
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {
 		HttpStatus httpStatus = HttpStatus.CONFLICT;
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
@@ -46,7 +48,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 			VendibleAlreadyExistsException.class,
 			VendibleUpdateException.class,
 			ChangeAlreadyRequestedException.class,
-			ChangeConfirmException.class})
+			ChangeConfirmException.class,})
 	public ResponseEntity<Object> handleCustomExceptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),

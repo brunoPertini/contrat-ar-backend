@@ -1,11 +1,11 @@
 package com.contractar.microserviciousuario.admin.controllers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
@@ -30,7 +32,7 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
 
-	private enum UsuariosTypeFilter {
+	public static enum UsuariosTypeFilter {
 		proveedores, clientes,
 	};
 
@@ -66,8 +68,21 @@ public class AdminController {
 		adminService.addChangeRequestEntry(plan, proveedorId);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
+	
+	@PatchMapping(AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID)
+	public ResponseEntity<Void> updateProveedor (@PathVariable("id")Long userId, @RequestBody @Valid ProveedorPersonalDataUpdateDTO body) throws ClassNotFoundException,
+	IllegalAccessException, InvocationTargetException {
+		adminService.updateProveedorPersonalData(userId, body);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
+	
+	@PatchMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
+	public ResponseEntity<Void> updateProveedor (@PathVariable("id")Long userId, @RequestBody @Valid UsuarioPersonalDataUpdateDTO body) throws ClassNotFoundException,
+	IllegalAccessException, InvocationTargetException {
+		adminService.updateClientePersonalData(userId, body);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
 
-	@CrossOrigin(origins = "http://localhost:3000")
 	@PostMapping(AdminControllerUrls.USUARIOS_BASE_URL)
 	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = true) UsuariosTypeFilter usuarioType,
 			@RequestParam(name = "plan", required = false) Long planId,

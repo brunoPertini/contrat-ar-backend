@@ -5,9 +5,11 @@ import java.time.LocalDate;
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.UsuarioAccesor;
+import com.contractar.microservicioadapter.enums.RoleAccesor;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -33,6 +35,9 @@ public class UsuarioDTO {
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
+	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	private RoleAccesor role;
 
 	public UsuarioDTO() {
 	}
@@ -123,4 +128,13 @@ public class UsuarioDTO {
 	public void setId(Long id) {
 		this.id = id;
 	}
+	
+	public RoleAccesor getRole() {
+		return role;
+	}
+
+	public void setRole(RoleAccesor role) {
+		this.role = role;
+	}
+
 }
