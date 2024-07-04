@@ -5,6 +5,8 @@ import org.locationtech.jts.geom.Point;
 public class ProveedorInfoUpdateDTO extends UsuarioCommonInfoUpdateDTO {
 	private String fotoPerfilUrl;
 	
+	public ProveedorInfoUpdateDTO() {}
+	
 	public ProveedorInfoUpdateDTO(Point location, String phone, String fotoPerfilUrl) {
 		super(location, phone);
 		this.fotoPerfilUrl = fotoPerfilUrl;

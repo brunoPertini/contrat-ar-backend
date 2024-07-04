@@ -11,6 +11,8 @@ public class UsuarioCommonInfoUpdateDTO {
 	private Point location;
 	
 	private String phone;
+	
+	public UsuarioCommonInfoUpdateDTO() {}
 
 	public Point getLocation() {
 		return location;
