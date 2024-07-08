@@ -10,5 +10,7 @@ public interface ClienteRepository extends PagingAndSortingRepository<Cliente, L
 	public Optional<Cliente> findById(Long id);
 
     public Cliente save(Cliente usuario);
+    
+    public void deleteById(Long id);
 
 }

@@ -67,6 +67,8 @@ public class SecurityConfig {
 								.hasAuthority(adminRole)
 								.requestMatchers(HttpMethod.PATCH, personalDataUrls)
 								.hasAuthority(adminRole)
+								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
+								.hasAuthority(adminRole)
 								.anyRequest().permitAll())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt());
 
