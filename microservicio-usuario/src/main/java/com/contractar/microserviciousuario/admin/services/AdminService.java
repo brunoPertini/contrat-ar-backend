@@ -14,6 +14,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -33,6 +34,7 @@ import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.repository.ClienteRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
+import com.contractar.microserviciousuario.repository.UsuarioRepository;
 
 @Service
 public class AdminService {
@@ -50,6 +52,11 @@ public class AdminService {
 
 	@Autowired
 	private ProveedorRepository proveedorRepository;
+	
+	@Autowired
+	private UsuarioRepository usuarioRepository;
+	
+	private final String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado";
 
 	private final Map<String, Function<Long, ? extends Usuario>> fetchEntity = Map
 			.of(UsuariosTypeFilter.clientes.name(), (clienteId) -> {
@@ -170,5 +177,27 @@ public class AdminService {
 		ReflectionHelper.applySetterFromExistingFields(newInfo, entity, proveedorDtoClassFullName, entityClassFullName);
 		proveedorRepository.save(entity);
 			
+	}
+	
+	public void deleteUser(Long userId) throws UserNotFoundException {
+		Optional<Usuario> foundOpt = usuarioRepository.findById(userId);
+		
+		if (foundOpt.isEmpty()) {
+			throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
+		}
+		
+		Usuario found = foundOpt.get();
+		
+		String roleName = found.getRole().getNombre();
+		
+		if (roleName.equals(RolesValues.ADMIN.toString())) {
+			throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
+		}
+		
+		if (roleName.equals(RolesValues.CLIENTE.toString())) {
+			clienteRepository.deleteById(userId);
+		} else {
+			proveedorRepository.deleteById(userId);
+		}
 	}
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.services.AdminService;
@@ -89,5 +91,11 @@ public class AdminController {
 			@RequestParam(name = "showOnlyActives", required=false) Boolean onlyActives,
 			@RequestBody UsuarioFiltersDTO filters) throws IllegalAccessException {
 		return new ResponseEntity<>(adminService.getAllFilteredUsuarios(usuarioType.toString(), filters, onlyActives, planId), HttpStatusCode.valueOf(200));
+	}
+	
+	@DeleteMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
+	public ResponseEntity<Void> deleteUsuario(@PathVariable("id") Long userId)  throws UserNotFoundException {
+		adminService.deleteUser(userId);
+		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 	}
 }

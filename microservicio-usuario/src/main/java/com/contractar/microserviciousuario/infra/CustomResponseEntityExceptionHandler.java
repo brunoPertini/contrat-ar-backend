@@ -2,6 +2,7 @@ package com.contractar.microserviciousuario.infra;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -26,7 +27,7 @@ import com.contractar.microserviciousuario.admin.services.ChangeConfirmException
 
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
-	@ExceptionHandler(value = { UserNotFoundException.class })
+	@ExceptionHandler(value = { UserNotFoundException.class, EmptyResultDataAccessException.class })
 	public ResponseEntity<Object> handleUserNotFoundException(Exception ex) {
 		HttpStatus httpStatus = HttpStatus.valueOf(404);
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());

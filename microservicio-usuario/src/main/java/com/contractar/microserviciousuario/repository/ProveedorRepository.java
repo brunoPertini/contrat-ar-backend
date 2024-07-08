@@ -21,4 +21,6 @@ public interface ProveedorRepository  extends CrudRepository<Proveedor, Long>{
     		@Param("vendibleId") Long vendibleId);
     
     public boolean existsByIdAndProveedorType(Long id, ProveedorType proveedorType);
+    
+    public void deleteById(Long id);
 }
