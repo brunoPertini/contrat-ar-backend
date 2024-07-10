@@ -25,7 +25,6 @@ import com.contractar.microserviciovendible.services.VendibleService;
 import com.contractar.microserviciovendible.services.resolvers.ProductoFetchingMethodResolver;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 
 @Controller
 public class ProductoController {
@@ -54,7 +53,7 @@ public class ProductoController {
 	}
 
 	@GetMapping(VendiblesControllersUrls.GET_PRODUCT)
-	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre,
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam(required = false) String nombre,
 			@RequestParam(required = false) Long category) {
 		return new ResponseEntity<VendiblesResponseDTO>(this.vendibleService.findByNombreAsc(nombre, category, productoFetchingMethodResolver), HttpStatus.OK);
 	}

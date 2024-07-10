@@ -15,6 +15,8 @@ public interface ServicioRepository extends PagingAndSortingRepository<Servicio,
 
 	public Servicio save(Vendible servicio) throws TransactionSystemException;
 	
+	public List<Servicio> findAll();
+	
 	public List<Servicio> findByNombreContainingIgnoreCaseOrderByNombreAsc(String nombre);
 	
 	@Query(value = "SELECT v.* FROM vendible v "

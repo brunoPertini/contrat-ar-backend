@@ -22,6 +22,10 @@ public class ProductoFetchingMethodResolver implements VendibleFetchingMethodRes
 	@Override
 	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId) {
 		return () -> {
+			if(Optional.ofNullable(nombre).isEmpty()) {
+				return this.productoRepository.findAll();
+			}
+			
 		    if (Optional.ofNullable(categoryId).isPresent()) {
 		        return Optional.ofNullable(vendibleService.findCategoryById(categoryId))
 		                .map((category) -> this.productoRepository.findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(nombre,
