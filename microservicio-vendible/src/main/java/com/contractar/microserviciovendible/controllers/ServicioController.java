@@ -55,7 +55,7 @@ public class ServicioController {
 	}
 
 	@GetMapping(VendiblesControllersUrls.GET_SERVICE)
-	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam @NotBlank String nombre,
+	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam(required = false) String nombre,
 			@RequestParam(required = false) Long category) {
 		return new ResponseEntity<VendiblesResponseDTO>(this.vendibleService.findByNombreAsc(nombre,
 				category,

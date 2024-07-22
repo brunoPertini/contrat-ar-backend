@@ -168,7 +168,7 @@ public class VendibleService {
 			return persistedBaseCategory;
 		}
 		
-		baseCategory.setParent(persistedBaseCategory);
+		baseCategory.setParent(persistedBaseCategory.getParent());
 		return vendibleCategoryRepository.save(baseCategory);
 
 	}

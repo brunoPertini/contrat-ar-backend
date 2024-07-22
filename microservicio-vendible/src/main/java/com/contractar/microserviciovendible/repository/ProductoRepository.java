@@ -13,6 +13,8 @@ import com.contractar.microserviciousuario.models.Vendible;
 public interface ProductoRepository extends CrudRepository<Producto, Long>{
 	public Producto save(Vendible producto) throws TransactionSystemException;
 	
+	public List<Producto> findAll();
+	
 	public List<Producto> findByNombreContainingIgnoreCaseOrderByNombreAsc(String nombre);
 	
 	@Query(value = "SELECT v.* FROM vendible v "
