@@ -26,6 +26,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import com.contractar.microserviciogateway.constants.RolesNames.RolesValues;
 
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 
 @Configuration
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
@@ -130,6 +131,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)	
 				.antMatchers(HttpMethod.PUT, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule) 
 				.antMatchers(HttpMethod.DELETE, vendiblesUrls[1]) .access(vendiblesOperationsAccsesRule)
+				.antMatchers(HttpMethod.DELETE, VendiblesControllersUrls.DELETE_VENDIBLE).hasAuthority(adminRole)
 				.antMatchers(HttpMethod.GET, vendiblesUrls[0]).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, clienteRole, adminRole)
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
 				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, adminRole)
