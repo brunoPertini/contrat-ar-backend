@@ -9,6 +9,8 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,6 +35,7 @@ import com.contractar.microserviciocommons.helpers.DistanceCalculator;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 import com.contractar.microserviciousuario.filters.FilterChainCreator;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -232,5 +235,9 @@ public class ProveedorVendibleService {
 
 		return response;
 
+	}
+	
+	public Page<ProveedorVendibleAdminDTO> getPostsOfVendible(Long vendibleId, int page, int size) {
+		return this.repository.getProveedoreVendiblesInfoForVendible(vendibleId, PageRequest.of(page, size)).map(ProveedorVendibleAdminDTO::new);
 	}
 }
