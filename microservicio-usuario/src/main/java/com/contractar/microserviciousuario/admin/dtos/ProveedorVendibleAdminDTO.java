@@ -7,12 +7,16 @@ import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
-import com.contractar.microserviciousuario.models.VendibleCategory;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 
 public class ProveedorVendibleAdminDTO {
+	
+	private Long proveedorId;
+	
+	private String proveedorName;
+
 	private String vendibleNombre;
 
 	private String descripcion;
@@ -46,8 +50,13 @@ public class ProveedorVendibleAdminDTO {
 		this.offersInCustomAddress = proveedorVendible.getOffersInCustomAddress();
 		this.imagenUrl = proveedorVendible.getImagenUrl();
 		this.stock = proveedorVendible.getStock();
-		this.location = proveedorVendible.getLocation();
+		if (this.offersInCustomAddress) {
+			this.location = proveedorVendible.getLocation();
+		}
 		this.category = proveedorVendible.getCategory();
+		this.proveedorId = proveedorVendible.getProveedor().getId();
+		this.proveedorName = proveedorVendible.getProveedor().getName() + " " + proveedorVendible.getProveedor().getSurname();
+		
 	}
 
 	public String getVendibleNombre() {
@@ -121,15 +130,29 @@ public class ProveedorVendibleAdminDTO {
 	public void setLocation(Point location) {
 		this.location = location;
 	}
-
-	public VendibleCategoryAccesor getCategory() {
-		return category;
+	
+	public Long getProveedorId() {
+		return proveedorId;
 	}
 
-	public void setCategory(VendibleCategory category) {
+	public void setProveedorId(Long proveedorId) {
+		this.proveedorId = proveedorId;
+	}
+
+	public String getProveedorName() {
+		return proveedorName;
+	}
+
+	public void setProveedorName(String proveedorName) {
+		this.proveedorName = proveedorName;
+	}
+
+	public void setCategory(VendibleCategoryAccesor category) {
 		this.category = category;
 	}
 	
-	
+	public VendibleCategoryAccesor getCategory() {
+		return category;
+	}	
 	
 }
