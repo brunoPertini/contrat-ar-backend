@@ -4,13 +4,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.locationtech.jts.geom.Point;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,6 +27,7 @@ import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
@@ -41,15 +46,20 @@ import com.contractar.microserviciousuario.filters.FilterChainCreator;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
+import com.contractar.microserviciousuario.repository.ProveedorVendibleCustomRepository;
 import com.contractar.microserviciousuario.repository.ProveedorVendibleRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class ProveedorVendibleService {
 	@Autowired
 	private ProveedorVendibleRepository repository;
+	
+	@Autowired
+	private ProveedorVendibleCustomRepository customRepository;
 
 	@Autowired
 	private RestTemplate httpClient;
@@ -237,7 +247,23 @@ public class ProveedorVendibleService {
 
 	}
 	
-	public Page<ProveedorVendibleAdminDTO> getPostsOfVendible(Long vendibleId, int page, int size) {
-		return this.repository.getProveedoreVendiblesInfoForVendible(vendibleId, PageRequest.of(page, size)).map(ProveedorVendibleAdminDTO::new);
+	public Page<ProveedorVendibleAdminDTO> getPostsOfVendible(Long vendibleId, int page,  int size, @Nullable ProveedorVendibleFilter filters) {
+		
+		List<ProveedorVendible> allResults = customRepository.get(vendibleId, filters);
+
+		Pageable pageRequest = PageRequest.of(page, size);
+
+		int start = (int) pageRequest.getOffset();
+		
+		int end = Math.min((start + pageRequest.getPageSize()), allResults.size());
+		
+		 List<ProveedorVendibleAdminDTO> pageContent = 
+				 allResults.subList(start, end)
+				 .stream()
+				 .map(ProveedorVendibleAdminDTO::new)
+				 .collect(Collectors.toList());
+		
+		return new PageImpl<>(pageContent, pageRequest, allResults.size());	
+		
 	}
 }

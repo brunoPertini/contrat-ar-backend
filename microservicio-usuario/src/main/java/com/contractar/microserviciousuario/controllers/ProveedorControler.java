@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
@@ -85,9 +87,11 @@ public class ProveedorControler {
 		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
 	}
 	
-	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS_V2)
-	public ResponseEntity<Page<ProveedorVendibleAdminDTO>> getPostsOfVendible(@PathVariable("vendibleId") Long vendibleId, @RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "1000") int pageSize) {
-		return new ResponseEntity<>(proveedorVendibleService.getPostsOfVendible(vendibleId, page, pageSize), HttpStatus.OK);
+	@PostMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS_V2)
+	public ResponseEntity<Page<ProveedorVendibleAdminDTO>> getPostsOfVendible(@PathVariable("vendibleId") Long vendibleId,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int pageSize,
+			@RequestBody (required = false)ProveedorVendibleFilter filters) {
+		return new ResponseEntity<>(proveedorVendibleService.getPostsOfVendible(vendibleId, page, pageSize, filters), HttpStatus.OK);
 	}
 }
