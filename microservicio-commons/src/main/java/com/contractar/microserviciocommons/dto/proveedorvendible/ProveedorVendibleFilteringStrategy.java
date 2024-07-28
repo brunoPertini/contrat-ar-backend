@@ -64,18 +64,18 @@ public class ProveedorVendibleFilteringStrategy {
 		processBooleanCondition(FIELD_OFFERS_CUSTOM_ADDRESS, root, cb, List.of(FIELD_OFFERS_CUSTOM_ADDRESS),
 				filters.isOffersInCustomAddress());
 
-		processStringEqualsCondition(FIELD_PRICE_TYPE, root, cb, List.of("tipoPrecio"),
-				((PriceTypeValue) filters.getPriceType()).toString());
+		processStringEqualsCondition(FIELD_PRICE_TYPE, root, cb, List.of("tipoPrecio"), filters.getPriceType() != null ?
+				((PriceTypeValue) filters.getPriceType()).toString() : null);
 
 	}
 
 	private void processStringLikeNotExactCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
 			List<String> rootAttributes, String fieldValue) {
 		if (!isValueNull.apply(fieldValue)) {
-			Function<String, Path<String>> getPath = root::get;
+			ddbbSourceObject = root;
 
 			for (String attribute : rootAttributes) {
-				this.setDdbbSourceObject(getPath.apply(attribute));
+				ddbbSourceObject = ddbbSourceObject.get(attribute);
 			}
 
 			this.fieldsStrategies.put(mapKey, cb.like(ddbbSourceObject, "%" + fieldValue + "%"));

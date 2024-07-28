@@ -56,7 +56,7 @@ public class ProveedorVendibleFilter {
 		this.proveedorSurname = proveedorSurname;
 	}
 
-	public int getMinPrice() {
+	public Integer getMinPrice() {
 		return minPrice;
 	}
 
@@ -64,7 +64,7 @@ public class ProveedorVendibleFilter {
 		this.minPrice = minPrice;
 	}
 
-	public int getMaxPrice() {
+	public Integer getMaxPrice() {
 		return maxPrice;
 	}
 
@@ -80,7 +80,7 @@ public class ProveedorVendibleFilter {
 		this.priceType = priceType;
 	}
 
-	public boolean isOffersDelivery() {
+	public Boolean isOffersDelivery() {
 		return offersDelivery;
 	}
 
@@ -88,7 +88,7 @@ public class ProveedorVendibleFilter {
 		this.offersDelivery = offersDelivery;
 	}
 
-	public boolean isOffersInCustomAddress() {
+	public Boolean isOffersInCustomAddress() {
 		return offersInCustomAddress;
 	}
 
@@ -104,7 +104,7 @@ public class ProveedorVendibleFilter {
 		this.categoryName = categoryName;
 	}
 
-	public int getMinStock() {
+	public Integer getMinStock() {
 		return minStock;
 	}
 
@@ -112,7 +112,7 @@ public class ProveedorVendibleFilter {
 		this.minStock = minStock;
 	}
 
-	public int getMaxStock() {
+	public Integer getMaxStock() {
 		return maxStock;
 	}
 

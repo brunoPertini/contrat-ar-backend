@@ -249,6 +249,7 @@ public class ProveedorVendibleService {
 	
 	public Page<ProveedorVendibleAdminDTO> getPostsOfVendible(Long vendibleId, int page,  int size, @Nullable ProveedorVendibleFilter filters) {
 		
+		// TODO: implementar caché acá
 		List<ProveedorVendible> allResults = customRepository.get(vendibleId, filters);
 
 		Pageable pageRequest = PageRequest.of(page, size);

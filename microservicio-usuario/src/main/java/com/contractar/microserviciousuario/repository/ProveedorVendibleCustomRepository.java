@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.repository;
 
 import java.util.List;
+
 import org.springframework.stereotype.Repository;
 
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
