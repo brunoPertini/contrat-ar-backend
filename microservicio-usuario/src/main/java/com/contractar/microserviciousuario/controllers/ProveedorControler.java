@@ -89,8 +89,8 @@ public class ProveedorControler {
 	
 	@PostMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS_V2)
 	public ResponseEntity<Page<ProveedorVendibleAdminDTO>> getPostsOfVendible(@PathVariable("vendibleId") Long vendibleId,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int pageSize,
+			@RequestParam int page,
+			@RequestParam int pageSize,
 			@RequestBody (required = false)ProveedorVendibleFilter filters) {
 		return new ResponseEntity<>(proveedorVendibleService.getPostsOfVendible(vendibleId, page, pageSize, filters), HttpStatus.OK);
 	}

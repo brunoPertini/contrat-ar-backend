@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
+import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
@@ -56,7 +56,7 @@ public class ProveedorVendibleFilteringStrategy {
 		processIntegerGreaterOrEqualCondition(FIELD_MIN_PRICE, root, cb, List.of("precio"), filters.getMinPrice());
 		processIntegerLowerOrEqualCondition(FIELD_MAX_PRICE, root, cb, List.of("precio"), filters.getMaxPrice());
 
-		processIntegerLowerOrEqualCondition(FIELD_MIN_STOCK, root, cb, List.of("stock"), filters.getMinStock());
+		processIntegerGreaterOrEqualCondition(FIELD_MIN_STOCK, root, cb, List.of("stock"), filters.getMinStock());
 		processIntegerLowerOrEqualCondition(FIELD_MAX_STOCK, root, cb, List.of("stock"), filters.getMaxStock());
 
 		processBooleanCondition(FIELD_OFFERS_DELIVERY, root, cb, List.of(FIELD_OFFERS_DELIVERY),
@@ -64,8 +64,7 @@ public class ProveedorVendibleFilteringStrategy {
 		processBooleanCondition(FIELD_OFFERS_CUSTOM_ADDRESS, root, cb, List.of(FIELD_OFFERS_CUSTOM_ADDRESS),
 				filters.isOffersInCustomAddress());
 
-		processStringEqualsCondition(FIELD_PRICE_TYPE, root, cb, List.of("tipoPrecio"), filters.getPriceType() != null ?
-				((PriceTypeValue) filters.getPriceType()).toString() : null);
+		processPriceTypeEqualsCondition(FIELD_PRICE_TYPE, root, cb, List.of("tipoPrecio"), filters.getPriceType());
 
 	}
 
@@ -86,10 +85,10 @@ public class ProveedorVendibleFilteringStrategy {
 	private void processIntegerGreaterOrEqualCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
 			List<String> rootAttributes, Integer value) {
 		if (!isValueNull.apply(value)) {
-			Function<String, Path<Integer>> getPath = root::get;
+			ddbbSourceObject = root;
 
 			for (String attribute : rootAttributes) {
-				this.setDdbbSourceObject(getPath.apply(attribute));
+				ddbbSourceObject = ddbbSourceObject.get(attribute);
 			}
 
 			this.fieldsStrategies.put(mapKey, cb.greaterThanOrEqualTo(ddbbSourceObject, value));
@@ -99,10 +98,10 @@ public class ProveedorVendibleFilteringStrategy {
 	private void processIntegerLowerOrEqualCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
 			List<String> rootAttributes, Integer value) {
 		if (!isValueNull.apply(value)) {
-			Function<String, Path<Integer>> getPath = root::get;
+			ddbbSourceObject = root;
 
 			for (String attribute : rootAttributes) {
-				this.setDdbbSourceObject(getPath.apply(attribute));
+				ddbbSourceObject = ddbbSourceObject.get(attribute);
 			}
 
 			this.fieldsStrategies.put(mapKey, cb.lessThanOrEqualTo(ddbbSourceObject, value));
@@ -112,23 +111,23 @@ public class ProveedorVendibleFilteringStrategy {
 	private void processBooleanCondition(String mapKey, Root<?> root, CriteriaBuilder cb, List<String> rootAttributes,
 			Boolean value) {
 		if (!isValueNull.apply(value)) {
-			Function<String, Path<Boolean>> getPath = root::get;
+			ddbbSourceObject = root;
 
 			for (String attribute : rootAttributes) {
-				this.setDdbbSourceObject(getPath.apply(attribute));
+				ddbbSourceObject = ddbbSourceObject.get(attribute);
 			}
 
 			this.fieldsStrategies.put(mapKey, cb.equal(ddbbSourceObject, value));
 		}
 	}
 
-	private void processStringEqualsCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
-			List<String> rootAttributes, String value) {
+	private void processPriceTypeEqualsCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
+			List<String> rootAttributes, PriceTypeInterface value) {
 		if (!isValueNull.apply(value)) {
-			Function<String, Path<String>> getPath = (key) -> root.get(key);
+			ddbbSourceObject = root;
 
 			for (String attribute : rootAttributes) {
-				this.setDdbbSourceObject(getPath.apply(attribute));
+				ddbbSourceObject = ddbbSourceObject.get(attribute);
 			}
 
 			this.fieldsStrategies.put(mapKey, cb.equal(ddbbSourceObject, value));

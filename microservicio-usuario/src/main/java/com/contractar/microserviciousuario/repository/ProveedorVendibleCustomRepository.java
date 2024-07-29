@@ -23,6 +23,8 @@ public class ProveedorVendibleCustomRepository extends PredicateBasedRepository<
 		
 		List<Predicate> predicates = byPredicateStrategies.getAllStrategies();
 		
+		predicates.add(criteriaBuilder.equal(root.get("vendible").get("id"), vendibleId));
+		
 		if (!predicates.isEmpty()) {
 			criteriaQuery.where(predicates.toArray(new Predicate[0]));
 		}

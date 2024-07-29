@@ -1,6 +1,7 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
+import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 
 public class ProveedorVendibleFilter {
 	private String proveedorName;
@@ -76,7 +77,7 @@ public class ProveedorVendibleFilter {
 		return priceType;
 	}
 
-	public void setPriceType(PriceTypeInterface priceType) {
+	public void setPriceType(PriceTypeValue priceType) {
 		this.priceType = priceType;
 	}
 
