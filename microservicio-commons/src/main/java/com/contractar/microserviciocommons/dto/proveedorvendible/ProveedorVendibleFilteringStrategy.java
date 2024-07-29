@@ -44,28 +44,29 @@ public class ProveedorVendibleFilteringStrategy {
 
 	private Function<Object, Boolean> isValueNull = (value) -> Optional.ofNullable(value).isEmpty();
 
-	public ProveedorVendibleFilteringStrategy(CriteriaBuilder cb, Root<?> root, ProveedorVendibleFilter filters) {
+	public ProveedorVendibleFilteringStrategy(CriteriaBuilder cb, Root<?> root, ProveedorVendibleFilter postsFilters) {
 
-		processStringLikeNotExactCondition(FIELD_PROVEEDOR_NAME, root, cb, List.of("proveedor", "name"),
-				filters.getProveedorName());
-		processStringLikeNotExactCondition(FIELD_PROVEEDOR_SURNAME, root, cb, List.of("proveedor", "surname"),
-				filters.getProveedorSurname());
-		processStringLikeNotExactCondition(FIELD_CATEGORY_NAME, root, cb, List.of("category", "name"),
-				filters.getCategoryName());
+		Optional.ofNullable(postsFilters).ifPresent(filters -> {
+			processStringLikeNotExactCondition(FIELD_PROVEEDOR_NAME, root, cb, List.of("proveedor", "name"),
+					filters.getProveedorName());
+			processStringLikeNotExactCondition(FIELD_PROVEEDOR_SURNAME, root, cb, List.of("proveedor", "surname"),
+					filters.getProveedorSurname());
+			processStringLikeNotExactCondition(FIELD_CATEGORY_NAME, root, cb, List.of("category", "name"),
+					filters.getCategoryName());
 
-		processIntegerGreaterOrEqualCondition(FIELD_MIN_PRICE, root, cb, List.of("precio"), filters.getMinPrice());
-		processIntegerLowerOrEqualCondition(FIELD_MAX_PRICE, root, cb, List.of("precio"), filters.getMaxPrice());
+			processIntegerGreaterOrEqualCondition(FIELD_MIN_PRICE, root, cb, List.of("precio"), filters.getMinPrice());
+			processIntegerLowerOrEqualCondition(FIELD_MAX_PRICE, root, cb, List.of("precio"), filters.getMaxPrice());
 
-		processIntegerGreaterOrEqualCondition(FIELD_MIN_STOCK, root, cb, List.of("stock"), filters.getMinStock());
-		processIntegerLowerOrEqualCondition(FIELD_MAX_STOCK, root, cb, List.of("stock"), filters.getMaxStock());
+			processIntegerGreaterOrEqualCondition(FIELD_MIN_STOCK, root, cb, List.of("stock"), filters.getMinStock());
+			processIntegerLowerOrEqualCondition(FIELD_MAX_STOCK, root, cb, List.of("stock"), filters.getMaxStock());
 
-		processBooleanCondition(FIELD_OFFERS_DELIVERY, root, cb, List.of(FIELD_OFFERS_DELIVERY),
-				filters.isOffersDelivery());
-		processBooleanCondition(FIELD_OFFERS_CUSTOM_ADDRESS, root, cb, List.of(FIELD_OFFERS_CUSTOM_ADDRESS),
-				filters.isOffersInCustomAddress());
+			processBooleanCondition(FIELD_OFFERS_DELIVERY, root, cb, List.of(FIELD_OFFERS_DELIVERY),
+					filters.isOffersDelivery());
+			processBooleanCondition(FIELD_OFFERS_CUSTOM_ADDRESS, root, cb, List.of(FIELD_OFFERS_CUSTOM_ADDRESS),
+					filters.isOffersInCustomAddress());
 
-		processPriceTypeEqualsCondition(FIELD_PRICE_TYPE, root, cb, List.of("tipoPrecio"), filters.getPriceType());
-
+			processPriceTypeEqualsCondition(FIELD_PRICE_TYPE, root, cb, List.of("tipoPrecio"), filters.getPriceType());
+		});
 	}
 
 	private void processStringLikeNotExactCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
