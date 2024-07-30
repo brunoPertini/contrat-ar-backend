@@ -11,7 +11,6 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +39,7 @@ import com.contractar.microserviciocommons.helpers.DistanceCalculator;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
+import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 import com.contractar.microserviciousuario.filters.FilterChainCreator;
@@ -57,7 +57,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public class ProveedorVendibleService {
 	@Autowired
 	private ProveedorVendibleRepository repository;
-	
+
 	@Autowired
 	private ProveedorVendibleCustomRepository customRepository;
 
@@ -66,7 +66,7 @@ public class ProveedorVendibleService {
 
 	@Autowired
 	private SecurityHelper securityHelper;
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -102,7 +102,8 @@ public class ProveedorVendibleService {
 
 	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData)
 			throws VendibleNotFoundException, VendibleUpdateException {
-		if (newData.getImagenUrl() != null && !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
+		if (newData.getImagenUrl() != null
+				&& !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
 		}
 
@@ -182,9 +183,8 @@ public class ProveedorVendibleService {
 
 		Long clienteId = getClientIdResponse.getBody();
 
-		String getUserFieldUrl = SERVICIO_USUARIO_URL
-				+ (UsersControllerUrls.GET_USUARIO_FIELD.replace("{userId}", clienteId.toString())
-						.replace("{fieldName}", "location"));
+		String getUserFieldUrl = SERVICIO_USUARIO_URL + (UsersControllerUrls.GET_USUARIO_FIELD
+				.replace("{userId}", clienteId.toString()).replace("{fieldName}", "location"));
 
 		Object userLocationObj = httpClient.getForObject(getUserFieldUrl, Object.class);
 
@@ -196,12 +196,12 @@ public class ProveedorVendibleService {
 		List<ProveedorVendible> results = repository.getProveedoreVendiblesInfoForVendible(vendibleId);
 
 		boolean shouldSort = results.size() >= 2;
-		
+
 		boolean shouldSortByPrice = minPrice != null || maxPrice != null;
 
 		boolean shouldSortByDistance = minDistance != null || maxDistance != null;
 
-		ProveedorVendibleComparator comparator = !shouldSort ? null 
+		ProveedorVendibleComparator comparator = !shouldSort ? null
 				: new ProveedorVendibleComparator(shouldSortByPrice, shouldSortByDistance);
 
 		VendibleProveedoresDTO response = !shouldSort ? new VendibleProveedoresDTO()
@@ -210,12 +210,11 @@ public class ProveedorVendibleService {
 		List<Double> toSortDistances = new ArrayList<>();
 
 		List<Integer> toSortPrices = new ArrayList<>();
-		
+
 		Point userLocation = objectMapper.convertValue(userLocationObj, Point.class);
 
 		results.forEach(proveedorVendible -> {
-			double distance = DistanceCalculator.calculateDistance(userLocation,
-					proveedorVendible.getLocation());
+			double distance = DistanceCalculator.calculateDistance(userLocation, proveedorVendible.getLocation());
 
 			toSortDistances.add(distance);
 			toSortPrices.add(proveedorVendible.getPrecio());
@@ -233,9 +232,9 @@ public class ProveedorVendibleService {
 								proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 								proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
 								proveedorVendible.getProveedor().getId(), distance));
-				
-				 ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
-				 toAddProveedor.setLocation(proveedorVendible.getLocation());
+
+				ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
+				toAddProveedor.setLocation(proveedorVendible.getLocation());
 
 				response.getProveedores().add(toAddProveedor);
 			}
@@ -246,25 +245,32 @@ public class ProveedorVendibleService {
 		return response;
 
 	}
-	
-	public Page<ProveedorVendibleAdminDTO> getPostsOfVendible(Long vendibleId, int page,  int size, @Nullable ProveedorVendibleFilter filters) {
-		
+
+	public PostsResponseDTO getPostsOfVendible(Long vendibleId, int page, int size,
+			@Nullable ProveedorVendibleFilter filters) {
+
 		// TODO: implementar caché acá
 		List<ProveedorVendible> allResults = customRepository.get(vendibleId, filters);
 
 		Pageable pageRequest = PageRequest.of(page, size);
 
 		int start = (int) pageRequest.getOffset();
-		
+
 		int end = Math.min((start + pageRequest.getPageSize()), allResults.size());
+
+		List<ProveedorVendible> subList = allResults.subList(start, end);
+
+		List<ProveedorVendibleAdminDTO> pageContent = subList.stream().map(ProveedorVendibleAdminDTO::new)
+				.collect(Collectors.toList());
+
+		PageImpl pageImpl = new PageImpl<>(pageContent, pageRequest, allResults.size());
+
+		PostsResponseDTO response = new PostsResponseDTO(pageImpl);
+
+		response.setMinPrice(subList.get(0).getPrecio());
+		response.setMaxPrice(subList.get(subList.size() - 1).getPrecio());
 		
-		 List<ProveedorVendibleAdminDTO> pageContent = 
-				 allResults.subList(start, end)
-				 .stream()
-				 .map(ProveedorVendibleAdminDTO::new)
-				 .collect(Collectors.toList());
-		
-		return new PageImpl<>(pageContent, pageRequest, allResults.size());	
-		
+		return response;
+
 	}
 }

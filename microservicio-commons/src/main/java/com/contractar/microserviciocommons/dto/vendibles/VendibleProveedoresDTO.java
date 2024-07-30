@@ -16,16 +16,9 @@ import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
  * min and max distances found.
  *
  */
-public class VendibleProveedoresDTO {
+public class VendibleProveedoresDTO extends SliderDTO{
 	private Set<AbstractProveedorVendibleDTOAccesor> vendibles;
 	private Set<ProveedorDTO> proveedores;
-
-	private double minDistance;
-	private double maxDistance;
-	private int minPrice;
-	private int maxPrice;
-
-
 
 	public VendibleProveedoresDTO(Set<AbstractProveedorVendibleDTOAccesor> vendibles, Set<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
@@ -58,34 +51,5 @@ public class VendibleProveedoresDTO {
 		this.proveedores = proveedores;
 	}
 
-	public double getMinDistance() {
-		return minDistance;
-	}
 
-	public void setMinDistance(double minDistance) {
-		this.minDistance = minDistance;
-	}
-
-	public double getMaxDistance() {
-		return maxDistance;
-	}
-
-	public void setMaxDistance(double maxDistance) {
-		this.maxDistance = maxDistance;
-	}
-	public int getMinPrice() {
-		return minPrice;
-	}
-
-	public void setMinPrice(int minPrice) {
-		this.minPrice = minPrice;
-	}
-
-	public int getMaxPrice() {
-		return maxPrice;
-	}
-
-	public void setMaxPrice(int maxPrice) {
-		this.maxPrice = maxPrice;
-	}
 }

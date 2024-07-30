@@ -3,7 +3,6 @@ package com.contractar.microserviciousuario.controllers;
 import java.lang.reflect.InvocationTargetException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +22,7 @@ import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesRespo
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
-import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
+import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.services.ProveedorService;
@@ -88,7 +87,7 @@ public class ProveedorControler {
 	}
 	
 	@PostMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS_V2)
-	public ResponseEntity<Page<ProveedorVendibleAdminDTO>> getPostsOfVendible(@PathVariable("vendibleId") Long vendibleId,
+	public ResponseEntity<PostsResponseDTO> getPostsOfVendible(@PathVariable("vendibleId") Long vendibleId,
 			@RequestParam int page,
 			@RequestParam int pageSize,
 			@RequestBody (required = false)ProveedorVendibleFilter filters) {

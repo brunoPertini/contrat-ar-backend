@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -27,6 +28,14 @@ public class ProveedorVendibleCustomRepository extends PredicateBasedRepository<
 		
 		if (!predicates.isEmpty()) {
 			criteriaQuery.where(predicates.toArray(new Predicate[0]));
+		}
+		
+		boolean shouldSortByPrice = Optional.ofNullable(filters).map(f -> Optional.ofNullable(f.getMinPrice()).isPresent() 
+				|| Optional.ofNullable(f.getMaxPrice()).isPresent())
+				.orElse(false);
+		
+		if (shouldSortByPrice) {
+			this.criteriaQuery.orderBy(criteriaBuilder.asc(root.get("precio")));
 		}
 
 		return entityManager.createQuery(criteriaQuery).getResultList();
