@@ -267,9 +267,11 @@ public class ProveedorVendibleService {
 
 		PostsResponseDTO response = new PostsResponseDTO(pageImpl);
 
-		response.setMinPrice(subList.get(0).getPrecio());
-		response.setMaxPrice(subList.get(subList.size() - 1).getPrecio());
-		
+		if (subList.size() >= 2) {
+			response.setMinPrice(subList.get(0).getPrecio());
+			response.setMaxPrice(subList.get(subList.size() - 1).getPrecio());
+		}
+
 		return response;
 
 	}

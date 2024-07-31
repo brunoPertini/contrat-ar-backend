@@ -27,8 +27,8 @@ public class ProveedorVendibleFilter {
 	public ProveedorVendibleFilter () {}
 	
 
-	public ProveedorVendibleFilter(String proveedorName, String proveedorSurname, int minPrice, int maxPrice, PriceTypeInterface priceType,
-			boolean offersDelivery, boolean offersInCustomAddress, String categoryName, int minStock, int maxStock) {
+	public ProveedorVendibleFilter(String proveedorName, String proveedorSurname, Integer minPrice, Integer maxPrice, PriceTypeInterface priceType,
+			Boolean offersDelivery, Boolean offersInCustomAddress, String categoryName, Integer minStock, Integer maxStock) {
 		this.proveedorName = proveedorName;
 		this.proveedorSurname = proveedorSurname;
 		this.minPrice = minPrice;
@@ -61,7 +61,7 @@ public class ProveedorVendibleFilter {
 		return minPrice;
 	}
 
-	public void setMinPrice(int minPrice) {
+	public void setMinPrice(Integer minPrice) {
 		this.minPrice = minPrice;
 	}
 
@@ -69,7 +69,7 @@ public class ProveedorVendibleFilter {
 		return maxPrice;
 	}
 
-	public void setMaxPrice(int maxPrice) {
+	public void setMaxPrice(Integer maxPrice) {
 		this.maxPrice = maxPrice;
 	}
 
@@ -85,7 +85,7 @@ public class ProveedorVendibleFilter {
 		return offersDelivery;
 	}
 
-	public void setOffersDelivery(boolean offersDelivery) {
+	public void setOffersDelivery(Boolean offersDelivery) {
 		this.offersDelivery = offersDelivery;
 	}
 
@@ -93,7 +93,7 @@ public class ProveedorVendibleFilter {
 		return offersInCustomAddress;
 	}
 
-	public void setOffersInCustomAddress(boolean offersInCustomAddress) {
+	public void setOffersInCustomAddress(Boolean offersInCustomAddress) {
 		this.offersInCustomAddress = offersInCustomAddress;
 	}
 
@@ -109,7 +109,7 @@ public class ProveedorVendibleFilter {
 		return minStock;
 	}
 
-	public void setMinStock(int minStock) {
+	public void setMinStock(Integer minStock) {
 		this.minStock = minStock;
 	}
 
@@ -117,7 +117,7 @@ public class ProveedorVendibleFilter {
 		return maxStock;
 	}
 
-	public void setMaxStock(int maxStock) {
+	public void setMaxStock(Integer maxStock) {
 		this.maxStock = maxStock;
 	}
 	

@@ -30,13 +30,7 @@ public class ProveedorVendibleCustomRepository extends PredicateBasedRepository<
 			criteriaQuery.where(predicates.toArray(new Predicate[0]));
 		}
 		
-		boolean shouldSortByPrice = Optional.ofNullable(filters).map(f -> Optional.ofNullable(f.getMinPrice()).isPresent() 
-				|| Optional.ofNullable(f.getMaxPrice()).isPresent())
-				.orElse(false);
-		
-		if (shouldSortByPrice) {
-			this.criteriaQuery.orderBy(criteriaBuilder.asc(root.get("precio")));
-		}
+		this.criteriaQuery.orderBy(criteriaBuilder.asc(root.get("precio")));
 
 		return entityManager.createQuery(criteriaQuery).getResultList();
 	}

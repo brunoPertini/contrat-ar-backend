@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.util.StringUtils;
+
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -71,7 +73,7 @@ public class ProveedorVendibleFilteringStrategy {
 
 	private void processStringLikeNotExactCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
 			List<String> rootAttributes, String fieldValue) {
-		if (!isValueNull.apply(fieldValue)) {
+		if (!isValueNull.apply(fieldValue) && StringUtils.hasLength(fieldValue)) {
 			ddbbSourceObject = root;
 
 			for (String attribute : rootAttributes) {
