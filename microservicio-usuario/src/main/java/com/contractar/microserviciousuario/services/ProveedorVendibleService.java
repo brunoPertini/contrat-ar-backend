@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Point;
@@ -78,6 +79,10 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
+	
+	private static int SLIDER_MIN_PRICE;
+	
+	private static int SLIDER_MAX_PRICE;
 
 	public ProveedorVendible bindVendibleToProveedor(VendibleAccesor vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
@@ -251,6 +256,11 @@ public class ProveedorVendibleService {
 
 		// TODO: implementar caché acá
 		List<ProveedorVendible> allResults = customRepository.get(vendibleId, filters);
+		
+		if (Optional.ofNullable(filters).isEmpty() && allResults.size() >= 2) {
+			SLIDER_MIN_PRICE = allResults.get(0).getPrecio();
+			SLIDER_MAX_PRICE = allResults.get(allResults.size()-1).getPrecio();
+		}
 
 		Pageable pageRequest = PageRequest.of(page, size);
 
@@ -266,11 +276,9 @@ public class ProveedorVendibleService {
 		PageImpl pageImpl = new PageImpl<>(pageContent, pageRequest, allResults.size());
 
 		PostsResponseDTO response = new PostsResponseDTO(pageImpl);
-
-		if (subList.size() >= 2) {
-			response.setMinPrice(subList.get(0).getPrecio());
-			response.setMaxPrice(subList.get(subList.size() - 1).getPrecio());
-		}
+		
+		response.setMinPrice(SLIDER_MIN_PRICE);
+		response.setMaxPrice(SLIDER_MAX_PRICE);
 
 		return response;
 

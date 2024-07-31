@@ -12,25 +12,31 @@ import com.contractar.microserviciousuario.models.ProveedorVendible;
 import jakarta.persistence.criteria.Predicate;
 
 @Repository
-public class ProveedorVendibleCustomRepository extends PredicateBasedRepository<ProveedorVendible, Long, ProveedorVendibleFilter>{
+public class ProveedorVendibleCustomRepository
+		extends PredicateBasedRepository<ProveedorVendible, Long, ProveedorVendibleFilter> {
 
 	ProveedorVendibleCustomRepository() {
 		super(ProveedorVendible.class);
 	}
 
 	@Override
-	public List<ProveedorVendible> get(Long vendibleId, ProveedorVendibleFilter filters) {		
-		ProveedorVendibleFilteringStrategy byPredicateStrategies = new ProveedorVendibleFilteringStrategy(criteriaBuilder, root, filters);
-		
+	public List<ProveedorVendible> get(Long vendibleId, ProveedorVendibleFilter filters) {
+		ProveedorVendibleFilteringStrategy byPredicateStrategies = new ProveedorVendibleFilteringStrategy(
+				criteriaBuilder, root, filters);
+
 		List<Predicate> predicates = byPredicateStrategies.getAllStrategies();
-		
+
 		predicates.add(criteriaBuilder.equal(root.get("vendible").get("id"), vendibleId));
-		
+
 		if (!predicates.isEmpty()) {
 			criteriaQuery.where(predicates.toArray(new Predicate[0]));
 		}
-		
-		this.criteriaQuery.orderBy(criteriaBuilder.asc(root.get("precio")));
+
+		Optional.ofNullable(filters).map(ProveedorVendibleFilter::getMinStock).ifPresentOrElse(minStock -> {
+			criteriaQuery.orderBy(criteriaBuilder.asc(root.get("precio")), criteriaBuilder.asc(root.get("stock")));
+		}, () -> {
+			criteriaQuery.orderBy(criteriaBuilder.asc(root.get("precio")));
+		});
 
 		return entityManager.createQuery(criteriaQuery).getResultList();
 	}
