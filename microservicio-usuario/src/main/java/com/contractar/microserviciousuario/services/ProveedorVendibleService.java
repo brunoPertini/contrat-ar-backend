@@ -257,10 +257,6 @@ public class ProveedorVendibleService {
 		// TODO: implementar caché acá
 		List<ProveedorVendible> allResults = customRepository.get(vendibleId, filters);
 		
-		if (Optional.ofNullable(filters).isEmpty() && allResults.size() >= 2) {
-			SLIDER_MIN_PRICE = allResults.get(0).getPrecio();
-			SLIDER_MAX_PRICE = allResults.get(allResults.size()-1).getPrecio();
-		}
 
 		Pageable pageRequest = PageRequest.of(page, size);
 
@@ -269,6 +265,11 @@ public class ProveedorVendibleService {
 		int end = Math.min((start + pageRequest.getPageSize()), allResults.size());
 
 		List<ProveedorVendible> subList = allResults.subList(start, end);
+		
+		if (subList.size() >= 2) {
+			SLIDER_MIN_PRICE = subList.get(0).getPrecio();
+			SLIDER_MAX_PRICE = subList.get(subList.size()-1).getPrecio();
+		}
 
 		List<ProveedorVendibleAdminDTO> pageContent = subList.stream().map(ProveedorVendibleAdminDTO::new)
 				.collect(Collectors.toList());
