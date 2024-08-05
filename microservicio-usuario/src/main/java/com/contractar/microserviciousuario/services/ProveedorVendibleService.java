@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Point;
@@ -266,10 +265,14 @@ public class ProveedorVendibleService {
 
 		List<ProveedorVendible> subList = allResults.subList(start, end);
 		
-		if (subList.size() >= 2) {
+		if (!subList.isEmpty()) {
 			SLIDER_MIN_PRICE = subList.get(0).getPrecio();
 			SLIDER_MAX_PRICE = subList.get(subList.size()-1).getPrecio();
+		} else {
+			SLIDER_MIN_PRICE = 0;
+			SLIDER_MAX_PRICE = 0;
 		}
+		
 
 		List<ProveedorVendibleAdminDTO> pageContent = subList.stream().map(ProveedorVendibleAdminDTO::new)
 				.collect(Collectors.toList());
