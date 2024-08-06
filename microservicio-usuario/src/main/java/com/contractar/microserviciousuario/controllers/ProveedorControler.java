@@ -7,18 +7,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.services.ProveedorService;
@@ -61,7 +65,7 @@ public class ProveedorControler {
 				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId), HttpStatus.OK);
 	}
 
-	@GetMapping("/vendible/{vendibleId}/proveedores")
+	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS)
 	public ResponseEntity<VendibleProveedoresDTO> getProveedoresOfVendible(@PathVariable("vendibleId") Long vendibleId,
 			@RequestParam(name = "filter_distance_min", required = false) Double minDistance,
 			@RequestParam(name = "filter_distance_max", required = false) Double maxDistance,
@@ -80,5 +84,13 @@ public class ProveedorControler {
 		Proveedor updated = usuarioService.updateProveedor(proveedorId, body);
 		
 		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
+	}
+	
+	@PostMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS_V2)
+	public ResponseEntity<PostsResponseDTO> getPostsOfVendible(@PathVariable("vendibleId") Long vendibleId,
+			@RequestParam int page,
+			@RequestParam int pageSize,
+			@RequestBody (required = false)ProveedorVendibleFilter filters) {
+		return new ResponseEntity<>(proveedorVendibleService.getPostsOfVendible(vendibleId, page, pageSize, filters), HttpStatus.OK);
 	}
 }
