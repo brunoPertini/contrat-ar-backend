@@ -16,6 +16,9 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+/**
+ * Class that filters posts in DDBB by using CriteriaBuilder predicates for each field.
+ */
 public class ProveedorVendibleFilteringStrategy {
 	private Map<String, Predicate> fieldsStrategies = new HashMap<>();
 

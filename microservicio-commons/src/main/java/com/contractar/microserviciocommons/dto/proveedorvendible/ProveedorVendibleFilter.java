@@ -3,6 +3,9 @@ package com.contractar.microserviciocommons.dto.proveedorvendible;
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 
+/**
+ * Filters that can be used to search posts from frontend. They may be used by any user role. 
+ */
 public class ProveedorVendibleFilter {
 	private String proveedorName;
 	

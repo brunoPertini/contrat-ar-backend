@@ -1,5 +1,9 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
+/**
+ * The sliders at the frontend need this info to know which the boundaries are.
+ * Used to filter proveedores posts.
+ */
 public class SliderDTO {
 	private Double minDistance;
 	private Double maxDistance;

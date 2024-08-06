@@ -32,6 +32,7 @@ public class ProveedorVendibleCustomRepository
 			criteriaQuery.where(predicates.toArray(new Predicate[0]));
 		}
 
+		// If stock filter is applied, ordering by price and stock
 		Optional.ofNullable(filters).map(ProveedorVendibleFilter::getMinStock).ifPresentOrElse(minStock -> {
 			criteriaQuery.orderBy(criteriaBuilder.asc(root.get("precio")), criteriaBuilder.asc(root.get("stock")));
 		}, () -> {
