@@ -9,6 +9,7 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
+import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.serialization.ProveedorDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -38,8 +39,9 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 
 
 	@OneToOne
-	@JoinColumn(name = "plan")
-	private Plan plan;
+	@JoinColumn(name = "suscripcion")
+	@NotNull
+	private Suscripcion suscripcion;
 
 	@Enumerated(EnumType.STRING)
 	@NotNull
@@ -64,11 +66,11 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	}
 
 	public Proveedor(String name, String surname, String email, boolean isActive, Point location, String dni,
-			String password, Plan plan, Set<ProveedorVendible> vendibles, LocalDate birthDate,
+			String password, Suscripcion suscripcion, Set<ProveedorVendible> vendibles, LocalDate birthDate,
 			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType, String fotoPerfilUrl, String phone) {
 		super(name, surname, email, isActive, location, birthDate, password, authorities, role, phone);
 		this.dni = dni;
-		this.plan = plan;
+		this.suscripcion = suscripcion;
 		this.proveedorType = proveedorType;
 		this.fotoPerfilUrl = fotoPerfilUrl;
 		if (vendibles != null) {
@@ -86,12 +88,12 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 		this.dni = dni;
 	}
 
-	public Plan getPlan() {
-		return plan;
+	public SuscripcionAccesor getSuscripcion() {
+		return suscripcion;
 	}
 
-	public void setPlan(Plan plan) {
-		this.plan = plan;
+	public void setPlan(Suscripcion suscripcion) {
+		this.suscripcion = suscripcion;
 	}
 
 	public ProveedorType getProveedorType() {

@@ -7,8 +7,8 @@ import java.util.Optional;
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
-import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microservicioadapter.enums.Proveedor;
+import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -20,7 +20,7 @@ public class ProveedorDTO extends UsuarioDTO {
 	private String dni;
 
 	@NotNull
-	private PlanType plan;
+	private SuscripcionDTO suscripcion;
 
 	@JsonIgnore
 	@NotNull
@@ -32,10 +32,10 @@ public class ProveedorDTO extends UsuarioDTO {
 	}
 
 	public ProveedorDTO(Long id, String name, String surname, String email, boolean isActive, LocalDate birthDate,
-			Point location, String dni, PlanType plan, ProveedorType proveedorType, String phone, String fotoPerfilUrl) {
+			Point location, String dni, SuscripcionDTO suscripcion, ProveedorType proveedorType, String phone, String fotoPerfilUrl) {
 		super(id, name, surname, email, isActive, birthDate, location, phone);
 		this.dni = dni;
-		this.plan = plan;
+		this.suscripcion = suscripcion;
 		this.proveedorType = proveedorType;
 		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
@@ -43,7 +43,7 @@ public class ProveedorDTO extends UsuarioDTO {
 	public ProveedorDTO(ProveedorAccessor proveedor) {
 		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
-		this.plan = proveedor.getPlan().getType();
+		this.suscripcion = (@NotNull SuscripcionDTO) proveedor.getSuscripcion();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
@@ -58,12 +58,12 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.dni = dni;
 	}
 
-	public PlanType getPlan() {
-		return plan;
+	public SuscripcionDTO getSuscripcion() {
+		return suscripcion;
 	}
 
-	public void setPlan(PlanType plan) {
-		this.plan = plan;
+	public void setSuscripcion(SuscripcionDTO suscripcion) {
+		this.suscripcion = suscripcion;
 	}
 
 	public Proveedor getProveedorType() {
