@@ -33,11 +33,13 @@ public class ProveedorDeserializer extends UserDeserializer {
 		String getPlanUrl = microservicioUsuarioUrl
 				+ ProveedorControllerUrls.GET_PLAN_BY_ID.replace("{planId}", planId);
 
-		ResponseEntity<Plan> getPlanResponse = restTemplate.getForEntity(getPlanUrl, Plan.class);
+		// TODO: fixear esto
+		// ResponseEntity<Plan> getPlanResponse = restTemplate.getForEntity(getPlanUrl, Plan.class);
 
-		if (getPlanResponse.getStatusCode() != HttpStatusCode.valueOf(200)) {
-			throw new IOException(CantCreateException.message);
-		}
+		/*
+		 * if (getPlanResponse.getStatusCode() != HttpStatusCode.valueOf(200)) { throw
+		 * new IOException(CantCreateException.message); }
+		 */
 
 		List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
@@ -47,12 +49,12 @@ public class ProveedorDeserializer extends UserDeserializer {
 		String fotoPerfilUrl = node.get("fotoPerfilUrl").asText();
 
 		ProveedorType proveedorType = ProveedorType.valueOf(node.get("proveedorType").asText());
-		Plan plan = getPlanResponse.getBody();
+		// Plan plan = getPlanResponse.getBody();
 		Role chosenRole = proveedorType.equals(ProveedorType.PRODUCTOS)
 				? new Role(RolesValues.PROVEEDOR_PRODUCTOS.toString())
 				: new Role(RolesValues.PROVEEDOR_SERVICIOS.toString());
 
-		return new Proveedor(name, surname, email, false, location, dni, password, plan, null, birthDate,
+		return new Proveedor(name, surname, email, false, location, dni, password, null, null, birthDate,
 				grantedAuthorities, chosenRole, proveedorType, fotoPerfilUrl, phone);
 
 	}
