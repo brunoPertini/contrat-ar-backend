@@ -92,7 +92,7 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 		return suscripcion;
 	}
 
-	public void setPlan(Suscripcion suscripcion) {
+	public void setSuscripcion(Suscripcion suscripcion) {
 		this.suscripcion = suscripcion;
 	}
 

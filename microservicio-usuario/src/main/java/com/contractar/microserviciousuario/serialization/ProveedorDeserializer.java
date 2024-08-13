@@ -33,6 +33,7 @@ public class ProveedorDeserializer extends UserDeserializer {
 		String getPlanUrl = microservicioUsuarioUrl
 				+ ProveedorControllerUrls.GET_PLAN_BY_ID.replace("{planId}", planId);
 
+		// TODO: fixear esto
 		// ResponseEntity<Plan> getPlanResponse = restTemplate.getForEntity(getPlanUrl, Plan.class);
 
 		/*

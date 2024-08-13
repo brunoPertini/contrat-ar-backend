@@ -46,6 +46,7 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 	private Set<Payment> payments;
 
 	public Suscripcion() {
+		this.payments = new LinkedHashSet<>();
 	}
 
 	public Suscripcion(boolean isActive, Usuario usuario, Plan plan, LocalDate createdDate) {

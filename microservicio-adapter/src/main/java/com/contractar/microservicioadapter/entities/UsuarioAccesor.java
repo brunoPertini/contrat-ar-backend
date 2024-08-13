@@ -1,13 +1,12 @@
 package com.contractar.microservicioadapter.entities;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.enums.RoleAccesor;
 
-public interface UsuarioAccesor extends Serializable {
+public interface UsuarioAccesor {
 	public Long getId();
 
 	public String getName();
