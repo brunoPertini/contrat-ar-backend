@@ -18,6 +18,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
+/**
+ * A subscription is a record that proves a provider can use a certain plan. It is considered active
+ * while there are successful payments from the createdDate until today. 
+ */
 @Entity
 public class Suscripcion implements Serializable, SuscripcionAccesor {
 	private static final long serialVersionUID = -4411764433424483924L;

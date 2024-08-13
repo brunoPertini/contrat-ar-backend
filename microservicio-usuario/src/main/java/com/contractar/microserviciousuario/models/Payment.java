@@ -12,6 +12,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 
+
+/**
+ * The payment is registered with its state (PENDING, SUCCESS OR FAILED), the period of the Subscription
+ * it belongs to, and the date it was made.
+ */
 @Entity
 public class Payment implements Serializable {
 	private static final long serialVersionUID = -5539133673400232413L;
@@ -20,8 +25,10 @@ public class Payment implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	private String state;
+	private PaymentState state;
 	
+	private LocalDate paymentPeriod;
+
 	private LocalDate date;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -31,7 +38,7 @@ public class Payment implements Serializable {
 	
 	public Payment() {}
 	
-	public Payment(String state, LocalDate date, Suscripcion suscripcion) {
+	public Payment(PaymentState state, LocalDate date, Suscripcion suscripcion) {
 		this.state = state;
 		this.date = date;
 		this.suscripcion = suscripcion;
@@ -45,11 +52,11 @@ public class Payment implements Serializable {
 		this.id = id;
 	}
 
-	public String getState() {
+	public PaymentState getState() {
 		return state;
 	}
 
-	public void setState(String state) {
+	public void setState(PaymentState state) {
 		this.state = state;
 	}
 
@@ -68,8 +75,22 @@ public class Payment implements Serializable {
 	public void setSuscripcion(Suscripcion suscripcion) {
 		this.suscripcion = suscripcion;
 	}
+	
+	public LocalDate getPaymentPeriod() {
+		return paymentPeriod;
+	}
+
+	public void setPaymentPeriod(LocalDate paymentPeriod) {
+		this.paymentPeriod = paymentPeriod;
+	}
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+	
+	private static enum PaymentState {
+		SUCCESS,
+		FAILED,
+		PENDING,
 	}
 }
