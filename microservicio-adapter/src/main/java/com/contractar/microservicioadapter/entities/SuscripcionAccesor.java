@@ -11,9 +11,9 @@ public interface SuscripcionAccesor {
 
 	public void setActive(boolean value);
 
-	public UsuarioAccesor getUsuario();
+	public ProveedorAccessor getUsuario();
 
-	public void setUsuario(UsuarioAccesor usuario);
+	public void setUsuario(ProveedorAccessor usuario);
 
 	public PlanAccesor getPlan();
 

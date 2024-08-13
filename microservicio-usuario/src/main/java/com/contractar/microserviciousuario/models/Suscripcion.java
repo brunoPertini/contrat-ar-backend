@@ -5,9 +5,10 @@ import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
-import com.contractar.microservicioadapter.entities.UsuarioAccesor;
 import com.contractar.microservicioadapter.enums.PlanAccesor;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,14 +33,15 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 
 	private boolean isActive;
 
-	@OneToOne
+	@OneToOne(mappedBy = "suscripcion")
 	@JoinColumn(name = "usuario")
-	private Usuario usuario;
+	private Proveedor usuario;
 
 	@OneToOne
 	@JoinColumn(name = "plan")
 	private Plan plan;
 
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private LocalDate createdDate;
 
 	@OneToMany(mappedBy = "suscripcion", fetch = FetchType.LAZY, orphanRemoval = true)
@@ -49,7 +51,7 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 		this.payments = new LinkedHashSet<>();
 	}
 
-	public Suscripcion(boolean isActive, Usuario usuario, Plan plan, LocalDate createdDate) {
+	public Suscripcion(boolean isActive, Proveedor usuario, Plan plan, LocalDate createdDate) {
 		this.isActive = isActive;
 		this.usuario = usuario;
 		this.plan = plan;
@@ -68,13 +70,13 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 	}
 
 	@Override
-	public UsuarioAccesor getUsuario() {
+	public ProveedorAccessor getUsuario() {
 		return usuario;
 	}
 
 	@Override
-	public void setUsuario(UsuarioAccesor usuario) {
-		this.usuario = (Usuario) usuario;
+	public void setUsuario(ProveedorAccessor usuario) {
+		this.usuario = (Proveedor) usuario;
 	}
 
 	@Override
