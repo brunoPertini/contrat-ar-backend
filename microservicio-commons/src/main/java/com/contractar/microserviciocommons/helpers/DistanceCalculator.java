@@ -33,4 +33,9 @@ public class DistanceCalculator {
         
         return Double.valueOf(numberString.replace(',', '.'));
     }
+    
+    public static boolean isPointInsideRadius(Point center, double radius, Point checkingPoint) {
+    	double distance =  calculateDistance(center, checkingPoint);
+    	return distance <= radius;
+    }
 }

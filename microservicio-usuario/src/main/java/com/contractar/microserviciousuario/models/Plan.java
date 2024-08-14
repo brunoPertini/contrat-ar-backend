@@ -17,6 +17,8 @@ import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Plan implements Serializable, PlanAccesor {
+	
+	public static final double FREE_PLAN_RADIUS = 2.5;
 
 	private static final long serialVersionUID = -7609189133216465308L;
 
