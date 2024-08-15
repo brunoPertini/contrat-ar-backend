@@ -1,41 +1,31 @@
 package com.contractar.microserviciocommons.helpers;
 
-import java.text.DecimalFormat;
-
 import org.locationtech.jts.geom.Point;
 
 public class DistanceCalculator {
     // Earth's radius
-    static final double RADIUS = 6371000;
+    static final double RADIUS = 6371;
+    
+    public static double haversine(double val) {
+        return Math.pow(Math.sin(val / 2), 2);
+    }
 
-    /**
-     * 
-     * @param point1
-     * @param point2
-     * @return The distance between point1 and point2 in kilometers, using Haversine's formula
-     */
-    public static double calculateDistance(Point point1, Point point2) {
-        double lat1 = Math.toRadians(point1.getY());
-        double lon1 = Math.toRadians(point1.getX());
-        double lat2 = Math.toRadians(point2.getY());
-        double lon2 = Math.toRadians(point2.getX());
+    public static double calculateDistance(double startLat, double startLong, double endLat, double endLong) {
 
-        double dLat = lat2 - lat1;
-        double dLon = lon2 - lon1;
+        double dLat = Math.toRadians((endLat - startLat));
+        double dLong = Math.toRadians((endLong - startLong));
 
-        double a = Math.pow(Math.sin(dLat / 2), 2) +
-                   Math.cos(lat1) * Math.cos(lat2) *
-                   Math.pow(Math.sin(dLon / 2), 2);
+        startLat = Math.toRadians(startLat);
+        endLat = Math.toRadians(endLat);
+
+        double a = haversine(dLat) + Math.cos(startLat) * Math.cos(endLat) * haversine(dLong);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        
-        DecimalFormat format = new DecimalFormat("#.00");
-        String numberString = format.format((RADIUS * c)/1000);
-        
-        return Double.valueOf(numberString.replace(',', '.'));
+
+        return RADIUS * c;
     }
     
     public static boolean isPointInsideRadius(Point center, double radius, Point checkingPoint) {
-    	double distance =  calculateDistance(center, checkingPoint);
+    	double distance =  calculateDistance(center.getX(), center.getY(), checkingPoint.getX(), checkingPoint.getY());
     	return distance <= radius;
     }
 }

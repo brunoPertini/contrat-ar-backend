@@ -216,10 +216,4 @@ public class UsuarioController {
 			@RequestParam("longitude") double longitude) {
 		return new ResponseEntity<>(this.usuarioService.translateCoordinates(latitude, longitude), HttpStatus.OK);
 	}
-	
-	@PostMapping("/geo/radius/check")
-	public ResponseEntity<?> checkPointInPointRadius(@RequestBody PointInRadiusBody body) {
-		boolean result = DistanceCalculator.calculateDistance(body.getSource(), body.getToComparePoint()) <= body.getRadiusKm();
-		return new ResponseEntity<>(result, HttpStatus.OK);
-	}
 }

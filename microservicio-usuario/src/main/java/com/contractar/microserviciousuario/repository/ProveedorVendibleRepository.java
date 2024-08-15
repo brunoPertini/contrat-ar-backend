@@ -23,17 +23,17 @@ final class Queries {
 	            + "JOIN pv.proveedor "
 	            + "WHERE pv.id.vendibleId=:vendibleId";
 	 
-	 static final String GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_PAYED_SUBSCRIPTION = "SELECT pv from ProveedorVendible  pv"
-	 		+ "JOIN pv.proveedor p"
-	 		+ "JOIN p.suscripcion s"
-	 		+ "JOIN s.plan plan"
-	 		+ "WHERE pv.vendible_id=:vendibleId AND s.isActive plan.type LIKE PAID";
+	 static final String GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_PAYED_SUBSCRIPTION = "SELECT pv from ProveedorVendible  pv "
+	 		+ "JOIN pv.proveedor p "
+	 		+ "JOIN p.suscripcion s "
+	 		+ "JOIN s.plan plan "
+	 		+ "WHERE pv.vendible.id=:vendibleId AND s.isActive AND plan.type LIKE 'PAID'";
 	 
-	 static final String GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_FREE_SUBSCRIPTION = "SELECT pv from ProveedorVendible  pv"
-		 		+ "JOIN pv.proveedor p"
-		 		+ "JOIN p.suscripcion s"
-		 		+ "JOIN s.plan plan"
-		 		+ "WHERE pv.vendible_id=:vendibleId AND s.isActive plan.type LIKE FREE";
+	 static final String GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_FREE_SUBSCRIPTION = "SELECT pv from ProveedorVendible  pv "
+		 		+ "JOIN pv.proveedor p "
+		 		+ "JOIN p.suscripcion s "
+		 		+ "JOIN s.plan plan "
+		 		+ "WHERE pv.vendible.id=:vendibleId AND s.isActive AND plan.type LIKE 'FREE'";
 }
 
 public interface ProveedorVendibleRepository extends PagingAndSortingRepository<ProveedorVendible, ProveedorVendibleId> {

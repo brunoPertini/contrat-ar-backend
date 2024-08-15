@@ -3,6 +3,7 @@ package com.contractar.microserviciousuario.controllers;
 import java.lang.reflect.InvocationTargetException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,9 +72,11 @@ public class ProveedorControler {
 			@RequestParam(name = "filter_distance_max", required = false) Double maxDistance,
 			@RequestParam(name = "filter_price_min", required = false) Integer minPrice,
 			@RequestParam(name = "filter_price_max", required = false) Integer maxPrice,
+			@RequestParam int page,
+			@RequestParam int pageSize,
 			HttpServletRequest request) throws JsonProcessingException {
 		return new ResponseEntity<>(proveedorVendibleService.getProveedoreVendiblesInfoForVendible(vendibleId,
-				minDistance, maxDistance, minPrice, maxPrice, request), HttpStatus.OK);
+				minDistance, maxDistance, minPrice, maxPrice, request, PageRequest.of(page, pageSize)) , HttpStatus.OK);
 	}
 	
 	@PutMapping("/proveedor/{proveedorId}")
