@@ -169,12 +169,14 @@ public class ProveedorVendibleService {
 	}
 
 	private void setMinAndMaxForSlider(VendibleProveedoresDTO response, List<Double> distances, List<Integer> prices) {
-		Collections.sort(distances);
-		Collections.sort(prices);
-		response.setMinDistance(distances.get(0));
-		response.setMaxDistance(distances.get(distances.size() - 1));
-		response.setMinPrice(prices.get(0));
-		response.setMaxPrice(prices.get(distances.size() - 1));
+		if (!distances.isEmpty()) {
+			Collections.sort(distances);
+			Collections.sort(prices);
+			response.setMinDistance(distances.get(0));
+			response.setMaxDistance(distances.get(distances.size() - 1));
+			response.setMinPrice(prices.get(0));
+			response.setMaxPrice(prices.get(distances.size() - 1));
+		}
 	}
 
 	private <T> List<T> getSublistForPagination(Pageable pageRequest, List<T> sourceList) {
@@ -249,10 +251,10 @@ public class ProveedorVendibleService {
 		Point userLocation = getUserLocationFromHeaders(request);
 
 		List<ProveedorVendible> postsWithPayedPlans = repository
-				.getPostsOfProveedoresWithActiveAndPayedPlan(vendibleId, pageable).getContent();
+				.getPostsOfProveedoresWithActiveAndPayedPlan(vendibleId);
 
 		List<ProveedorVendible> postsWithFreePlans = repository
-				.getPostsOfProveedoresWithActiveAndFreePlan(vendibleId, pageable).getContent()
+				.getPostsOfProveedoresWithActiveAndFreePlan(vendibleId)
 				.stream()
 				.filter(pv -> proveedorMatchesPlanConstraint(pv, userLocation)).collect(Collectors.toList());
 
@@ -308,7 +310,7 @@ public class ProveedorVendibleService {
 				proveedores.add(toAddProveedor);
 			}
 		});
-
+		
 		List<AbstractProveedorVendibleDTOAccesor> subList = getSublistForPagination(pageable, posts);
 
 		boolean shouldSortByPrice = minPrice != null || maxPrice != null;

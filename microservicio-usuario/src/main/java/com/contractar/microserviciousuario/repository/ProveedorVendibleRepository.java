@@ -27,13 +27,19 @@ final class Queries {
 	 		+ "JOIN pv.proveedor p "
 	 		+ "JOIN p.suscripcion s "
 	 		+ "JOIN s.plan plan "
-	 		+ "WHERE pv.vendible.id=:vendibleId AND s.isActive AND plan.type LIKE 'PAID'";
+	 		+ "WHERE pv.vendible.id=:vendibleId "
+	 		+ "AND p.active"
+	 		+ " AND s.isActive"
+	 		+ " AND plan.type LIKE 'PAID'";
 	 
 	 static final String GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_FREE_SUBSCRIPTION = "SELECT pv from ProveedorVendible  pv "
 		 		+ "JOIN pv.proveedor p "
 		 		+ "JOIN p.suscripcion s "
 		 		+ "JOIN s.plan plan "
-		 		+ "WHERE pv.vendible.id=:vendibleId AND s.isActive AND plan.type LIKE 'FREE'";
+		 		+ "WHERE pv.vendible.id=:vendibleId "
+		 		+ "AND p.active "
+		 		+ "AND s.isActive "
+		 		+ " AND plan.type LIKE 'FREE'";
 }
 
 public interface ProveedorVendibleRepository extends PagingAndSortingRepository<ProveedorVendible, ProveedorVendibleId> {
@@ -57,8 +63,8 @@ public interface ProveedorVendibleRepository extends PagingAndSortingRepository<
 	public Page<ProveedorVendible> getProveedoreVendiblesInfoForVendible(@Param("vendibleId") Long vendibleId, Pageable pageable);
 	
 	@Query(Queries.GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_PAYED_SUBSCRIPTION)
-	public Page<ProveedorVendible> getPostsOfProveedoresWithActiveAndPayedPlan(@Param("vendibleId") Long vendibleId, Pageable pageable);
+	public List<ProveedorVendible> getPostsOfProveedoresWithActiveAndPayedPlan(@Param("vendibleId") Long vendibleId);
 	
 	@Query(Queries.GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_FREE_SUBSCRIPTION)
-	public Page<ProveedorVendible> getPostsOfProveedoresWithActiveAndFreePlan(@Param("vendibleId") Long vendibleId, Pageable pageable);
+	public List<ProveedorVendible> getPostsOfProveedoresWithActiveAndFreePlan(@Param("vendibleId") Long vendibleId);
 }
