@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario;
 
+import java.text.SimpleDateFormat;
+
 import org.locationtech.jts.geom.Point;
 import org.n52.jackson.datatype.jts.JtsModule;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,10 +45,14 @@ public class MicroservicioUsuarioConfiguration {
 
 	@Bean
 	public ObjectMapper objectMapper() {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy");
 		ObjectMapper objectMapper = new ObjectMapper();
+		
+		objectMapper.setDateFormat(dateFormat);
 		objectMapper.registerModule(new JavaTimeModule());
 		objectMapper.registerModule(new JtsModule());
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 	    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
 

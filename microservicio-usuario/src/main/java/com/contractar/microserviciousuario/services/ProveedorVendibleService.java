@@ -267,6 +267,7 @@ public class ProveedorVendibleService {
 
 		boolean chainNotExists = chainCreator.getFilterChain() == null;
 
+		// TODO: implementar caché acá
 		ArrayList<AbstractProveedorVendibleDTOAccesor> posts = new ArrayList<>();
 		Set<ProveedorDTO> proveedores = new LinkedHashSet<>();
 
@@ -323,7 +324,7 @@ public class ProveedorVendibleService {
 		}
 
 		VendibleProveedoresDTO response = new VendibleProveedoresDTO(new PageImpl<>(subList, pageable, posts.size()),
-				proveedores);
+				getSublistForPagination(pageable, new ArrayList<>(proveedores)));
 
 		setMinAndMaxForSlider(response, toSortDistances, toSortPrices);
 

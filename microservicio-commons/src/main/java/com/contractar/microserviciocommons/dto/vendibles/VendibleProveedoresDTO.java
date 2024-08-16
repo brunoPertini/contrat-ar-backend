@@ -1,7 +1,7 @@
 package com.contractar.microserviciocommons.dto.vendibles;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
@@ -17,16 +17,16 @@ import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
  */
 public class VendibleProveedoresDTO extends SliderDTO{
 	private Page<AbstractProveedorVendibleDTOAccesor> vendibles;
-	private Set<ProveedorDTO> proveedores;
+	private List<ProveedorDTO> proveedores;
 
-	public VendibleProveedoresDTO(Page<AbstractProveedorVendibleDTOAccesor> vendibles, Set<ProveedorDTO> proveedores) {
+	public VendibleProveedoresDTO(Page<AbstractProveedorVendibleDTOAccesor> vendibles, List<ProveedorDTO> proveedores) {
 		this.vendibles = vendibles;
 		this.proveedores = proveedores;
 	}
 
 	public VendibleProveedoresDTO() {
 		this.vendibles = Page.empty();
-		this.proveedores = new HashSet<>();
+		this.proveedores = new ArrayList<>();
 	}
 
 	public Page<AbstractProveedorVendibleDTOAccesor> getVendibles() {
@@ -37,11 +37,11 @@ public class VendibleProveedoresDTO extends SliderDTO{
 		this.vendibles = vendibles;
 	}
 
-	public Set<ProveedorDTO> getProveedores() {
+	public List<ProveedorDTO> getProveedores() {
 		return proveedores;
 	}
 
-	public void setProveedores(Set<ProveedorDTO> proveedores) {
+	public void setProveedores(List<ProveedorDTO> proveedores) {
 		this.proveedores = proveedores;
 	}
 

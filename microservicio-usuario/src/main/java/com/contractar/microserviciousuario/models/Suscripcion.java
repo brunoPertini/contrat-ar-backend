@@ -8,8 +8,6 @@ import java.util.Set;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanAccesor;
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -41,7 +39,6 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 	@JoinColumn(name = "plan")
 	private Plan plan;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private LocalDate createdDate;
 
 	@OneToMany(mappedBy = "suscripcion", fetch = FetchType.LAZY, orphanRemoval = true)
