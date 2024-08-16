@@ -24,8 +24,24 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 	private int stock;
 	
 	private Long vendibleCategoryId;
+	
 
-	public AbstractProveedorVendibleDTO(String vendibleNombre, String descripcion, int precio, String imagenUrl,
+	public AbstractProveedorVendibleDTO(Long vendibleId, String vendibleNombre, String descripcion, int precio,
+			PriceTypeValue tipoPrecio, boolean offersDelivery, boolean offersInCustomAddress, String imagenUrl,
+			int stock, Long vendibleCategoryId) {
+		this.vendibleId = vendibleId;
+		this.vendibleNombre = vendibleNombre;
+		this.descripcion = descripcion;
+		this.precio = precio;
+		this.tipoPrecio = tipoPrecio;
+		this.offersDelivery = offersDelivery;
+		this.offersInCustomAddress = offersInCustomAddress;
+		this.imagenUrl = imagenUrl;
+		this.stock = stock;
+		this.vendibleCategoryId = vendibleCategoryId;
+	}
+
+	protected AbstractProveedorVendibleDTO(String vendibleNombre, String descripcion, int precio, String imagenUrl,
 			int stock) {
 		this.vendibleNombre = vendibleNombre;
 		this.descripcion = descripcion;
@@ -34,7 +50,7 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 		this.stock = stock;
 	}
 
-	public AbstractProveedorVendibleDTO() {
+	protected AbstractProveedorVendibleDTO() {
 	}
 
 	public String getVendibleNombre() {

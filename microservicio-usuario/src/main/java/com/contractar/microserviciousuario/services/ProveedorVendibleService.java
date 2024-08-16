@@ -289,10 +289,18 @@ public class ProveedorVendibleService {
 			boolean shouldAddInfo = chainNotExists || chainCreator.runChain();
 
 			if (shouldAddInfo) {
-				posts.add(new DistanceProveedorDTO(proveedorVendible.getVendible().getNombre(),
-						proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
-						proveedorVendible.getImagenUrl(), proveedorVendible.getStock(),
-						proveedorVendible.getProveedor().getId(), distance));
+				posts.add(new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
+						proveedorVendible.getId().getProveedorId(),
+						proveedorVendible.getVendible().getNombre(),
+						proveedorVendible.getDescripcion(),
+						proveedorVendible.getPrecio(),
+						proveedorVendible.getTipoPrecio(),
+						proveedorVendible.getOffersDelivery(),
+						proveedorVendible.getOffersInCustomAddress(),
+						proveedorVendible.getImagenUrl(),
+						proveedorVendible.getStock(),
+						proveedorVendible.getCategory().getId(),
+						distance));
 
 				ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
 				toAddProveedor.setLocation(proveedorVendible.getLocation());
