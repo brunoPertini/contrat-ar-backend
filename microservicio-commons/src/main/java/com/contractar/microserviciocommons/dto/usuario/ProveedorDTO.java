@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
+import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.Proveedor;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
@@ -43,7 +44,12 @@ public class ProveedorDTO extends UsuarioDTO {
 	public ProveedorDTO(ProveedorAccessor proveedor) {
 		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
-		this.suscripcion = (@NotNull SuscripcionDTO) proveedor.getSuscripcion();
+		SuscripcionAccesor suscripcionAccesor = proveedor.getSuscripcion();
+		this.suscripcion = new SuscripcionDTO(suscripcionAccesor.isActive(),
+				suscripcionAccesor.getUsuario().getId(),
+				suscripcionAccesor.getPlan().getId(),
+				suscripcionAccesor.getCreatedDate());
+
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
