@@ -2,7 +2,6 @@ package com.contractar.microserviciousuario.controllers;
 
 import java.util.ArrayList;
 
-import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -30,11 +29,8 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
-import com.contractar.microserviciocommons.helpers.DistanceCalculator;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
-import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
@@ -45,9 +41,6 @@ import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import jakarta.validation.Valid;
 
 @RestController
@@ -60,40 +53,6 @@ public class UsuarioController {
 
 	@Autowired
 	private AdminService adminService;
-	
-	private static class PointInRadiusBody {
-		
-		@JsonDeserialize(using = UbicacionDeserializer.class)
-		@JsonSerialize(using = UbicacionSerializer.class)
-		private Point source;
-		
-		private double radiusKm;
-		
-		@JsonDeserialize(using = UbicacionDeserializer.class)
-		@JsonSerialize(using = UbicacionSerializer.class)
-		private Point toComparePoint;
-		
-		public PointInRadiusBody() {}
-		
-		public Point getSource() {
-			return source;
-		}
-		public void setSource(Point source) {
-			this.source = source;
-		}
-		public double getRadiusKm() {
-			return radiusKm;
-		}
-		public void setRadiusKm(double radiusKm) {
-			this.radiusKm = radiusKm;
-		}
-		public Point getToComparePoint() {
-			return toComparePoint;
-		}
-		public void setToComparePoint(Point toComparePoint) {
-			this.toComparePoint = toComparePoint;
-		}
-	}
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {

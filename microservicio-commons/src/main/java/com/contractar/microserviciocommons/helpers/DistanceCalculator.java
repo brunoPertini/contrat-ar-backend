@@ -2,6 +2,8 @@ package com.contractar.microserviciocommons.helpers;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
+
 public class DistanceCalculator {
     // Earth's radius
     static final double RADIUS = 6371;
@@ -27,5 +29,27 @@ public class DistanceCalculator {
     public static boolean isPointInsideRadius(Point center, double radius, Point checkingPoint) {
     	double distance =  calculateDistance(center.getX(), center.getY(), checkingPoint.getX(), checkingPoint.getY());
     	return distance <= radius;
+    }
+    
+    /**
+     * 
+     * @param clienteLocation
+     * @param proveedorVendible
+     * @return The minimum distance from cliente location to Proveedor or Vendible's location.
+     */
+    public static double resolveDistanceFromClient(Point clienteLocation, ProveedorVendibleAccesor proveedorVendible) {
+    	Point proveedorLocation = proveedorVendible.getProveedor().getLocation();
+    	Point vendibleLocation = proveedorVendible.getLocation();
+    	
+    	double toProveedorDistance =  calculateDistance(clienteLocation.getX(), clienteLocation.getY(), proveedorLocation.getX(), proveedorLocation.getY());
+    	double toVendibleDistance = calculateDistance(clienteLocation.getX(), clienteLocation.getY(), vendibleLocation.getX(), vendibleLocation.getY());
+    	
+    	if (proveedorVendible.getOffersDelivery() && proveedorVendible.getOffersInCustomAddress()) {
+    		return Math.min(toProveedorDistance, toVendibleDistance);
+    	} else if (proveedorVendible.getOffersDelivery()) {
+    		return toProveedorDistance;
+    	}
+    	
+    	return toVendibleDistance;
     }
 }

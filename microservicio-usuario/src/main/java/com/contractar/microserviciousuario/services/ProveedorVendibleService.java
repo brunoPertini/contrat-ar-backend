@@ -7,7 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.locationtech.jts.geom.Point;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,8 +167,23 @@ public class ProveedorVendibleService {
 
 	}
 
-	private void setMinAndMaxForSlider(VendibleProveedoresDTO response, List<Double> distances, List<Integer> prices) {
-		if (!distances.isEmpty()) {
+	private void setMinAndMaxForSlider(VendibleProveedoresDTO response) {
+		if (!response.getVendibles().isEmpty()) {
+			List<Double> distances = response.getVendibles()
+					.getContent()
+					.stream()
+					.map(post -> {
+						DistanceProveedorDTO parsedPost = (DistanceProveedorDTO) post;
+						return parsedPost.getDistance();
+					})
+					.collect(Collectors.toList());
+			
+			List<Integer> prices = response.getVendibles()
+					.getContent()
+					.stream()
+					.map(p -> p.getPrecio())
+					.collect(Collectors.toList());
+
 			Collections.sort(distances);
 			Collections.sort(prices);
 			response.setMinDistance(distances.get(0));
@@ -271,18 +285,8 @@ public class ProveedorVendibleService {
 		ArrayList<AbstractProveedorVendibleDTOAccesor> posts = new ArrayList<>();
 		Set<ProveedorDTO> proveedores = new LinkedHashSet<>();
 
-		List<Double> toSortDistances = new ArrayList<>();
-
-		List<Integer> toSortPrices = new ArrayList<>();
-
 		results.forEach(proveedorVendible -> {
-			double distance = DistanceCalculator.calculateDistance(userLocation.getX(),
-					userLocation.getY(),
-					proveedorVendible.getLocation().getX(),
-					proveedorVendible.getLocation().getY());
-
-			toSortDistances.add(distance);
-			toSortPrices.add(proveedorVendible.getPrecio());
+			double distance = DistanceCalculator.resolveDistanceFromClient(userLocation, proveedorVendible);
 
 			if (!chainNotExists) {
 				chainCreator.setToCompareDistance(distance);
@@ -326,7 +330,7 @@ public class ProveedorVendibleService {
 		VendibleProveedoresDTO response = new VendibleProveedoresDTO(new PageImpl<>(subList, pageable, posts.size()),
 				getSublistForPagination(pageable, new ArrayList<>(proveedores)));
 
-		setMinAndMaxForSlider(response, toSortDistances, toSortPrices);
+		setMinAndMaxForSlider(response);
 
 		return response;
 
