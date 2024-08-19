@@ -169,19 +169,12 @@ public class ProveedorVendibleService {
 
 	private void setMinAndMaxForSlider(VendibleProveedoresDTO response) {
 		if (!response.getVendibles().isEmpty()) {
-			List<Double> distances = response.getVendibles()
-					.getContent()
-					.stream()
-					.map(post -> {
-						DistanceProveedorDTO parsedPost = (DistanceProveedorDTO) post;
-						return parsedPost.getDistance();
-					})
-					.collect(Collectors.toList());
-			
-			List<Integer> prices = response.getVendibles()
-					.getContent()
-					.stream()
-					.map(p -> p.getPrecio())
+			List<Double> distances = response.getVendibles().getContent().stream().map(post -> {
+				DistanceProveedorDTO parsedPost = (DistanceProveedorDTO) post;
+				return parsedPost.getDistance();
+			}).collect(Collectors.toList());
+
+			List<Integer> prices = response.getVendibles().getContent().stream().map(p -> p.getPrecio())
 					.collect(Collectors.toList());
 
 			Collections.sort(distances);
@@ -232,7 +225,7 @@ public class ProveedorVendibleService {
 		// If the plan limits some offering type, it has to be closed
 		post.setOffersDelivery(isProviderLocationOk);
 		post.setOffersInCustomAddress(isPostLocationOk);
-		
+
 		if (post.getOffersDelivery() && post.getOffersInCustomAddress()) {
 			return isProviderLocationOk && isPostLocationOk;
 		}
@@ -267,10 +260,8 @@ public class ProveedorVendibleService {
 		List<ProveedorVendible> postsWithPayedPlans = repository
 				.getPostsOfProveedoresWithActiveAndPayedPlan(vendibleId);
 
-		List<ProveedorVendible> postsWithFreePlans = repository
-				.getPostsOfProveedoresWithActiveAndFreePlan(vendibleId)
-				.stream()
-				.filter(pv -> proveedorMatchesPlanConstraint(pv, userLocation)).collect(Collectors.toList());
+		List<ProveedorVendible> postsWithFreePlans = repository.getPostsOfProveedoresWithActiveAndFreePlan(vendibleId)
+				.stream().filter(pv -> proveedorMatchesPlanConstraint(pv, userLocation)).collect(Collectors.toList());
 
 		List<ProveedorVendible> results = new ArrayList<>();
 		results.addAll(postsWithPayedPlans);
@@ -297,17 +288,11 @@ public class ProveedorVendibleService {
 
 			if (shouldAddInfo) {
 				posts.add(new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
-						proveedorVendible.getId().getProveedorId(),
-						proveedorVendible.getVendible().getNombre(),
-						proveedorVendible.getDescripcion(),
-						proveedorVendible.getPrecio(),
-						proveedorVendible.getTipoPrecio(),
-						proveedorVendible.getOffersDelivery(),
-						proveedorVendible.getOffersInCustomAddress(),
-						proveedorVendible.getImagenUrl(),
-						proveedorVendible.getStock(),
-						proveedorVendible.getCategory().getId(),
-						distance));
+						proveedorVendible.getId().getProveedorId(), proveedorVendible.getVendible().getNombre(),
+						proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+						proveedorVendible.getTipoPrecio(), proveedorVendible.getOffersDelivery(),
+						proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
+						proveedorVendible.getStock(), proveedorVendible.getCategory().getId(), distance));
 
 				ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
 				toAddProveedor.setLocation(proveedorVendible.getLocation());
@@ -315,7 +300,7 @@ public class ProveedorVendibleService {
 				proveedores.add(toAddProveedor);
 			}
 		});
-		
+
 		List<AbstractProveedorVendibleDTOAccesor> subList = getSublistForPagination(pageable, posts);
 
 		boolean shouldSortByPrice = minPrice != null || maxPrice != null;

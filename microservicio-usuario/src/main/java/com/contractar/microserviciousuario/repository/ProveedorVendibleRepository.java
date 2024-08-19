@@ -26,20 +26,18 @@ final class Queries {
 	 static final String GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_PAYED_SUBSCRIPTION = "SELECT pv from ProveedorVendible  pv "
 	 		+ "JOIN pv.proveedor p "
 	 		+ "JOIN p.suscripcion s "
-	 		+ "JOIN s.plan plan "
 	 		+ "WHERE pv.vendible.id=:vendibleId "
 	 		+ "AND p.active"
 	 		+ " AND s.isActive"
-	 		+ " AND plan.type LIKE 'PAID'";
+	 		+ " AND s.plan=2";
 	 
 	 static final String GET_POSTS_OF_VENDIBLE_WITH_ACTIVE_FREE_SUBSCRIPTION = "SELECT pv from ProveedorVendible  pv "
 		 		+ "JOIN pv.proveedor p "
 		 		+ "JOIN p.suscripcion s "
-		 		+ "JOIN s.plan plan "
 		 		+ "WHERE pv.vendible.id=:vendibleId "
 		 		+ "AND p.active "
 		 		+ "AND s.isActive "
-		 		+ " AND plan.type LIKE 'FREE'";
+		 		+ " AND s.plan=1";
 }
 
 public interface ProveedorVendibleRepository extends PagingAndSortingRepository<ProveedorVendible, ProveedorVendibleId> {
