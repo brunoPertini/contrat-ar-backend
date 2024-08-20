@@ -38,24 +38,25 @@ import jakarta.validation.Valid;
 public class ProveedorControler {
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
-	
+
 	@Autowired
 	private UsuarioService usuarioService;
-	
+
 	@Autowired
 	private ProveedorService proveedorService;
-	
-	
+
+	private static final int DEFAULT_PAGE_SIZE = 10;
+
 	@GetMapping(ProveedorControllerUrls.INTERNAL_PLAN_BASE_URL)
 	public ResponseEntity<?> getAllPlans() {
 		return new ResponseEntity<>(proveedorService.findAll(), HttpStatus.OK);
 	}
-	
+
 	@GetMapping(ProveedorControllerUrls.GET_PLAN_BY_ID)
-	public ResponseEntity <?> getPlan(@PathVariable("planId") Long planId) {
+	public ResponseEntity<?> getPlan(@PathVariable("planId") Long planId) {
 		Plan foundPlan = proveedorService.findPlanById(planId);
-		
-		return foundPlan != null ? new ResponseEntity<>(foundPlan, HttpStatus.OK) 
+
+		return foundPlan != null ? new ResponseEntity<>(foundPlan, HttpStatus.OK)
 				: new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
@@ -71,29 +72,29 @@ public class ProveedorControler {
 			@RequestParam(name = "filter_distance_min", required = false) Double minDistance,
 			@RequestParam(name = "filter_distance_max", required = false) Double maxDistance,
 			@RequestParam(name = "filter_price_min", required = false) Integer minPrice,
-			@RequestParam(name = "filter_price_max", required = false) Integer maxPrice,
-			@RequestParam int page,
-			@RequestParam int pageSize,
+			@RequestParam(name = "filter_price_max", required = false) Integer maxPrice, @RequestParam int page,
 			HttpServletRequest request) throws JsonProcessingException {
+
 		return new ResponseEntity<>(proveedorVendibleService.getProveedoreVendiblesInfoForVendible(vendibleId,
-				minDistance, maxDistance, minPrice, maxPrice, request, PageRequest.of(page, pageSize)) , HttpStatus.OK);
+				minDistance, maxDistance, minPrice, maxPrice, request, PageRequest.of(page, DEFAULT_PAGE_SIZE)),
+				HttpStatus.OK);
+
 	}
-	
+
 	@PutMapping("/proveedor/{proveedorId}")
 	public ResponseEntity<?> updateProveedorInfo(@PathVariable("proveedorId") Long proveedorId,
 			@RequestBody @Valid ProveedorInfoUpdateDTO body) throws UserNotFoundException, ImageNotUploadedException,
-	ClassNotFoundException, IllegalArgumentException,
-	IllegalAccessException, InvocationTargetException {
+			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Proveedor updated = usuarioService.updateProveedor(proveedorId, body);
-		
+
 		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
 	}
-	
+
 	@PostMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS_V2)
 	public ResponseEntity<PostsResponseDTO> getPostsOfVendible(@PathVariable("vendibleId") Long vendibleId,
-			@RequestParam int page,
-			@RequestParam int pageSize,
-			@RequestBody (required = false)ProveedorVendibleFilter filters) {
-		return new ResponseEntity<>(proveedorVendibleService.getPostsOfVendible(vendibleId, page, pageSize, filters), HttpStatus.OK);
+			@RequestParam int page, @RequestBody(required = false) ProveedorVendibleFilter filters) {
+		return new ResponseEntity<>(
+				proveedorVendibleService.getPostsOfVendible(vendibleId, page, DEFAULT_PAGE_SIZE, filters),
+				HttpStatus.OK);
 	}
 }

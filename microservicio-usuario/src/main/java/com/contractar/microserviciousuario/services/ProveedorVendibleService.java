@@ -1,6 +1,8 @@
 package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -83,8 +85,10 @@ public class ProveedorVendibleService {
 	private String SERVICIO_SECURITY_URL;
 
 	private static int SLIDER_MIN_PRICE;
-
 	private static int SLIDER_MAX_PRICE;
+	
+	private static List<Double> distancesForSlider = new ArrayList<>();
+	private static List<Integer> pricesForSlider = new ArrayList<>();
 
 	public ProveedorVendible bindVendibleToProveedor(VendibleAccesor vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
@@ -168,21 +172,13 @@ public class ProveedorVendibleService {
 	}
 
 	private void setMinAndMaxForSlider(VendibleProveedoresDTO response) {
-		if (!response.getVendibles().isEmpty()) {
-			List<Double> distances = response.getVendibles().getContent().stream().map(post -> {
-				DistanceProveedorDTO parsedPost = (DistanceProveedorDTO) post;
-				return parsedPost.getDistance();
-			}).collect(Collectors.toList());
-
-			List<Integer> prices = response.getVendibles().getContent().stream().map(p -> p.getPrecio())
-					.collect(Collectors.toList());
-
-			Collections.sort(distances);
-			Collections.sort(prices);
-			response.setMinDistance(distances.get(0));
-			response.setMaxDistance(distances.get(distances.size() - 1));
-			response.setMinPrice(prices.get(0));
-			response.setMaxPrice(prices.get(distances.size() - 1));
+		if (!pricesForSlider.isEmpty() && !distancesForSlider.isEmpty()) {
+			Collections.sort(pricesForSlider);
+			Collections.sort(distancesForSlider);
+			response.setMinDistance(distancesForSlider.get(0));
+			response.setMaxDistance(distancesForSlider.get(distancesForSlider.size()-1));
+			response.setMinPrice(pricesForSlider.get(0));
+			response.setMaxPrice(pricesForSlider.get(pricesForSlider.size()-1));
 		}
 	}
 
@@ -255,6 +251,8 @@ public class ProveedorVendibleService {
 	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Double minDistance,
 			Double maxDistance, Integer minPrice, Integer maxPrice, HttpServletRequest request, Pageable pageable) {
 
+		VendibleProveedoresDTO response = new VendibleProveedoresDTO();
+
 		Point userLocation = getUserLocationFromHeaders(request);
 
 		List<ProveedorVendible> postsWithPayedPlans = repository
@@ -275,9 +273,21 @@ public class ProveedorVendibleService {
 		// TODO: implementar caché acá
 		ArrayList<AbstractProveedorVendibleDTOAccesor> posts = new ArrayList<>();
 		Set<ProveedorDTO> proveedores = new LinkedHashSet<>();
+		
+		boolean shouldFillSliderCollections = pricesForSlider.isEmpty() && distancesForSlider.isEmpty();
 
 		results.forEach(proveedorVendible -> {
-			double distance = DistanceCalculator.resolveDistanceFromClient(userLocation, proveedorVendible);
+			double distanceNotRounded = DistanceCalculator.resolveDistanceFromClient(userLocation, proveedorVendible);
+
+			BigDecimal distanceBd = BigDecimal.valueOf(distanceNotRounded).setScale(2, RoundingMode.HALF_UP);
+
+			double distance = distanceBd.doubleValue();
+			
+			if(shouldFillSliderCollections) {
+				pricesForSlider.add(proveedorVendible.getPrecio());
+				distancesForSlider.add(distance);
+			}
+
 
 			if (!chainNotExists) {
 				chainCreator.setToCompareDistance(distance);
@@ -287,12 +297,16 @@ public class ProveedorVendibleService {
 			boolean shouldAddInfo = chainNotExists || chainCreator.runChain();
 
 			if (shouldAddInfo) {
-				posts.add(new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
+				DistanceProveedorDTO distanceDTO = new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
 						proveedorVendible.getId().getProveedorId(), proveedorVendible.getVendible().getNombre(),
 						proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 						proveedorVendible.getTipoPrecio(), proveedorVendible.getOffersDelivery(),
 						proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
-						proveedorVendible.getStock(), proveedorVendible.getCategory().getId(), distance));
+						proveedorVendible.getStock(), proveedorVendible.getCategory().getId(), distance);
+				
+				
+				distanceDTO.setPlanId(proveedorVendible.getProveedor().getSuscripcion().getPlan().getId());
+				posts.add(distanceDTO);
 
 				ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
 				toAddProveedor.setLocation(proveedorVendible.getLocation());
@@ -300,6 +314,8 @@ public class ProveedorVendibleService {
 				proveedores.add(toAddProveedor);
 			}
 		});
+		
+		setMinAndMaxForSlider(response);
 
 		List<AbstractProveedorVendibleDTOAccesor> subList = getSublistForPagination(pageable, posts);
 
@@ -312,10 +328,8 @@ public class ProveedorVendibleService {
 			subList.sort(comparator);
 		}
 
-		VendibleProveedoresDTO response = new VendibleProveedoresDTO(new PageImpl<>(subList, pageable, posts.size()),
-				getSublistForPagination(pageable, new ArrayList<>(proveedores)));
-
-		setMinAndMaxForSlider(response);
+		response.setVendibles(new PageImpl<>(subList, pageable, posts.size()));
+		response.setProveedores(getSublistForPagination(pageable, new ArrayList<>(proveedores)));
 
 		return response;
 

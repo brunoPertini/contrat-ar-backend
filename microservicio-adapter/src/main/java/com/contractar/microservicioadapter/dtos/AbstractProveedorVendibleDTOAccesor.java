@@ -22,4 +22,6 @@ public interface AbstractProveedorVendibleDTOAccesor {
 	public boolean getOffersDelivery();
 	
 	public boolean isOffersInCustomAddress();
+	
+	public Long getPlanId();
 }
