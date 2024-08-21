@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({ "id", "name", "surname", "email", "birthDate", "phone",
-	"location", "createdAt", "dni", "plan", "fotoPerfilUrl", "isActive",  })
+	"location", "createdAt", "active", "dni", "fotoPerfilUrl", "suscripcion" })
 public class ProveedorAdminDTO extends ProveedorDTO {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate createdAt;

@@ -55,7 +55,7 @@ public class UsuarioAdminCustomRepository {
 			}
 		});
 		
-		Optional.ofNullable(planId).ifPresent(plan -> predicates.add(cb.equal(usuario.get("plan").get("id"), planId)));
+		Optional.ofNullable(planId).ifPresent(plan -> predicates.add(cb.equal(usuario.get("suscripcion").get("plan").get("id"), planId)));
 		
 		if (!predicates.isEmpty()) {
 			cq.where(predicates.toArray(new Predicate[0]));
