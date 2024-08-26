@@ -5,8 +5,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Point;
@@ -14,6 +16,7 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +30,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
+import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
@@ -86,9 +90,26 @@ public class ProveedorVendibleService {
 
 	private static int SLIDER_MIN_PRICE;
 	private static int SLIDER_MAX_PRICE;
-	
-	private static List<Double> distancesForSlider = new ArrayList<>();
-	private static List<Integer> pricesForSlider = new ArrayList<>();
+
+	private List<Double> distancesForSlider;
+
+	private List<Integer> pricesForSlider;
+
+	public List<Integer> getPricesForSlider() {
+		return pricesForSlider;
+	}
+
+	public void setPricesForSlider(List<Integer> pricesForSlider) {
+		this.pricesForSlider = pricesForSlider;
+	}
+
+	public List<Double> getDistancesForSlider() {
+		return distancesForSlider;
+	}
+
+	public void setDistancesForSlider(List<Double> distancesForSlider) {
+		this.distancesForSlider = distancesForSlider;
+	}
 
 	public ProveedorVendible bindVendibleToProveedor(VendibleAccesor vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
@@ -175,14 +196,38 @@ public class ProveedorVendibleService {
 		if (!pricesForSlider.isEmpty() && !distancesForSlider.isEmpty()) {
 			Collections.sort(pricesForSlider);
 			Collections.sort(distancesForSlider);
-			response.setMinDistance(distancesForSlider.get(0));
-			response.setMaxDistance(distancesForSlider.get(distancesForSlider.size()-1));
-			response.setMinPrice(pricesForSlider.get(0));
-			response.setMaxPrice(pricesForSlider.get(pricesForSlider.size()-1));
+
+			Double firstDistance = distancesForSlider.get(0);
+			Double lastDistance = distancesForSlider.get(distancesForSlider.size() - 1);
+			boolean shouldNotSetDistanceSlider = firstDistance.equals(lastDistance);
+
+			if (shouldNotSetDistanceSlider) {
+				response.setMinDistance(null);
+				response.setMaxDistance(null);
+			} else {
+				response.setMinDistance(firstDistance);
+				response.setMaxDistance(lastDistance);
+			}
+
+			Integer firstPrice = pricesForSlider.get(0);
+			Integer lastPrice = pricesForSlider.get(pricesForSlider.size() - 1);
+			boolean shouldNotSetPriceSlider = firstPrice.equals(lastPrice);
+
+			if (shouldNotSetPriceSlider) {
+				response.setMinPrice(null);
+				response.setMaxPrice(null);
+			} else {
+				response.setMinPrice(pricesForSlider.get(0));
+				response.setMaxPrice(pricesForSlider.get(pricesForSlider.size() - 1));
+			}
 		}
 	}
 
 	private <T> List<T> getSublistForPagination(Pageable pageRequest, List<T> sourceList) {
+		if(pageRequest.getOffset() >= sourceList.size()) {
+			return sourceList;
+		}
+
 		int start = (int) pageRequest.getOffset();
 
 		int end = Math.min((start + pageRequest.getPageSize()), sourceList.size());
@@ -212,6 +257,10 @@ public class ProveedorVendibleService {
 	}
 
 	private boolean proveedorMatchesPlanConstraint(ProveedorVendible post, Point userLocation) {
+		if (post.getProveedor().getSuscripcion().getPlan().getType().equals(PlanType.PAID)) {
+			return true;
+		}
+
 		boolean isProviderLocationOk = DistanceCalculator.isPointInsideRadius(post.getProveedor().getLocation(),
 				Plan.FREE_PLAN_RADIUS, userLocation);
 
@@ -232,6 +281,23 @@ public class ProveedorVendibleService {
 
 		return isPostLocationOk;
 	}
+	
+	private Page<ProveedorVendible> findAllByLocationAndPlanConstraints(Long vendibleId, Point userLocation, Pageable pageable) {
+
+	    List<ProveedorVendible> filteredPosts = repository.getPostsOfProveedoresWithValidSubscription(vendibleId)
+	    		.stream()
+	        .filter(post -> {
+	           return proveedorMatchesPlanConstraint(post,userLocation);
+	        })
+	        .collect(Collectors.toList());
+
+	    int start = (int) pageable.getOffset();
+	    int end = Math.min((start + pageable.getPageSize()), filteredPosts.size());
+	    
+	    List<ProveedorVendible> pageContent = filteredPosts.subList(start, end);
+	    return new PageImpl<>(pageContent, pageable, filteredPosts.size());
+	}
+
 
 	/**
 	 * Gets all the providers that offer the given vendible. They should comply with
@@ -246,7 +312,7 @@ public class ProveedorVendibleService {
 	 * @param minPrice    Minimum price the vendible must have
 	 * @param maxPrice    Maximum price the vendible must have
 	 * @param request     Used to take client's user id and with it it's location
-	 * @param pageable    pagination info TODO: REFACTOR
+	 * @param pageable    pagination info
 	 */
 	public VendibleProveedoresDTO getProveedoreVendiblesInfoForVendible(Long vendibleId, Double minDistance,
 			Double maxDistance, Integer minPrice, Integer maxPrice, HttpServletRequest request, Pageable pageable) {
@@ -255,69 +321,61 @@ public class ProveedorVendibleService {
 
 		Point userLocation = getUserLocationFromHeaders(request);
 
-		List<ProveedorVendible> postsWithPayedPlans = repository
-				.getPostsOfProveedoresWithActiveAndPayedPlan(vendibleId);
-
-		List<ProveedorVendible> postsWithFreePlans = repository.getPostsOfProveedoresWithActiveAndFreePlan(vendibleId)
-				.stream().filter(pv -> proveedorMatchesPlanConstraint(pv, userLocation)).collect(Collectors.toList());
-
-		List<ProveedorVendible> results = new ArrayList<>();
-		results.addAll(postsWithPayedPlans);
-		results.addAll(postsWithFreePlans);
+		Page<ProveedorVendible> results = findAllByLocationAndPlanConstraints(vendibleId, userLocation, pageable);
 
 		FilterChainCreator chainCreator = new FilterChainCreator(minDistance, maxDistance, null, minPrice, maxPrice,
 				null);
 
 		boolean chainNotExists = chainCreator.getFilterChain() == null;
 
-		// TODO: implementar caché acá
-		ArrayList<AbstractProveedorVendibleDTOAccesor> posts = new ArrayList<>();
 		Set<ProveedorDTO> proveedores = new LinkedHashSet<>();
-		
-		boolean shouldFillSliderCollections = pricesForSlider.isEmpty() && distancesForSlider.isEmpty();
 
-		results.forEach(proveedorVendible -> {
+		this.pricesForSlider = new ArrayList<>();
+		this.distancesForSlider = new ArrayList<>();
+		Map<Long, Double> distances = new HashMap<>();
+		
+		ArrayList<DistanceProveedorDTO> posts = (ArrayList<DistanceProveedorDTO>) results.filter(proveedorVendible -> {
 			double distanceNotRounded = DistanceCalculator.resolveDistanceFromClient(userLocation, proveedorVendible);
 
 			BigDecimal distanceBd = BigDecimal.valueOf(distanceNotRounded).setScale(2, RoundingMode.HALF_UP);
 
 			double distance = distanceBd.doubleValue();
-			
-			if(shouldFillSliderCollections) {
-				pricesForSlider.add(proveedorVendible.getPrecio());
-				distancesForSlider.add(distance);
-			}
 
+			pricesForSlider.add(proveedorVendible.getPrecio());
+			distancesForSlider.add(distance);
 
 			if (!chainNotExists) {
 				chainCreator.setToCompareDistance(distance);
 				chainCreator.setToComparePrice(proveedorVendible.getPrecio());
 			}
-
-			boolean shouldAddInfo = chainNotExists || chainCreator.runChain();
-
-			if (shouldAddInfo) {
-				DistanceProveedorDTO distanceDTO = new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
-						proveedorVendible.getId().getProveedorId(), proveedorVendible.getVendible().getNombre(),
-						proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
-						proveedorVendible.getTipoPrecio(), proveedorVendible.getOffersDelivery(),
-						proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
-						proveedorVendible.getStock(), proveedorVendible.getCategory().getId(), distance);
-				
-				
-				distanceDTO.setPlanId(proveedorVendible.getProveedor().getSuscripcion().getPlan().getId());
-				posts.add(distanceDTO);
-
-				ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
-				toAddProveedor.setLocation(proveedorVendible.getLocation());
-
-				proveedores.add(toAddProveedor);
+			
+			boolean filterResult = chainNotExists || chainCreator.runChain();
+					
+			if (filterResult) {
+				distances.put(proveedorVendible.getId().getProveedorId(), distance);
 			}
-		});
-		
-		setMinAndMaxForSlider(response);
 
-		List<AbstractProveedorVendibleDTOAccesor> subList = getSublistForPagination(pageable, posts);
+			return filterResult;
+			
+		}).map(proveedorVendible -> {
+			DistanceProveedorDTO distanceDTO = new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
+					proveedorVendible.getId().getProveedorId(), proveedorVendible.getVendible().getNombre(),
+					proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
+					proveedorVendible.getTipoPrecio(), proveedorVendible.getOffersDelivery(),
+					proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
+					proveedorVendible.getStock(), proveedorVendible.getCategory().getId(), distances.get(proveedorVendible.getId().getProveedorId()));
+
+			distanceDTO.setPlanId(proveedorVendible.getProveedor().getSuscripcion().getPlan().getId());
+
+			ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
+			toAddProveedor.setLocation(proveedorVendible.getLocation());
+			proveedores.add(toAddProveedor);
+			
+			return distanceDTO;
+		}).stream().collect(Collectors.toList());
+
+
+		setMinAndMaxForSlider(response);
 
 		boolean shouldSortByPrice = minPrice != null || maxPrice != null;
 		boolean shouldSortByDistance = minDistance != null || maxDistance != null;
@@ -325,10 +383,10 @@ public class ProveedorVendibleService {
 		if (shouldSortByPrice || shouldSortByDistance) {
 			ProveedorVendibleComparator comparator = new ProveedorVendibleComparator(shouldSortByPrice,
 					shouldSortByDistance);
-			subList.sort(comparator);
+			posts.sort(comparator);
 		}
-
-		response.setVendibles(new PageImpl<>(subList, pageable, posts.size()));
+		
+		response.setVendibles(new PageImpl(posts, pageable, results.getTotalElements()));
 		response.setProveedores(getSublistForPagination(pageable, new ArrayList<>(proveedores)));
 
 		return response;
