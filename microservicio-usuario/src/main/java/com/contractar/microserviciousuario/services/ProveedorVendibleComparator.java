@@ -5,6 +5,7 @@ import java.util.Comparator;
 import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
 import com.contractar.microserviciousuario.dtos.DistanceProveedorDTO;
 import com.contractar.microserviciousuario.sorting.VendibleDistanceComparator;
+import com.contractar.microserviciousuario.sorting.VendiblePlanComparator;
 import com.contractar.microserviciousuario.sorting.VendiblePriceComparator;
 
 /**
@@ -19,16 +20,24 @@ public class ProveedorVendibleComparator implements Comparator<AbstractProveedor
 	
 	private VendiblePriceComparator byPriceComparator;
 	private VendibleDistanceComparator byDistanceComparator;
+	private VendiblePlanComparator byPlanComparator;
 
 	public ProveedorVendibleComparator(boolean shouldSortByPrice, boolean shouldSortByDistance) {
 		this.shouldSortByPrice = shouldSortByPrice;
 		this.shouldSortByDistance = shouldSortByDistance;
 		this.byPriceComparator = new VendiblePriceComparator();
 		this.byDistanceComparator = new VendibleDistanceComparator();
+		this.byPlanComparator = new VendiblePlanComparator();
 	}
 
 	@Override
 	public int compare(AbstractProveedorVendibleDTOAccesor o1, AbstractProveedorVendibleDTOAccesor o2) {
+		
+		int byPlanComparingResult = byPlanComparator.compare(o1, o2);
+		
+		if (byPlanComparingResult != 0) {
+			return byPlanComparingResult;
+		}
 		
 		DistanceProveedorDTO first = (DistanceProveedorDTO) o1;
 		

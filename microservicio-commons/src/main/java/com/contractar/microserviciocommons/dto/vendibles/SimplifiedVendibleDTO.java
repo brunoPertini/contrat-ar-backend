@@ -53,4 +53,9 @@ public class SimplifiedVendibleDTO extends AbstractProveedorVendibleDTO {
 	public Long getVendibleCategoryId() {
 		return super.getVendibleCategoryId();
 	}
+
+	@Override
+	public Long getPlanId() {
+		return null;
+	}
 }

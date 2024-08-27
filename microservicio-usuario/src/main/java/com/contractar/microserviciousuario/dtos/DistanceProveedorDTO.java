@@ -2,6 +2,7 @@ package com.contractar.microserviciousuario.dtos;
 
 import java.util.Objects;
 
+import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 
 public class DistanceProveedorDTO extends SimplifiedProveedorVendibleDTO {
@@ -30,6 +31,16 @@ public class DistanceProveedorDTO extends SimplifiedProveedorVendibleDTO {
 		this.distance = distance;
 	}
 	
+	
+	
+	public DistanceProveedorDTO(Long vendibleId, Long proveedorId, String vendibleNombre, String descripcion, int precio,
+			PriceTypeValue tipoPrecio, boolean offersDelivery, boolean offersInCustomAddress, String imagenUrl,
+			int stock, Long vendibleCategoryId, double distance) {
+		super(vendibleId, proveedorId, vendibleNombre, descripcion, precio, tipoPrecio, offersDelivery, offersInCustomAddress, imagenUrl,
+				stock, vendibleCategoryId);
+		this.distance = distance;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

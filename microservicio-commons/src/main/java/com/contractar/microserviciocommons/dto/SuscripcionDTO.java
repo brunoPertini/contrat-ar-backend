@@ -2,6 +2,8 @@ package com.contractar.microserviciocommons.dto;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class SuscripcionDTO {
 	private boolean isActive;
 	private Long usuarioId;
@@ -36,6 +38,7 @@ public class SuscripcionDTO {
 	public void setPlanId(Long planId) {
 		this.planId = planId;
 	}
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy") 
 	public LocalDate getCreatedDate() {
 		return createdDate;
 	}
