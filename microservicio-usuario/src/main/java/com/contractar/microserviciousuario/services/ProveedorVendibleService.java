@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
-import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
@@ -291,10 +290,7 @@ public class ProveedorVendibleService {
 	        })
 	        .collect(Collectors.toList());
 
-	    int start = (int) pageable.getOffset();
-	    int end = Math.min((start + pageable.getPageSize()), filteredPosts.size());
-	    
-	    List<ProveedorVendible> pageContent = filteredPosts.subList(start, end);
+	    List<ProveedorVendible> pageContent = getSublistForPagination(pageable, filteredPosts);
 	    return new PageImpl<>(pageContent, pageable, filteredPosts.size());
 	}
 
