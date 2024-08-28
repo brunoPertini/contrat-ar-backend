@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -12,6 +14,8 @@ import com.contractar.microserviciousuario.models.Proveedor;
 public interface ProveedorRepository  extends CrudRepository<Proveedor, Long>{
 	@SuppressWarnings("unchecked")
 	public Proveedor save(Proveedor proveedor);
+	
+	public Optional<Proveedor> findById(Long id);
     
     @Query(value = "INSERT INTO proveedores_vendibles (proveedor_id, vendible_id) VALUES (:proveedorId, :vendibleId)",
     		nativeQuery = true)

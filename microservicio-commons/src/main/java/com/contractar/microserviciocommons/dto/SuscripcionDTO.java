@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class SuscripcionDTO {
+	private Long id;
 	private boolean isActive;
 	private Long usuarioId;
 	private Long planId;
@@ -13,13 +14,20 @@ public class SuscripcionDTO {
 	
 	public SuscripcionDTO() {}
 	
-	public SuscripcionDTO(boolean isActive, Long usuarioId, Long planId, LocalDate createdDate) {
+	public SuscripcionDTO(Long id, boolean isActive, Long usuarioId, Long planId, LocalDate createdDate) {
+		this.id = id;
 		this.isActive = isActive;
 		this.usuarioId = usuarioId;
 		this.planId = planId;
 		this.createdDate = createdDate;
 	}
+	public Long getId() {
+		return id;
+	}
 
+	public void setId(Long id) {
+		this.id = id;
+	}
 	public boolean isActive() {
 		return isActive;
 	}

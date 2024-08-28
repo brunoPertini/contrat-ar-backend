@@ -20,7 +20,9 @@ public final class DtoHelper {
 	public static ProveedorDTO toProveedorDTO(Proveedor proveedor) {
 		Suscripcion usuarioSuscripcion = (Suscripcion) proveedor.getSuscripcion();
 
-		SuscripcionDTO suscripcion = new SuscripcionDTO(usuarioSuscripcion.isActive(),
+		SuscripcionDTO suscripcion = new SuscripcionDTO(
+				usuarioSuscripcion.getId(),
+				usuarioSuscripcion.isActive(),
 				usuarioSuscripcion.getUsuario().getId(),
 				usuarioSuscripcion.getPlan().getId(),
 				usuarioSuscripcion.getCreatedDate());

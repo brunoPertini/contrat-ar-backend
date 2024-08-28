@@ -114,20 +114,34 @@ public class AdminService {
 
 	}
 
-	public void addChangeRequestEntry(PlanType plan, Long proveedorId) throws ChangeAlreadyRequestedException {
-		boolean infoAlreadyRequested = requestExists(proveedorId, List.of(plan.toString()));
+	public void addChangeRequestEntry(Long proveedorId, Long newPlanId) throws ChangeAlreadyRequestedException, ChangeConfirmException {
+	    proveedorRepository.findById(proveedorId).ifPresentOrElse(foundProveedor -> {
+	        try {
+	            Long subscriptionId = foundProveedor.getSuscripcion().getId();
 
-		if (infoAlreadyRequested) {
-			throw new ChangeAlreadyRequestedException();
-		}
+	            boolean infoAlreadyRequested = requestExists(subscriptionId, List.of(newPlanId.toString()));
 
-		String planAttributeChangeQuery = "plan=" + "\'" + plan.toString() + "\'";
+	            if (infoAlreadyRequested) {
+	                throw new ChangeAlreadyRequestedException();
+	            }
 
-		ChangeRequest planChangeRequest = new ChangeRequest("proveedor", planAttributeChangeQuery, false, proveedorId,
-				"proveedor_id");
-		repository.save(planChangeRequest);
+	            String planAttributeChangeQuery = "plan=" + "\'" + newPlanId.toString() + "\'";
 
+	            ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false, subscriptionId,
+	                    "id");
+	            repository.save(planChangeRequest);
+	        } catch (ChangeAlreadyRequestedException e) {
+	            throw new RuntimeException(e);
+	        }
+	    }, () -> {
+	    	try {
+	    		throw new ChangeConfirmException();
+	    	} catch (ChangeConfirmException e) {
+	    		throw new RuntimeException(e);
+	    	}
+	    });
 	}
+
 
 	public void confirmChangeRequest(Long id) throws ChangeConfirmException {
 		Optional<ChangeRequest> requestOpt = repository.findById(id);

@@ -45,7 +45,9 @@ public class ProveedorDTO extends UsuarioDTO {
 		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
 		SuscripcionAccesor suscripcionAccesor = proveedor.getSuscripcion();
-		this.suscripcion = new SuscripcionDTO(suscripcionAccesor.isActive(),
+		this.suscripcion = new SuscripcionDTO(
+				suscripcionAccesor.getId(),
+				suscripcionAccesor.isActive(),
 				suscripcionAccesor.getUsuario().getId(),
 				suscripcionAccesor.getPlan().getId(),
 				suscripcionAccesor.getCreatedDate());
