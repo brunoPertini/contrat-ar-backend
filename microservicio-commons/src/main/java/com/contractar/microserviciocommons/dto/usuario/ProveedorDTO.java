@@ -13,6 +13,7 @@ import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -45,17 +46,41 @@ public class ProveedorDTO extends UsuarioDTO {
 		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
 		SuscripcionAccesor suscripcionAccesor = proveedor.getSuscripcion();
-		this.suscripcion = new SuscripcionDTO(
-				suscripcionAccesor.getId(),
-				suscripcionAccesor.isActive(),
-				suscripcionAccesor.getUsuario().getId(),
-				suscripcionAccesor.getPlan().getId(),
-				suscripcionAccesor.getCreatedDate());
-
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
 		this.dni = proveedor.getDni();
+		this.setSubscription(suscripcionAccesor, null);
+	}
+	
+	public ProveedorDTO(ProveedorAccessor proveedor, @Nullable String subscriptionDatePattern) {
+		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
+				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
+		SuscripcionAccesor suscripcionAccesor = proveedor.getSuscripcion();
+		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
+		this.proveedorType = proveedor.getProveedorType();
+		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
+		this.dni = proveedor.getDni();
+		this.setSubscription(suscripcionAccesor, subscriptionDatePattern);
+	}
+	
+	private void setSubscription(SuscripcionAccesor suscripcionAccesor, @Nullable String subscriptionDatePattern) {
+		Optional.ofNullable(subscriptionDatePattern).ifPresentOrElse((pattern) -> {
+			this.suscripcion = new SuscripcionDTO(
+					suscripcionAccesor.getId(),
+					suscripcionAccesor.isActive(),
+					suscripcionAccesor.getUsuario().getId(),
+					suscripcionAccesor.getPlan().getId(),
+					suscripcionAccesor.getCreatedDate(),
+					pattern);
+		}, () -> {
+			this.suscripcion = new SuscripcionDTO(
+					suscripcionAccesor.getId(),
+					suscripcionAccesor.isActive(),
+					suscripcionAccesor.getUsuario().getId(),
+					suscripcionAccesor.getPlan().getId(),
+					suscripcionAccesor.getCreatedDate());
+		});
 	}
 
 	public String getDni() {
