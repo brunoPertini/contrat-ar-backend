@@ -4,7 +4,7 @@ public class WithDatePatternDTO {
 	private String datePattern;
 	
 	public WithDatePatternDTO() {
-		this.datePattern = "yyyy-mmmm-dd";
+		this.datePattern = "dd/MM/yyyy";
 	}
 
 	public WithDatePatternDTO(String datePattern) {

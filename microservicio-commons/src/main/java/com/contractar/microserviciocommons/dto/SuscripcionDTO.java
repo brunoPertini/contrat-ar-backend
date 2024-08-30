@@ -17,6 +17,7 @@ public class SuscripcionDTO extends WithDatePatternDTO{
 	public SuscripcionDTO() {}
 	
 	public SuscripcionDTO(Long id, boolean isActive, Long usuarioId, Long planId, LocalDate createdDate) {
+		super();
 		this.id = id;
 		this.isActive = isActive;
 		this.usuarioId = usuarioId;
