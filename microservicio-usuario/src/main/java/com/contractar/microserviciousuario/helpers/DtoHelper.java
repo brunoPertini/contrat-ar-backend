@@ -1,18 +1,16 @@
 package com.contractar.microserviciousuario.helpers;
 
-import java.time.LocalDate;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.UsuarioAccesor;
 import com.contractar.microserviciocommons.constants.controllers.DateControllerUrls;
 import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
-import com.contractar.microserviciocommons.dto.DateOperationDTO;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
@@ -48,11 +46,12 @@ public final class DtoHelper {
 	}
 
 	public ProveedorDTO toProveedorDTO(Proveedor proveedor, DateFormatType dateFormat) {
-		LocalDate subscriptionDate = proveedor.getSuscripcion().getCreatedDate();
-		DateOperationDTO body = new DateOperationDTO(subscriptionDate,
-				DateOperationType.FORMAT,
-				dateFormat != null ? dateFormat : DateFormatType.FULL);
-		String datePattern = httpClient.postForObject(microservicioCommonsUrl + DateControllerUrls.DATES_BASE_URL, body, String.class);
+		 UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(microservicioCommonsUrl)
+				 	.path(DateControllerUrls.DATES_BASE_URL)
+	                .queryParam("operation", DateOperationType.FORMAT)
+	                .queryParam("format", dateFormat != null ? dateFormat : DateFormatType.FULL);
+		 
+		String datePattern = httpClient.getForObject(uriBuilder.toUriString(), String.class);
 		return new ProveedorDTO(proveedor, datePattern);
 	}
 

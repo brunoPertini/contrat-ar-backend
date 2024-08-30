@@ -2,14 +2,16 @@ package com.contractar.microserviciocommons.dto;
 
 import java.time.LocalDate;
 
-import com.contractar.microserviciocommons.serialization.DynamicPatternDateSerializer;
+import com.contractar.microserviciocommons.serialization.SuscripcionDTOSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+@JsonSerialize(using = SuscripcionDTOSerializer.class)
 public class SuscripcionDTO extends WithDatePatternDTO{
 	private Long id;
 	private boolean isActive;
 	private Long usuarioId;
 	private Long planId;
+	
 	private LocalDate createdDate;
 
 	public SuscripcionDTO() {}
@@ -56,7 +58,6 @@ public class SuscripcionDTO extends WithDatePatternDTO{
 	public void setPlanId(Long planId) {
 		this.planId = planId;
 	}
-	@JsonSerialize(using = DynamicPatternDateSerializer.class)
 	public LocalDate getCreatedDate() {
 		return createdDate;
 	}
