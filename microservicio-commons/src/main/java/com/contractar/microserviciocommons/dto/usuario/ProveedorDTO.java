@@ -65,7 +65,7 @@ public class ProveedorDTO extends UsuarioDTO {
 	}
 	
 	private void setSubscription(SuscripcionAccesor suscripcionAccesor, @Nullable String subscriptionDatePattern) {
-		Optional.ofNullable(subscriptionDatePattern).ifPresentOrElse((pattern) -> {
+		Optional.ofNullable(subscriptionDatePattern).ifPresentOrElse(pattern -> {
 			this.suscripcion = new SuscripcionDTO(
 					suscripcionAccesor.getId(),
 					suscripcionAccesor.isActive(),
