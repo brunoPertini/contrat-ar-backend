@@ -24,7 +24,6 @@ import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateD
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
-import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 
 import jakarta.validation.Valid;
@@ -64,10 +63,10 @@ public class AdminController {
 		}
 	}
 
-	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR_BY_ID)
-	public ResponseEntity<Void> updateProveedorPlan(@RequestBody PlanType plan, @PathVariable("id") Long proveedorId)
-			throws ChangeAlreadyRequestedException {
-		adminService.addChangeRequestEntry(plan, proveedorId);
+	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR_SUBSCRIPTION_PLAN_CHANGE)
+	public ResponseEntity<Void> updateProveedorPlan(@PathVariable("proveedorId") Long proveedorId, @PathVariable("planId") Long newPlanId)
+			throws ChangeAlreadyRequestedException, ChangeConfirmException {
+		adminService.addChangeRequestEntry(proveedorId, newPlanId);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 	

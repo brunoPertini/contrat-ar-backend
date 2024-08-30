@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
@@ -53,6 +54,9 @@ public class UsuarioController {
 
 	@Autowired
 	private AdminService adminService;
+	
+	@Autowired
+	private DtoHelper dtoHelper;
 
 	@PostMapping("/usuarios")
 	public ResponseEntity<Usuario> crearUsuario(@RequestBody @Valid Usuario usuario) {
@@ -101,12 +105,13 @@ public class UsuarioController {
 	}
 
 	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
-	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId)
+	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId, @RequestParam(name = "formatType", required = false) 
+	DateFormatType formatType)
 			throws UserNotFoundException {
 		Usuario user = this.usuarioService.findById(userId, false);
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
-			ProveedorDTO proveedorDTO = DtoHelper.toProveedorDTO(proveedor);
+			ProveedorDTO proveedorDTO = dtoHelper.toProveedorDTO(proveedor, formatType);
 			proveedorDTO.setRole(proveedor.getRole());
 			return new ResponseEntity<>(proveedorDTO, HttpStatus.OK);
 		}
