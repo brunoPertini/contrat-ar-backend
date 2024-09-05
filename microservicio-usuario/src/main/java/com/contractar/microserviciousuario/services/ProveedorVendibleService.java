@@ -298,7 +298,7 @@ public class ProveedorVendibleService {
 	/**
 	 * Gets all the providers that offer the given vendible. They should comply with
 	 * their subscription constraints, and, if they are present, with the distances
-	 * and prices filters.
+	 * and prices filters. As this is invoked by a client, only posts with ACTIVE state should be filtered
 	 * 
 	 * @param vendibleId  Product or service id
 	 * @param minDistance Minimum distance (from client's location) a vendible is
