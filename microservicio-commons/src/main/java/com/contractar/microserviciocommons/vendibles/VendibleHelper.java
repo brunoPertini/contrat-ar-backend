@@ -177,13 +177,11 @@ public final class VendibleHelper {
 			VendibleAccesor vendible) {
 		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
 			ProveedorAccessor proveedor = proveedorVendible.getProveedor();
-			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(
-					vendible.getNombre(), proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
+				proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(), proveedorVendible.getTipoPrecio(),
+				proveedorVendible.getOffersDelivery(), proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
+				proveedorVendible.getStock(), proveedorVendible.getCategory().getId());
 			response.getProveedores().add(new ProveedorDTO(proveedor));
-
-			proveedorVendibleDTO.setVendibleCategoryId(proveedorVendible.getCategory().getId());
-			proveedorVendibleDTO.setVendibleId(vendible.getId());
 
 			return proveedorVendibleDTO;
 		}).collect(Collectors.toSet());

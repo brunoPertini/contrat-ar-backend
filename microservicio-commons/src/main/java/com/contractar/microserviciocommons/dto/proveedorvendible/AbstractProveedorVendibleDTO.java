@@ -1,6 +1,7 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
 import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAccesor;
+import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 
 public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorVendibleDTOAccesor{
@@ -13,7 +14,7 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 
 	private int precio;
 	
-	private PriceTypeValue tipoPrecio;
+	private PriceTypeInterface tipoPrecio;
 	
 	private boolean offersDelivery;
 	
@@ -27,7 +28,7 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 	
 
 	public AbstractProveedorVendibleDTO(Long vendibleId, String vendibleNombre, String descripcion, int precio,
-			PriceTypeValue tipoPrecio, boolean offersDelivery, boolean offersInCustomAddress, String imagenUrl,
+			PriceTypeInterface tipoPrecio, boolean offersDelivery, boolean offersInCustomAddress, String imagenUrl,
 			int stock, Long vendibleCategoryId) {
 		this.vendibleId = vendibleId;
 		this.vendibleNombre = vendibleNombre;
@@ -109,7 +110,7 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 		this.vendibleCategoryId = vendibleCategoryId;
 	}
 	
-	public PriceTypeValue getTipoPrecio() {
+	public PriceTypeInterface getTipoPrecio() {
 		return tipoPrecio;
 	}
 

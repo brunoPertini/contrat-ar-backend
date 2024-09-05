@@ -1,5 +1,6 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
+import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -10,7 +11,7 @@ public class SimplifiedProveedorVendibleDTO extends AbstractProveedorVendibleDTO
 	private Long planId;
 
 	public SimplifiedProveedorVendibleDTO(Long vendibleId, Long proveedorId, String vendibleNombre, String descripcion, int precio,
-			PriceTypeValue tipoPrecio, boolean offersDelivery, boolean offersInCustomAddress, String imagenUrl,
+			PriceTypeInterface tipoPrecio, boolean offersDelivery, boolean offersInCustomAddress, String imagenUrl,
 			int stock, Long vendibleCategoryId) {
 		super(vendibleId, vendibleNombre, descripcion, precio, tipoPrecio, offersDelivery, offersInCustomAddress, imagenUrl,
 				stock, vendibleCategoryId);
