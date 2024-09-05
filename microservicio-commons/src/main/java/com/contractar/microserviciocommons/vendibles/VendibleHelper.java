@@ -177,7 +177,7 @@ public final class VendibleHelper {
 			VendibleAccesor vendible) {
 		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
 			ProveedorAccessor proveedor = proveedorVendible.getProveedor();
-					proveedorVendible.getImagenUrl(), proveedorVendible.getStock(), proveedor.getId());
+			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(vendible.getId(), proveedor.getId(), vendible.getNombre(),
 				proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(), proveedorVendible.getTipoPrecio(),
 				proveedorVendible.getOffersDelivery(), proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
 				proveedorVendible.getStock(), proveedorVendible.getCategory().getId());
