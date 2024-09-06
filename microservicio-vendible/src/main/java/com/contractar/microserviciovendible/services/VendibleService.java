@@ -10,6 +10,10 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -18,6 +22,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+import com.contractar.microservicioadapter.enums.PostState;
+import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
@@ -33,6 +39,7 @@ import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciousuario.models.VendibleCategory;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
@@ -41,6 +48,7 @@ import com.contractar.microserviciovendible.repository.VendibleCategoryRepositor
 import com.contractar.microserviciovendible.repository.VendibleRepository;
 import com.contractar.microserviciovendible.services.resolvers.VendibleFetchingMethodResolver;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -178,11 +186,31 @@ public class VendibleService {
 		return vendibleType.equals(VendibleType.SERVICIO.name()) ? this.servicioRepository.save(vendible)
 				: productoRepository.save(vendible);
 	}
+	
+	private void requestPostStateChange(Long proveedorId, Long vendibleId, PostState state, HttpServletRequest request) throws CantCreateException{
+		String url = microServicioUsuarioUrl + AdminControllerUrls.ADMIN_POST_BY_ID
+				.replace("{id}", proveedorId.toString())
+				.replace("{vendibleId}", vendibleId.toString());
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", request.getHeader("Authorization"));
+		
+		ProveedorVendibleAdminDTO body = new ProveedorVendibleAdminDTO();
+		body.setState(state);
+		
+		HttpEntity entity = new HttpEntity(body, headers);
+		
+		ResponseEntity response = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
+		
+		if (!response.getStatusCode().equals(HttpStatusCode.valueOf(200))) {
+			throw new CantCreateException();
+		}
+	}
 
-	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
+	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId, HttpServletRequest request)
 			throws UserNotFoundException, CantCreateException {
 
-		boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
+		boolean hasVendibleToLink = !vendible.getProveedoresVendibles().isEmpty();
 
 		if (proveedorId == null || !hasVendibleToLink) {
 			throw new CantCreateException();
@@ -199,7 +227,7 @@ public class VendibleService {
 
 		VendibleCategoryAccesor addedCategory = this.persistCategoryHierachy(vendibleCategory);
 		firstPv.setCategory(addedCategory);
-
+		
 		Vendible addedVendible;
 
 		try {
@@ -229,8 +257,11 @@ public class VendibleService {
 							.replace("{vendibleId}", addedVendible.getId().toString());
 
 			ProveedorVendibleAccesor pv = (ProveedorVendibleAccesor) vendible.getProveedoresVendibles().toArray()[0];
+			pv.setState(PostState.IN_REVIEW);
 
 			ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
+						
+			requestPostStateChange(proveedorId, addedVendible.getId(), PostState.ACTIVE, request);
 
 			return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
 

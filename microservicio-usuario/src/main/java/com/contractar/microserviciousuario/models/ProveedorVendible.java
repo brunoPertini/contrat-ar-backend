@@ -86,7 +86,6 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	private VendibleCategory category;
 	
 	@Enumerated(EnumType.STRING)
-	@NotNull
 	private PostState state;
 
 	public ProveedorVendible() {

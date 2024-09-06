@@ -13,7 +13,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
@@ -22,6 +21,7 @@ import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.admin.controllers.AdminController.UsuariosTypeFilter;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorAdminDTO;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuariosByTypeResponse;
 import com.contractar.microserviciousuario.admin.models.ChangeRequest;
@@ -80,13 +80,22 @@ public class AdminService {
 	public boolean requestExists(Long sourceTableId, List<String> attributes) {
 		return !attributes.isEmpty() && repositoryImpl.getMatchingChangeRequest(sourceTableId, attributes) != null;
 	}
+	
+	public void addChangeRequestEntry(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId) throws IllegalAccessException {
+		// Only state should be approved by an admin, the other attributes can be changed by the proveedor
+		if (newInfo.getState() != null) {
+			ChangeRequest newRequest = new ChangeRequest("proveedor_vendible", "state='"+newInfo.getState()+"'", false, List.of(proveedorId, vendibleId),
+					List.of("proveedor_id", "vendible_id"));
+			repository.save(newRequest);
+		}
+	}
 
-	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, Long sourceTableId)
+	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, List<Long> sourceTableIds)
 			throws IllegalAccessException, ChangeAlreadyRequestedException {
 		HashMap<String, Object> infoAsMap = (HashMap<String, Object>) ReflectionHelper.getObjectFields(newInfo);
 
 		boolean someInfoAlreadyRequested = infoAsMap.keySet().stream().anyMatch(newInfoKey -> {
-			Long matchingRequest = repository.getMatchingChangeRequest(sourceTableId, newInfoKey);
+			Long matchingRequest = repository.getMatchingChangeRequest(sourceTableIds, newInfoKey);
 			return matchingRequest != null;
 		});
 
@@ -107,8 +116,8 @@ public class AdminService {
 
 		if (!attributesBuilder.isEmpty()) {
 			attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
-			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false, sourceTableId,
-					"id");
+			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false, sourceTableIds,
+					List.of("id"));
 			repository.save(newRequest);
 		}
 
@@ -127,8 +136,8 @@ public class AdminService {
 
 	            String planAttributeChangeQuery = "plan=" + "\'" + newPlanId.toString() + "\'";
 
-	            ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false, subscriptionId,
-	                    "id");
+	            ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false,  List.of(subscriptionId),
+	                    List.of("id"));
 	            repository.save(planChangeRequest);
 	        } catch (ChangeAlreadyRequestedException e) {
 	            throw new RuntimeException(e);

@@ -181,6 +181,7 @@ public class ProveedorVendibleService {
 			simplifiedVendibleDTO.setOffersDelivery(pv.getOffersDelivery());
 			simplifiedVendibleDTO.setOffersInCustomAddress(pv.getOffersInCustomAddress());
 			simplifiedVendibleDTO.setLocation(pv.getLocation());
+			simplifiedVendibleDTO.setState(pv.getState());
 
 			VendibleHelper.addCategoriasToResponse(pv, response);
 

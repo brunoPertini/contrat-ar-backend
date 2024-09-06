@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.controllers;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -167,7 +168,7 @@ public class UsuarioController {
 	public ResponseEntity<?> changeUserSensibleInfo(@PathVariable Long usuarioId,
 			@RequestBody UsuarioSensibleInfoDTO body) throws ChangeAlreadyRequestedException {
 		try {
-			adminService.addChangeRequestEntry(body, usuarioId);
+			adminService.addChangeRequestEntry(body, List.of(usuarioId));
 			return ResponseEntity.ok().build();
 		} catch (IllegalAccessException e) {
 			return new ExceptionFactory().getResponseException(

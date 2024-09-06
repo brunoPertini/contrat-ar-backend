@@ -20,6 +20,7 @@ import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
@@ -56,7 +57,7 @@ public class AdminController {
 			@PathVariable("id") Long id) throws ChangeAlreadyRequestedException {
 
 		try {
-			adminService.addChangeRequestEntry(body, id);
+			adminService.addChangeRequestEntry(body, List.of(id));
 			return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 		} catch (IllegalAccessException e) {
 			return new ResponseEntity<>(HttpStatusCode.valueOf(409));
@@ -76,13 +77,22 @@ public class AdminController {
 		adminService.updateProveedorPersonalData(userId, body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
-	
+		
 	@PatchMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
 	public ResponseEntity<Void> updateProveedor (@PathVariable("id")Long userId, @RequestBody @Valid UsuarioPersonalDataUpdateDTO body) throws ClassNotFoundException,
 	IllegalAccessException, InvocationTargetException {
 		adminService.updateClientePersonalData(userId, body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
+	
+	
+	  @PutMapping(AdminControllerUrls.ADMIN_POST_BY_ID) 
+	  public ResponseEntity<Void> updatePost(@PathVariable(name = "id") Long proveedorId, @PathVariable(name = "vendibleId") Long
+	  vendibleId, @RequestBody ProveedorVendibleAdminDTO body) throws IllegalAccessException {
+		  	adminService.addChangeRequestEntry(body, proveedorId, vendibleId);
+			return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	  }
+	 
 
 	@PostMapping(AdminControllerUrls.USUARIOS_BASE_URL)
 	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = true) UsuariosTypeFilter usuarioType,

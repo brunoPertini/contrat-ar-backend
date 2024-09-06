@@ -1,9 +1,14 @@
 package com.contractar.microserviciousuario.admin.models;
 
 import java.io.Serializable;
+import java.util.List;
+
+import com.contractar.microserviciousuario.models.converters.LongListConverter;
+import com.contractar.microserviciousuario.models.converters.StringListConverter;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,11 +26,13 @@ public class ChangeRequest implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+	@Convert(converter = StringListConverter.class)
 	@Column(nullable = false)
-	private String sourceTableIdName;
+	private List<String> sourceTableIdNames;
 	
+	@Convert(converter = LongListConverter.class)
 	@Column(nullable = false)
-	private Long sourceTableId;
+	private List<Long> sourceTableIds;
 
 	@Column(nullable = false)
 	private String sourceTable;
@@ -37,12 +44,12 @@ public class ChangeRequest implements Serializable {
 	
 	public ChangeRequest() {}
 
-	public ChangeRequest(String table, String attributes, boolean wasApplied, Long sourceTableId, String sourceTableIdName) {
+	public ChangeRequest(String table, String attributes, boolean wasApplied, List<Long> sourceTableIds, List<String> sourceTableIdNames) {
 		this.sourceTable = table;
 		this.attributes = attributes;
 		this.wasApplied = wasApplied;
-		this.sourceTableId = sourceTableId;
-		this.sourceTableIdName = sourceTableIdName;
+		this.sourceTableIds = sourceTableIds;
+		this.sourceTableIdNames = sourceTableIdNames;
 	}
 
 	public String getSourceTable() {
@@ -69,19 +76,19 @@ public class ChangeRequest implements Serializable {
 		this.wasApplied = wasApplied;
 	}
 	
-	public String getSourceTableIdName() {
-		return sourceTableIdName;
+	public List<String> getSourceTableIdNames() {
+		return sourceTableIdNames;
 	}
 
-	public void setSourceTableIdName(String sourceTableIdName) {
-		this.sourceTableIdName = sourceTableIdName;
+	public void setSourceTableIdNames(List<String> sourceTableIdNames) {
+		this.sourceTableIdNames = sourceTableIdNames;
 	}
 	
-	public Long getSourceTableId() {
-		return sourceTableId;
+	public List<Long> getSourceTableIds() {
+		return sourceTableIds;
 	}
 
-	public void setSourceTableId(Long sourceTableId) {
-		this.sourceTableId = sourceTableId;
+	public void setSourceTableId(List<Long> sourceTableIds) {
+		this.sourceTableIds = sourceTableIds;
 	}
 }

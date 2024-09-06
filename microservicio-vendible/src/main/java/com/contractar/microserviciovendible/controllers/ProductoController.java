@@ -24,6 +24,7 @@ import com.contractar.microserviciousuario.models.Producto;
 import com.contractar.microserviciovendible.services.VendibleService;
 import com.contractar.microserviciovendible.services.resolvers.ProductoFetchingMethodResolver;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @Controller
@@ -38,8 +39,9 @@ public class ProductoController {
 
 	@PostMapping(VendiblesControllersUrls.SAVE_PRODUCT)
 	public ResponseEntity<ProductoDTO> save(@RequestBody @Valid Producto producto,
-			@RequestParam(required = false) Long proveedorId) throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
-		Producto addedProducto = (Producto) vendibleService.save(producto, vendibleType, proveedorId);
+			@RequestParam(required = false) Long proveedorId,
+			HttpServletRequest request) throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
+		Producto addedProducto = (Producto) vendibleService.save(producto, vendibleType, proveedorId, request);
 		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre());
 		return new ResponseEntity<ProductoDTO>(productoDTO, HttpStatus.CREATED);
 	}
