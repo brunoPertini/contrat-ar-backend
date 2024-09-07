@@ -49,7 +49,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 			VendibleAlreadyExistsException.class,
 			VendibleUpdateException.class,
 			ChangeAlreadyRequestedException.class,
-			ChangeConfirmException.class,})
+			ChangeConfirmException.class})
 	public ResponseEntity<Object> handleCustomExceptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),

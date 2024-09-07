@@ -11,4 +11,9 @@ public class ChangeAlreadyRequestedException extends CustomException{
 		this.STATUS_CODE = 409;
 	}
 
+	public ChangeAlreadyRequestedException(String message) {
+		super(message);
+		this.STATUS_CODE = 409;
+	}
+
 }

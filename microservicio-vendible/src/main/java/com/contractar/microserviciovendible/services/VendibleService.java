@@ -13,7 +13,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -124,7 +123,7 @@ public class VendibleService {
 
 		if (shouldNotCheckForParents) {
 			VendibleCategory isolatedCategory = vendibleCategoryRepository.findAloneCategory(baseCategoryName);
-			boolean existsAsIsolatedCategpry =  isolatedCategory != null;
+			boolean existsAsIsolatedCategpry = isolatedCategory != null;
 
 			if (existsAsIsolatedCategpry) {
 				return isolatedCategory;
@@ -134,8 +133,8 @@ public class VendibleService {
 			return vendibleCategoryRepository.save(baseCategory);
 		}
 
-		VendibleCategory persistedBaseCategory = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
-				secondParentName);
+		VendibleCategory persistedBaseCategory = vendibleCategoryRepository.findByHierarchy(baseCategoryName,
+				firstParentName, secondParentName);
 
 		boolean hierachyExists = persistedBaseCategory != null;
 		categoryParentAux = null;
@@ -171,11 +170,11 @@ public class VendibleService {
 			return categoryParentAux;
 
 		}
-		
+
 		if (firstParentName != null && secondParentName != null) {
 			return persistedBaseCategory;
 		}
-		
+
 		baseCategory.setParent(persistedBaseCategory.getParent());
 		return vendibleCategoryRepository.save(baseCategory);
 
@@ -186,25 +185,21 @@ public class VendibleService {
 		return vendibleType.equals(VendibleType.SERVICIO.name()) ? this.servicioRepository.save(vendible)
 				: productoRepository.save(vendible);
 	}
-	
-	private void requestPostStateChange(Long proveedorId, Long vendibleId, PostState state, HttpServletRequest request) throws CantCreateException{
+
+	public void requestPostStateChange(Long proveedorId, Long vendibleId, PostState state, HttpServletRequest request) {
 		String url = microServicioUsuarioUrl + AdminControllerUrls.ADMIN_POST_BY_ID
-				.replace("{id}", proveedorId.toString())
-				.replace("{vendibleId}", vendibleId.toString());
-		
+				.replace("{id}", proveedorId.toString()).replace("{vendibleId}", vendibleId.toString());
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", request.getHeader("Authorization"));
-		
+
 		ProveedorVendibleAdminDTO body = new ProveedorVendibleAdminDTO();
 		body.setState(state);
-		
+
 		HttpEntity entity = new HttpEntity(body, headers);
-		
-		ResponseEntity response = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
-		
-		if (!response.getStatusCode().equals(HttpStatusCode.valueOf(200))) {
-			throw new CantCreateException();
-		}
+
+		restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
+
 	}
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId, HttpServletRequest request)
@@ -216,7 +211,8 @@ public class VendibleService {
 			throw new CantCreateException();
 		}
 
-		ProveedorVendibleAccesor firstPv = vendible.getProveedoresVendibles().toArray(new ProveedorVendibleAccesor[0])[0];
+		ProveedorVendibleAccesor firstPv = vendible.getProveedoresVendibles()
+				.toArray(new ProveedorVendibleAccesor[0])[0];
 
 		VendibleCategory vendibleCategory = (VendibleCategory) firstPv.getCategory();
 
@@ -227,7 +223,7 @@ public class VendibleService {
 
 		VendibleCategoryAccesor addedCategory = this.persistCategoryHierachy(vendibleCategory);
 		firstPv.setCategory(addedCategory);
-		
+
 		Vendible addedVendible;
 
 		try {
@@ -260,7 +256,7 @@ public class VendibleService {
 			pv.setState(PostState.IN_REVIEW);
 
 			ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
-						
+
 			requestPostStateChange(proveedorId, addedVendible.getId(), PostState.ACTIVE, request);
 
 			return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
@@ -349,9 +345,8 @@ public class VendibleService {
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 
-	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {		
+	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {
 		VendibleCategory category = vendibleCategoryRepository.findById(baseCategory.getId()).get();
-		
 
 		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())
 				.collect(Collectors.toList());

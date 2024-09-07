@@ -57,7 +57,7 @@ public class AdminController {
 			@PathVariable("id") Long id) throws ChangeAlreadyRequestedException {
 
 		try {
-			adminService.addChangeRequestEntry(body, List.of(id));
+			adminService.addChangeRequestEntry(body, List.of(id.toString()));
 			return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 		} catch (IllegalAccessException e) {
 			return new ResponseEntity<>(HttpStatusCode.valueOf(409));
@@ -87,10 +87,15 @@ public class AdminController {
 	
 	
 	  @PutMapping(AdminControllerUrls.ADMIN_POST_BY_ID) 
-	  public ResponseEntity<Void> updatePost(@PathVariable(name = "id") Long proveedorId, @PathVariable(name = "vendibleId") Long
+	  public ResponseEntity<?> updatePost(@PathVariable(name = "id") Long proveedorId, @PathVariable(name = "vendibleId") Long
 	  vendibleId, @RequestBody ProveedorVendibleAdminDTO body) throws IllegalAccessException {
-		  	adminService.addChangeRequestEntry(body, proveedorId, vendibleId);
-			return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+		  try {
+			  adminService.addChangeRequestEntry(body, proveedorId, vendibleId);
+				return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+		  } catch (ChangeAlreadyRequestedException e) {
+			  return new ResponseEntity(e.getMessage(), HttpStatusCode.valueOf(e.getStatusCode()));
+		  }
+		  	
 	  }
 	 
 

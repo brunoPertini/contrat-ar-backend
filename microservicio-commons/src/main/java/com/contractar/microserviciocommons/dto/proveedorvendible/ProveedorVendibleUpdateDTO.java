@@ -2,6 +2,7 @@ package com.contractar.microserviciocommons.dto.proveedorvendible;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
@@ -14,17 +15,20 @@ public class ProveedorVendibleUpdateDTO {
 	private String imagenUrl;
 	private int precio;
 	private PriceTypeValue tipoPrecio;
-	
+
 	private boolean offersDelivery;
 	private boolean offersInCustomAddress;
 
 	private int stock;
 
+	private PostState state;
+
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
 
-	public ProveedorVendibleUpdateDTO(String descripcion, String imagenUrl, int precio, int stock, PriceTypeValue tipoPrecio) {
+	public ProveedorVendibleUpdateDTO(String descripcion, String imagenUrl, int precio, int stock,
+			PriceTypeValue tipoPrecio) {
 		this.descripcion = descripcion;
 		this.imagenUrl = imagenUrl;
 		this.precio = precio;
@@ -33,6 +37,10 @@ public class ProveedorVendibleUpdateDTO {
 	}
 
 	public ProveedorVendibleUpdateDTO() {
+	}
+
+	public ProveedorVendibleUpdateDTO(PostState state) {
+		this.state = state;
 	}
 
 	public String getDescripcion() {
@@ -82,7 +90,7 @@ public class ProveedorVendibleUpdateDTO {
 	public void setTipoPrecio(PriceTypeValue tipoPrecio) {
 		this.tipoPrecio = tipoPrecio;
 	}
-	
+
 	public boolean isOffersDelivery() {
 		return offersDelivery;
 	}
@@ -97,5 +105,13 @@ public class ProveedorVendibleUpdateDTO {
 
 	public void setOffersInCustomAddress(boolean offersInCustomAddress) {
 		this.offersInCustomAddress = offersInCustomAddress;
+	}
+
+	public PostState getState() {
+		return state;
+	}
+
+	public void setState(PostState state) {
+		this.state = state;
 	}
 }

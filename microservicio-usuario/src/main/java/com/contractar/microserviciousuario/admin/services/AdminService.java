@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -52,10 +51,10 @@ public class AdminService {
 
 	@Autowired
 	private ProveedorRepository proveedorRepository;
-	
+
 	@Autowired
 	private UsuarioRepository usuarioRepository;
-	
+
 	private final String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado";
 
 	private final Map<String, Function<Long, ? extends Usuario>> fetchEntity = Map
@@ -80,22 +79,32 @@ public class AdminService {
 	public boolean requestExists(Long sourceTableId, List<String> attributes) {
 		return !attributes.isEmpty() && repositoryImpl.getMatchingChangeRequest(sourceTableId, attributes) != null;
 	}
-	
-	public void addChangeRequestEntry(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId) throws IllegalAccessException {
-		// Only state should be approved by an admin, the other attributes can be changed by the proveedor
+
+	public void addChangeRequestEntry(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId)
+			throws IllegalAccessException, ChangeAlreadyRequestedException {
+		String concatenatedIds = proveedorId.toString() + "," + vendibleId.toString();
+		boolean alreadyRequested = repository.getMatchingChangeRequest(concatenatedIds, "state") != null;
+		
+		if (alreadyRequested) {
+			throw new ChangeAlreadyRequestedException("Ya registramos un cambio para este producto/servicio y está en revisión. Por favor, esperá a que se confirme antes de realizar otro");
+		}
+
+		// Only state should be approved by an admin, the other attributes can be
+		// changed by the proveedor
 		if (newInfo.getState() != null) {
-			ChangeRequest newRequest = new ChangeRequest("proveedor_vendible", "state='"+newInfo.getState()+"'", false, List.of(proveedorId, vendibleId),
-					List.of("proveedor_id", "vendible_id"));
+			ChangeRequest newRequest = new ChangeRequest("proveedor_vendible", "state='" + newInfo.getState() + "'",
+					false, List.of(proveedorId, vendibleId), List.of("proveedor_id", "vendible_id"));
 			repository.save(newRequest);
 		}
 	}
 
-	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, List<Long> sourceTableIds)
+	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, List<String> sourceTableIds)
 			throws IllegalAccessException, ChangeAlreadyRequestedException {
 		HashMap<String, Object> infoAsMap = (HashMap<String, Object>) ReflectionHelper.getObjectFields(newInfo);
+		String concatenatedIds = sourceTableIds.stream().reduce("", (acum, id) -> acum + "," + id);
 
 		boolean someInfoAlreadyRequested = infoAsMap.keySet().stream().anyMatch(newInfoKey -> {
-			Long matchingRequest = repository.getMatchingChangeRequest(sourceTableIds, newInfoKey);
+			Long matchingRequest = repository.getMatchingChangeRequest(concatenatedIds, newInfoKey);
 			return matchingRequest != null;
 		});
 
@@ -116,41 +125,41 @@ public class AdminService {
 
 		if (!attributesBuilder.isEmpty()) {
 			attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
-			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false, sourceTableIds,
-					List.of("id"));
+			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false,
+					sourceTableIds.stream().map(Long::parseLong).collect(Collectors.toList()), List.of("id"));
 			repository.save(newRequest);
 		}
 
 	}
 
-	public void addChangeRequestEntry(Long proveedorId, Long newPlanId) throws ChangeAlreadyRequestedException, ChangeConfirmException {
-	    proveedorRepository.findById(proveedorId).ifPresentOrElse(foundProveedor -> {
-	        try {
-	            Long subscriptionId = foundProveedor.getSuscripcion().getId();
+	public void addChangeRequestEntry(Long proveedorId, Long newPlanId)
+			throws ChangeAlreadyRequestedException, ChangeConfirmException {
+		proveedorRepository.findById(proveedorId).ifPresentOrElse(foundProveedor -> {
+			try {
+				Long subscriptionId = foundProveedor.getSuscripcion().getId();
 
-	            boolean infoAlreadyRequested = requestExists(subscriptionId, List.of(newPlanId.toString()));
+				boolean infoAlreadyRequested = requestExists(subscriptionId, List.of(newPlanId.toString()));
 
-	            if (infoAlreadyRequested) {
-	                throw new ChangeAlreadyRequestedException();
-	            }
+				if (infoAlreadyRequested) {
+					throw new ChangeAlreadyRequestedException();
+				}
 
-	            String planAttributeChangeQuery = "plan=" + "\'" + newPlanId.toString() + "\'";
+				String planAttributeChangeQuery = "plan=" + "\'" + newPlanId.toString() + "\'";
 
-	            ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false,  List.of(subscriptionId),
-	                    List.of("id"));
-	            repository.save(planChangeRequest);
-	        } catch (ChangeAlreadyRequestedException e) {
-	            throw new RuntimeException(e);
-	        }
-	    }, () -> {
-	    	try {
-	    		throw new ChangeConfirmException();
-	    	} catch (ChangeConfirmException e) {
-	    		throw new RuntimeException(e);
-	    	}
-	    });
+				ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false,
+						List.of(subscriptionId), List.of("id"));
+				repository.save(planChangeRequest);
+			} catch (ChangeAlreadyRequestedException e) {
+				throw new RuntimeException(e);
+			}
+		}, () -> {
+			try {
+				throw new ChangeConfirmException();
+			} catch (ChangeConfirmException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
-
 
 	public void confirmChangeRequest(Long id) throws ChangeConfirmException {
 		Optional<ChangeRequest> requestOpt = repository.findById(id);
@@ -181,42 +190,42 @@ public class AdminService {
 
 		return response;
 	}
-	
-	public void updateClientePersonalData(Long userId, UsuarioPersonalDataUpdateDTO newInfo) throws ClassNotFoundException,
-	IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+
+	public void updateClientePersonalData(Long userId, UsuarioPersonalDataUpdateDTO newInfo)
+			throws ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Cliente entity = (Cliente) fetchEntity.get(UsuariosTypeFilter.clientes.name()).apply(userId);
 		String entityClassFullName = ReflectionHelper.getObjectClassFullName(entity);
 		String clienteDtoClassFullName = ReflectionHelper.getObjectClassFullName(newInfo);
 		ReflectionHelper.applySetterFromExistingFields(newInfo, entity, clienteDtoClassFullName, entityClassFullName);
 		clienteRepository.save(entity);
-			
+
 	}
 
-	public void updateProveedorPersonalData(Long userId, ProveedorPersonalDataUpdateDTO newInfo) throws ClassNotFoundException,
-	IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public void updateProveedorPersonalData(Long userId, ProveedorPersonalDataUpdateDTO newInfo)
+			throws ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Proveedor entity = (Proveedor) fetchEntity.get(UsuariosTypeFilter.proveedores.name()).apply(userId);
 		String entityClassFullName = ReflectionHelper.getObjectClassFullName(entity);
 		String proveedorDtoClassFullName = ReflectionHelper.getObjectClassFullName(newInfo);
 		ReflectionHelper.applySetterFromExistingFields(newInfo, entity, proveedorDtoClassFullName, entityClassFullName);
 		proveedorRepository.save(entity);
-			
+
 	}
-	
+
 	public void deleteUser(Long userId) throws UserNotFoundException {
 		Optional<Usuario> foundOpt = usuarioRepository.findById(userId);
-		
+
 		if (foundOpt.isEmpty()) {
 			throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
 		}
-		
+
 		Usuario found = foundOpt.get();
-		
+
 		String roleName = found.getRole().getNombre();
-		
+
 		if (roleName.equals(RolesValues.ADMIN.toString())) {
 			throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
 		}
-		
+
 		if (roleName.equals(RolesValues.CLIENTE.toString())) {
 			clienteRepository.deleteById(userId);
 		} else {

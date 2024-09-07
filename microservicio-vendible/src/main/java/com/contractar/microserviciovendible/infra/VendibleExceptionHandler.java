@@ -9,6 +9,7 @@ import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -38,7 +39,7 @@ public class VendibleExceptionHandler extends ResponseEntityExceptionHandler {
 				
 	}
 	
-	@ExceptionHandler(value = { VendibleNotFoundException.class, VendibleAlreadyExistsException.class, CantCreateException.class })
+	@ExceptionHandler(value = { VendibleNotFoundException.class, VendibleAlreadyExistsException.class, CantCreateException.class, RestClientException.class })
 	public ResponseEntity<Object> handleVendibleOperationsExceptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),

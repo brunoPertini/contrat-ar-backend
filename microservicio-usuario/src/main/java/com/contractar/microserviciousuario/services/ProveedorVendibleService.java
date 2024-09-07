@@ -30,6 +30,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
@@ -132,7 +133,8 @@ public class ProveedorVendibleService {
 	}
 
 	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData)
-			throws VendibleNotFoundException, VendibleUpdateException {
+			throws VendibleNotFoundException, VendibleUpdateException, InvocationTargetException,
+			IllegalAccessException, ClassNotFoundException {
 		if (newData.getImagenUrl() != null
 				&& !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
@@ -146,6 +148,15 @@ public class ProveedorVendibleService {
 		String entityFullClassName = ProveedorVendible.class.getPackage().getName() + ".ProveedorVendible";
 
 		try {
+			newData.setState(PostState.IN_REVIEW);
+			String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
+					.replace("{vendibleId}", vendibleId.toString()).replace("{proveedorId}", proveedorId.toString());
+
+			HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
+					new ProveedorVendibleUpdateDTO(PostState.ACTIVE));
+
+			httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
+
 			ReflectionHelper.applySetterFromExistingFields(newData, vendible, dtoFullClassName, entityFullClassName);
 			repository.save(vendible);
 		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
@@ -224,7 +235,7 @@ public class ProveedorVendibleService {
 	}
 
 	private <T> List<T> getSublistForPagination(Pageable pageRequest, List<T> sourceList) {
-		if(pageRequest.getOffset() >= sourceList.size()) {
+		if (pageRequest.getOffset() >= sourceList.size()) {
 			return sourceList;
 		}
 
@@ -281,25 +292,24 @@ public class ProveedorVendibleService {
 
 		return isPostLocationOk;
 	}
-	
-	private Page<ProveedorVendible> findAllByLocationAndPlanConstraints(Long vendibleId, Point userLocation, Pageable pageable) {
 
-	    List<ProveedorVendible> filteredPosts = repository.getPostsOfProveedoresWithValidSubscription(vendibleId)
-	    		.stream()
-	        .filter(post -> {
-	           return proveedorMatchesPlanConstraint(post,userLocation);
-	        })
-	        .collect(Collectors.toList());
+	private Page<ProveedorVendible> findAllByLocationAndPlanConstraints(Long vendibleId, Point userLocation,
+			Pageable pageable) {
 
-	    List<ProveedorVendible> pageContent = getSublistForPagination(pageable, filteredPosts);
-	    return new PageImpl<>(pageContent, pageable, filteredPosts.size());
+		List<ProveedorVendible> filteredPosts = repository.getPostsOfProveedoresWithValidSubscription(vendibleId)
+				.stream().filter(post -> {
+					return proveedorMatchesPlanConstraint(post, userLocation);
+				}).collect(Collectors.toList());
+
+		List<ProveedorVendible> pageContent = getSublistForPagination(pageable, filteredPosts);
+		return new PageImpl<>(pageContent, pageable, filteredPosts.size());
 	}
-
 
 	/**
 	 * Gets all the providers that offer the given vendible. They should comply with
 	 * their subscription constraints, and, if they are present, with the distances
-	 * and prices filters. As this is invoked by a client, only posts with ACTIVE state should be filtered
+	 * and prices filters. As this is invoked by a client, only posts with ACTIVE
+	 * state should be filtered
 	 * 
 	 * @param vendibleId  Product or service id
 	 * @param minDistance Minimum distance (from client's location) a vendible is
@@ -330,7 +340,7 @@ public class ProveedorVendibleService {
 		this.pricesForSlider = new ArrayList<>();
 		this.distancesForSlider = new ArrayList<>();
 		Map<Long, Double> distances = new HashMap<>();
-		
+
 		ArrayList<DistanceProveedorDTO> posts = (ArrayList<DistanceProveedorDTO>) results.filter(proveedorVendible -> {
 			double distanceNotRounded = DistanceCalculator.resolveDistanceFromClient(userLocation, proveedorVendible);
 
@@ -345,32 +355,32 @@ public class ProveedorVendibleService {
 				chainCreator.setToCompareDistance(distance);
 				chainCreator.setToComparePrice(proveedorVendible.getPrecio());
 			}
-			
+
 			boolean filterResult = chainNotExists || chainCreator.runChain();
-					
+
 			if (filterResult) {
 				distances.put(proveedorVendible.getId().getProveedorId(), distance);
 			}
 
 			return filterResult;
-			
+
 		}).map(proveedorVendible -> {
 			DistanceProveedorDTO distanceDTO = new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
 					proveedorVendible.getId().getProveedorId(), proveedorVendible.getVendible().getNombre(),
 					proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 					proveedorVendible.getTipoPrecio(), proveedorVendible.getOffersDelivery(),
 					proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
-					proveedorVendible.getStock(), proveedorVendible.getCategory().getId(), distances.get(proveedorVendible.getId().getProveedorId()));
+					proveedorVendible.getStock(), proveedorVendible.getCategory().getId(),
+					distances.get(proveedorVendible.getId().getProveedorId()));
 
 			distanceDTO.setPlanId(proveedorVendible.getProveedor().getSuscripcion().getPlan().getId());
 
 			ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
 			toAddProveedor.setLocation(proveedorVendible.getLocation());
 			proveedores.add(toAddProveedor);
-			
+
 			return distanceDTO;
 		}).stream().collect(Collectors.toList());
-
 
 		setMinAndMaxForSlider(response);
 
@@ -382,7 +392,7 @@ public class ProveedorVendibleService {
 					shouldSortByDistance);
 			posts.sort(comparator);
 		}
-		
+
 		response.setVendibles(new PageImpl(posts, pageable, results.getTotalElements()));
 		response.setProveedores(getSublistForPagination(pageable, new ArrayList<>(proveedores)));
 
