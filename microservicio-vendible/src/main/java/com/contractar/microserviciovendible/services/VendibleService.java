@@ -32,6 +32,7 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.helpers.StringHelper;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
@@ -199,11 +200,10 @@ public class VendibleService {
 		HttpEntity entity = new HttpEntity(body, headers);
 
 		restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
-
 	}
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId, HttpServletRequest request)
-			throws UserNotFoundException, CantCreateException {
+			throws UserNotFoundException, CantCreateException, CouldntChangeStateException {
 
 		boolean hasVendibleToLink = !vendible.getProveedoresVendibles().isEmpty();
 

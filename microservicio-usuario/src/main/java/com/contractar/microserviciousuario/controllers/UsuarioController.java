@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
 
 import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
@@ -164,12 +163,8 @@ public class UsuarioController {
 			@Valid @RequestBody ProveedorVendibleUpdateDTO body) throws VendibleNotFoundException,
 			VendibleUpdateException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
 
-		try {
-			proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
-			return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
-		} catch (RestClientException e) {
-			return new ExceptionFactory().getResponseException(e.getMessage(), HttpStatusCode.valueOf(409));
-		}
+		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
+		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
 
 	@PutMapping(UsersControllerUrls.USUARIO_BASE_URL)

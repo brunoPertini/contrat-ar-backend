@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestClientException;
 
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
+import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.models.Vendible;
@@ -72,7 +72,7 @@ public class VendibleController {
 	public ResponseEntity<Void> requestPostStateChange(@PathVariable("vendibleId") Long vendibleId,
 			@PathVariable("proveedorId") Long proveedorId,
 			@RequestBody ProveedorVendibleAdminDTO body,
-			HttpServletRequest request) throws RestClientException {
+			HttpServletRequest request) throws CouldntChangeStateException {
 		vendibleService.requestPostStateChange(proveedorId, vendibleId, body.getState(), request);
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
