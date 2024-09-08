@@ -44,6 +44,8 @@ import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -160,10 +162,10 @@ public class UsuarioController {
 
 	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
 	public ResponseEntity<?> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
-			@Valid @RequestBody ProveedorVendibleUpdateDTO body) throws VendibleNotFoundException,
+			@Valid @RequestBody ProveedorVendibleUpdateDTO body, HttpServletRequest request) throws VendibleNotFoundException,
 			VendibleUpdateException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
 
-		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
+		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body, request);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
 

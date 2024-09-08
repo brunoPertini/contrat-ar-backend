@@ -13,13 +13,13 @@ public class ProveedorVendibleUpdateDTO {
 
 	private String descripcion;
 	private String imagenUrl;
-	private int precio;
+	private Integer precio;
 	private PriceTypeValue tipoPrecio;
 
-	private boolean offersDelivery;
-	private boolean offersInCustomAddress;
+	private Boolean offersDelivery;
+	private Boolean offersInCustomAddress;
 
-	private int stock;
+	private Integer stock;
 
 	private PostState state;
 
@@ -59,19 +59,19 @@ public class ProveedorVendibleUpdateDTO {
 		this.imagenUrl = imagenUrl;
 	}
 
-	public int getPrecio() {
+	public Integer getPrecio() {
 		return precio;
 	}
 
-	public void setPrecio(int precio) {
+	public void setPrecio(Integer precio) {
 		this.precio = precio;
 	}
 
-	public int getStock() {
+	public Integer getStock() {
 		return stock;
 	}
 
-	public void setStock(int stock) {
+	public void setStock(Integer stock) {
 		this.stock = stock;
 	}
 
@@ -91,19 +91,19 @@ public class ProveedorVendibleUpdateDTO {
 		this.tipoPrecio = tipoPrecio;
 	}
 
-	public boolean isOffersDelivery() {
+	public Boolean isOffersDelivery() {
 		return offersDelivery;
 	}
 
-	public void setOffersDelivery(boolean offersDelivery) {
+	public void setOffersDelivery(Boolean offersDelivery) {
 		this.offersDelivery = offersDelivery;
 	}
 
-	public boolean isOffersInCustomAddress() {
+	public Boolean isOffersInCustomAddress() {
 		return offersInCustomAddress;
 	}
 
-	public void setOffersInCustomAddress(boolean offersInCustomAddress) {
+	public void setOffersInCustomAddress(Boolean offersInCustomAddress) {
 		this.offersInCustomAddress = offersInCustomAddress;
 	}
 

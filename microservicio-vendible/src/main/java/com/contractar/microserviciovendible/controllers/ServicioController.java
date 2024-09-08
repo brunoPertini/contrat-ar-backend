@@ -17,6 +17,7 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
@@ -41,7 +42,7 @@ public class ServicioController {
 	public ResponseEntity<ServicioDTO> save(@RequestBody @Valid Servicio servicio,
 			@RequestParam(required = false) Long proveedorId,
 			HttpServletRequest request) throws VendibleAlreadyExistsException,
-	UserNotFoundException, CantCreateException {
+	UserNotFoundException, CantCreateException, CouldntChangeStateException {
 		Servicio addedServicio = (Servicio) vendibleService.save(servicio, vendibleType, proveedorId, request);
 		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre());
 		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.CREATED);

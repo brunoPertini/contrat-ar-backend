@@ -1,5 +1,6 @@
 package com.contractar.microserviciogateway.security;
 
+import java.util.LinkedHashMap;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,17 +54,17 @@ public class SecurityUtils {
 	 * the passed path variable section
 	 */
 	public boolean userIdsMatch(HttpServletRequest request, String pathSection) {
-		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
+		String getPayloadUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", request.getHeader("Authorization"));
 
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 
-		ResponseEntity<Long> getClientIdResponse = restTemplate.exchange(getClientIdUrl, HttpMethod.GET, entity,
-				Long.class);
+		ResponseEntity<LinkedHashMap> getClientIdResponse = restTemplate.exchange(getPayloadUrl, HttpMethod.GET, entity,
+				LinkedHashMap.class);
 
-		Long idFromToken = getClientIdResponse.getBody();
+		Long idFromToken = Long.parseLong((String)getClientIdResponse.getBody().get("id"));
 
 		String pathInfo = request.getServletPath();
 

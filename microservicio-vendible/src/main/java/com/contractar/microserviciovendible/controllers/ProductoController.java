@@ -17,6 +17,7 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
@@ -40,7 +41,7 @@ public class ProductoController {
 	@PostMapping(VendiblesControllersUrls.SAVE_PRODUCT)
 	public ResponseEntity<ProductoDTO> save(@RequestBody @Valid Producto producto,
 			@RequestParam(required = false) Long proveedorId,
-			HttpServletRequest request) throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
+			HttpServletRequest request) throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException, CouldntChangeStateException {
 		Producto addedProducto = (Producto) vendibleService.save(producto, vendibleType, proveedorId, request);
 		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre());
 		return new ResponseEntity<ProductoDTO>(productoDTO, HttpStatus.CREATED);

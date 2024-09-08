@@ -23,6 +23,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyE
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateRuntimeException;
 import com.contractar.microserviciocommons.infra.ErrorDetails;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
@@ -41,7 +42,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class, IllegalAccessException.class,
-			InvocationTargetException.class, UserInactiveException.class })
+			InvocationTargetException.class, UserInactiveException.class,
+			VendibleUpdateRuntimeException.class})
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {
 		HttpStatus httpStatus = HttpStatus.CONFLICT;
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());

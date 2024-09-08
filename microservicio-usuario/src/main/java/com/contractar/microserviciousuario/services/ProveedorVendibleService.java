@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Point;
@@ -43,6 +44,7 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateRuntimeException;
 import com.contractar.microserviciocommons.helpers.DistanceCalculator;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
@@ -132,9 +134,25 @@ public class ProveedorVendibleService {
 		}
 	}
 
-	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData)
-			throws VendibleNotFoundException, VendibleUpdateException, InvocationTargetException,
-			IllegalAccessException, ClassNotFoundException {
+	private void handlePostStateChange(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
+			throws VendibleUpdateRuntimeException {
+		boolean isChangingToPaused = vendible.getState().equals(PostState.ACTIVE)
+				&& newData.getState().equals(PostState.PAUSED);
+
+		boolean isChangingToActive = vendible.getState().equals(PostState.PAUSED)
+				&& newData.getState().equals(PostState.ACTIVE);
+
+		if (!isChangingToPaused && !isChangingToActive) {
+			throw new VendibleUpdateRuntimeException();
+		}
+	}
+
+	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData,
+			HttpServletRequest request) throws VendibleNotFoundException, VendibleUpdateException,
+			InvocationTargetException, IllegalAccessException, ClassNotFoundException {
+		// Chequear que: si el usuariio es proveedor y esta cambiando el estado del
+		// post, solamente puede cambiarlo a paused si estaba
+		// en active o a actived si estaba en paused.
 		if (newData.getImagenUrl() != null
 				&& !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
@@ -143,12 +161,25 @@ public class ProveedorVendibleService {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.repository.findById(id).orElseThrow(() -> new VendibleNotFoundException());
 
+		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
+
+		if (isChangingState) {
+			Map<String, Object> tokenPayload = (Map<String, Object>) this.getUserPayloadFromToken(request);
+			String userRole = (String) tokenPayload.get("role");
+
+			if (userRole.startsWith("PROVEEDOR")) {
+				handlePostStateChange(vendible, newData);
+			}
+		}
+
 		String dtoFullClassName = ProveedorVendibleUpdateDTO.class.getPackage().getName()
 				+ ".ProveedorVendibleUpdateDTO";
 		String entityFullClassName = ProveedorVendible.class.getPackage().getName() + ".ProveedorVendible";
 
 		try {
-			newData.setState(PostState.IN_REVIEW);
+			if (!isChangingState) {
+				newData.setState(PostState.IN_REVIEW);
+			}
 			String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
 					.replace("{vendibleId}", vendibleId.toString()).replace("{proveedorId}", proveedorId.toString());
 
@@ -246,21 +277,27 @@ public class ProveedorVendibleService {
 		return sourceList.subList(start, end);
 	}
 
-	private Point getUserLocationFromHeaders(HttpServletRequest request) {
-		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
+	private Object getUserPayloadFromToken(HttpServletRequest request) {
+		String getPayloadUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", request.getHeader("Authorization"));
 
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 
-		ResponseEntity<Long> getClientIdResponse = httpClient.exchange(getClientIdUrl, HttpMethod.GET, entity,
-				Long.class);
+		ResponseEntity<Object> getPayloadResponse = httpClient.exchange(getPayloadUrl, HttpMethod.GET, entity,
+				Object.class);
 
-		Long clienteId = getClientIdResponse.getBody();
+		return getPayloadResponse.getBody();
+	}
+
+	private Point getUserLocationFromHeaders(HttpServletRequest request) {
+		Map<String, Object> headersPayload = ((Map<String, Object>) getUserPayloadFromToken(request));
+
+		Long userId = Long.parseLong((String) headersPayload.get("id"));
 
 		String getUserFieldUrl = SERVICIO_USUARIO_URL + (UsersControllerUrls.GET_USUARIO_FIELD
-				.replace("{userId}", clienteId.toString()).replace("{fieldName}", "location"));
+				.replace("{userId}", userId.toString()).replace("{fieldName}", "location"));
 
 		Object userLocationObj = httpClient.getForObject(getUserFieldUrl, Object.class);
 

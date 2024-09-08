@@ -25,8 +25,13 @@ public class ChangeRequestRepositoryImpl {
 		List<String> sourceTableIdNames = changeRequest.getSourceTableIdNames();
 		List<Long> sourceTableIds = changeRequest.getSourceTableIds();
 		
-		for(int i = 0; i< sourceTableIdNames.size(); i+=1) {
-			queryBuilder.append(" WHERE ("+sourceTableIdNames.get(i)+"=" + sourceTableIds.get(i) + ")");
+		int i = 0;
+		
+		queryBuilder.append(" WHERE ("+sourceTableIdNames.get(i)+"=" + sourceTableIds.get(i) + ")");
+		
+		while(i< sourceTableIdNames.size()) {
+			queryBuilder.append(" AND ("+sourceTableIdNames.get(i)+"=" + sourceTableIds.get(i) + ")");
+			i+=1;
 		}
 
 		try {
