@@ -112,16 +112,15 @@ public class ProveedorVendibleService {
 	public void setDistancesForSlider(List<Double> distancesForSlider) {
 		this.distancesForSlider = distancesForSlider;
 	}
-	
+
 	public ProveedorVendible save(ProveedorVendible post) {
 		return repository.save(post);
 	}
-	
-	
+
 	public ProveedorVendible findById(ProveedorVendibleId id) throws VendibleNotFoundException {
-		 return this.repository.findById(id).orElseThrow(VendibleNotFoundException::new);
+		return this.repository.findById(id).orElseThrow(VendibleNotFoundException::new);
 	}
-	
+
 	public ProveedorVendible bindVendibleToProveedor(VendibleAccesor vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
@@ -143,6 +142,14 @@ public class ProveedorVendibleService {
 		}
 	}
 
+	/**
+	 * Checks the only state change flow a proveedor can make without explicit admin
+	 * approval.
+	 * 
+	 * @param vendible
+	 * @param newData
+	 * @throws VendibleUpdateRuntimeException
+	 */
 	private void handlePostStateChange(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
 			throws VendibleUpdateRuntimeException {
 		boolean isChangingToPaused = vendible.getState().equals(PostState.ACTIVE)
@@ -156,52 +163,61 @@ public class ProveedorVendibleService {
 		}
 	}
 
+	private void performPostUpdate(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
+			throws VendibleUpdateException {
+		try {
+			ReflectionHelper.applySetterFromExistingFields(newData, vendible,
+					ReflectionHelper.getObjectClassFullName(newData),
+					ReflectionHelper.getObjectClassFullName(vendible));
+		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
+				| InvocationTargetException e) {
+			throw new VendibleUpdateException();
+		}
+		repository.save(vendible);
+	}
+
 	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData,
 			HttpServletRequest request) throws VendibleNotFoundException, VendibleUpdateException,
 			InvocationTargetException, IllegalAccessException, ClassNotFoundException {
-		// Chequear que: si el usuariio es proveedor y esta cambiando el estado del
-		// post, solamente puede cambiarlo a paused si estaba
-		// en active o a actived si estaba en paused.
 		if (newData.getImagenUrl() != null
 				&& !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
 		}
 
+		Map<String, Object> dtoRawFields = ReflectionHelper.getObjectFields(newData);
+		
+		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
+
+		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
+				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
+
+		
+
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.findById(id);
 
-		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
-
-		if (isChangingState) {
-			Map<String, Object> tokenPayload = (Map<String, Object>) this.getUserPayloadFromToken(request);
-			String userRole = (String) tokenPayload.get("role");
-
-			if (userRole.startsWith("PROVEEDOR")) {
+		if (!isChangingState && !changesNeedApproval) {
+			performPostUpdate(vendible, newData);
+		} else {
+			if (isChangingState) {
 				handlePostStateChange(vendible, newData);
-			}
-		}
+				performPostUpdate(vendible, newData);
+			} else {
+				String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
+						.replace("{vendibleId}", vendibleId.toString()).replace("{proveedorId}", proveedorId.toString());
 
-		String dtoFullClassName = ProveedorVendibleUpdateDTO.class.getPackage().getName()
-				+ ".ProveedorVendibleUpdateDTO";
-		String entityFullClassName = ProveedorVendible.class.getPackage().getName() + ".ProveedorVendible";
+				HttpHeaders headers = new HttpHeaders();
+				headers.set("Authorization", request.getHeader("Authorization"));
 
-		try {
-			if (!isChangingState) {
+				HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
+						new ProveedorVendibleUpdateDTO(PostState.ACTIVE), headers);
+
+				httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
+
 				newData.setState(PostState.IN_REVIEW);
+				performPostUpdate(vendible, newData);
 			}
-			String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
-					.replace("{vendibleId}", vendibleId.toString()).replace("{proveedorId}", proveedorId.toString());
 
-			HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
-					new ProveedorVendibleUpdateDTO(PostState.ACTIVE));
-
-			httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
-
-			ReflectionHelper.applySetterFromExistingFields(newData, vendible, dtoFullClassName, entityFullClassName);
-			repository.save(vendible);
-		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
-				| InvocationTargetException e) {
-			throw new VendibleUpdateException();
 		}
 	}
 

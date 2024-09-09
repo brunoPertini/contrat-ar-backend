@@ -1,5 +1,7 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
+import java.util.Map;
+
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.enums.PostState;
@@ -113,5 +115,15 @@ public class ProveedorVendibleUpdateDTO {
 
 	public void setState(PostState state) {
 		this.state = state;
+	}
+
+	/**
+	 * 
+	 * @return A map containing DTO fields as keys. If the value is true, means it
+	 *         need ADMIN approval
+	 */
+	public static Map<String, Boolean> proveedorVendibleUpdateStrategy() {
+		return Map.of("descripcion", true, "imagenUrl", true, "location", true, "precio", false, "tipoPrecio", false,
+				"offersDelivery", false, "offersInCustomAddress", false, "stock", false);
 	}
 }
