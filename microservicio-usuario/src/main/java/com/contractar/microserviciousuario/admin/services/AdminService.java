@@ -16,6 +16,7 @@ import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.admin.controllers.AdminController.UsuariosTypeFilter;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorAdminDTO;
@@ -30,13 +31,21 @@ import com.contractar.microserviciousuario.admin.repositories.UsuarioAdminCustom
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
+import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.repository.ClienteRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
+import com.contractar.microserviciousuario.services.ProveedorVendibleService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class AdminService {
+	@Autowired
+	private ProveedorVendibleService proveedorVendibleService;
+
 	@Autowired
 	private ChangeRequestRepository repository;
 
@@ -84,9 +93,10 @@ public class AdminService {
 			throws IllegalAccessException, ChangeAlreadyRequestedException {
 		String concatenatedIds = proveedorId.toString() + "," + vendibleId.toString();
 		boolean alreadyRequested = repository.getMatchingChangeRequest(concatenatedIds, "state") != null;
-		
+
 		if (alreadyRequested) {
-			throw new ChangeAlreadyRequestedException("Ya registramos un cambio para este producto/servicio y está en revisión. Por favor, esperá a que se confirme antes de realizar otro");
+			throw new ChangeAlreadyRequestedException(
+					"Ya registramos un cambio para este producto/servicio y está en revisión. Por favor, esperá a que se confirme antes de realizar otro");
 		}
 
 		// Only state should be approved by an admin, the other attributes can be
@@ -159,6 +169,28 @@ public class AdminService {
 				throw new RuntimeException(e);
 			}
 		});
+	}
+
+	public void updatePostAdmin(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId,
+			HttpServletRequest request) throws VendibleNotFoundException, ClassNotFoundException,
+	IllegalArgumentException,
+	IllegalAccessException,
+	InvocationTargetException, 
+	ChangeAlreadyRequestedException {
+		Map<String, Object> tokenPayload = (Map<String, Object>) proveedorVendibleService
+				.getUserPayloadFromToken(request);
+
+		String role = (String) tokenPayload.get("role");
+
+		if (role.startsWith("ADMIN")) {
+			ProveedorVendible post = proveedorVendibleService
+					.findById(new ProveedorVendibleId(proveedorId, vendibleId));
+			ReflectionHelper.applySetterFromExistingFields(newInfo, post,
+					ReflectionHelper.getObjectClassFullName(newInfo), ReflectionHelper.getObjectClassFullName(post));
+			proveedorVendibleService.save(post);
+		} else {
+			addChangeRequestEntry(newInfo, proveedorId, vendibleId);
+		}
 	}
 
 	public void confirmChangeRequest(Long id) throws ChangeConfirmException {

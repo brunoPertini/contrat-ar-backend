@@ -112,7 +112,16 @@ public class ProveedorVendibleService {
 	public void setDistancesForSlider(List<Double> distancesForSlider) {
 		this.distancesForSlider = distancesForSlider;
 	}
-
+	
+	public ProveedorVendible save(ProveedorVendible post) {
+		return repository.save(post);
+	}
+	
+	
+	public ProveedorVendible findById(ProveedorVendibleId id) throws VendibleNotFoundException {
+		 return this.repository.findById(id).orElseThrow(VendibleNotFoundException::new);
+	}
+	
 	public ProveedorVendible bindVendibleToProveedor(VendibleAccesor vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
@@ -159,7 +168,7 @@ public class ProveedorVendibleService {
 		}
 
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
-		ProveedorVendible vendible = this.repository.findById(id).orElseThrow(() -> new VendibleNotFoundException());
+		ProveedorVendible vendible = this.findById(id);
 
 		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
 
@@ -277,7 +286,7 @@ public class ProveedorVendibleService {
 		return sourceList.subList(start, end);
 	}
 
-	private Object getUserPayloadFromToken(HttpServletRequest request) {
+	public Object getUserPayloadFromToken(HttpServletRequest request) {
 		String getPayloadUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
 
 		HttpHeaders headers = new HttpHeaders();

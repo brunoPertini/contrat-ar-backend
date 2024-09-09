@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
@@ -27,6 +28,7 @@ import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequested
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -87,9 +89,16 @@ public class AdminController {
 	
 	
 	  @PutMapping(AdminControllerUrls.ADMIN_POST_BY_ID) 
-	  public ResponseEntity<?> updatePost(@PathVariable(name = "id") Long proveedorId, @PathVariable(name = "vendibleId") Long
-	  vendibleId, @RequestBody ProveedorVendibleAdminDTO body) throws IllegalAccessException, ChangeAlreadyRequestedException {
-		  	adminService.addChangeRequestEntry(body, proveedorId, vendibleId);
+	  public ResponseEntity<?> updatePost(@PathVariable(name = "id") Long proveedorId,
+			 @PathVariable(name = "vendibleId") Long
+	  vendibleId, @RequestBody ProveedorVendibleAdminDTO body,
+	  HttpServletRequest request) throws IllegalAccessException,
+	  ChangeAlreadyRequestedException,
+	  VendibleNotFoundException,
+	  ClassNotFoundException,
+	  IllegalArgumentException,
+	  InvocationTargetException {
+		  	adminService.updatePostAdmin(body, proveedorId, vendibleId, request);
 			return new ResponseEntity<>(HttpStatusCode.valueOf(200));	
 	  }
 	 
