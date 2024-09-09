@@ -150,7 +150,7 @@ public class ProveedorVendibleService {
 	 * @param newData
 	 * @throws VendibleUpdateRuntimeException
 	 */
-	private void handlePostStateChange(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
+	public void handlePostStateChange(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
 			throws VendibleUpdateRuntimeException {
 		boolean isChangingToPaused = vendible.getState().equals(PostState.ACTIVE)
 				&& newData.getState().equals(PostState.PAUSED);

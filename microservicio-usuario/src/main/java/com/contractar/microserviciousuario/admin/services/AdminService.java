@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -14,8 +15,10 @@ import org.springframework.stereotype.Service;
 
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
+import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.OperationNotAllowedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.admin.controllers.AdminController.UsuariosTypeFilter;
@@ -181,15 +184,25 @@ public class AdminService {
 				.getUserPayloadFromToken(request);
 
 		String role = (String) tokenPayload.get("role");
+		
+		ProveedorVendible post = proveedorVendibleService
+				.findById(new ProveedorVendibleId(proveedorId, vendibleId));
 
 		if (role.startsWith("ADMIN")) {
-			ProveedorVendible post = proveedorVendibleService
-					.findById(new ProveedorVendibleId(proveedorId, vendibleId));
 			ReflectionHelper.applySetterFromExistingFields(newInfo, post,
 					ReflectionHelper.getObjectClassFullName(newInfo), ReflectionHelper.getObjectClassFullName(post));
 			proveedorVendibleService.save(post);
 		} else {
-			addChangeRequestEntry(newInfo, proveedorId, vendibleId);
+			Optional.ofNullable(newInfo.getState()).ifPresentOrElse((state) -> {
+				proveedorVendibleService.handlePostStateChange(post, new ProveedorVendibleUpdateDTO(state));
+				try {
+					addChangeRequestEntry(newInfo, proveedorId, vendibleId);
+				} catch (IllegalAccessException | ChangeAlreadyRequestedException e) {
+					throw new RuntimeException(e);
+				}
+			}, () -> {
+				throw new OperationNotAllowedException();
+			});
 		}
 	}
 
