@@ -14,5 +14,7 @@ public final class AdminControllerUrls {
 	
 	public static final String ADMIN_PROVEEDOR_BY_ID = "/admin/change-requests/usuarios/proveedor/{proveedorId}";
 	
+	public static final String ADMIN_POST_BY_ID = ADMIN_PROVEEDORES_BY_ID + "/vendible/{vendibleId}";
+	
 	public static final String ADMIN_PROVEEDOR_SUBSCRIPTION_PLAN_CHANGE = ADMIN_PROVEEDOR_BY_ID + "/plan/{planId}";
 }

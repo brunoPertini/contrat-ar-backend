@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -88,10 +87,9 @@ public class SecurityController {
 		return ResponseEntity.ok(pemFormat.toString());
 	}
 
-	@GetMapping(SecurityControllerUrls.GET_USER_ID_FROM_TOKEN)
-	public ResponseEntity<Long> getUserIdFromHeaders(HttpServletRequest request) throws JsonProcessingException {
-		Map<String, Object> jwtPayload = jwtHelper.parsePayloadFromJwt(request.getHeader("authorization"));
-		Long userId = Long.parseLong((String) jwtPayload.get("id"));
-		return ResponseEntity.ok(userId);
+	@GetMapping(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN)
+	public ResponseEntity getTokenPayloadFromHeaders(HttpServletRequest request) throws JsonProcessingException {
+		return ResponseEntity.ok(jwtHelper.parsePayloadFromJwt(request.getHeader("authorization")));
+
 	}
 }

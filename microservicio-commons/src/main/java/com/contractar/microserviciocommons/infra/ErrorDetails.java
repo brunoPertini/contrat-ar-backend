@@ -12,6 +12,8 @@ public final class ErrorDetails {
 	
 	private Object relatedFields;
 	
+	public ErrorDetails() {}
+	
 	public ErrorDetails(Date timestamp, int status, String error) {
 		this.timestamp = timestamp;
 		this.status = status;

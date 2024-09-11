@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +62,7 @@ public class JwtHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> parsePayloadFromJwt(String jwtToken) throws JsonProcessingException {
+	public Object parsePayloadFromJwt(String jwtToken) throws JsonProcessingException {
 		Algorithm algorithm = Algorithm.RSA256(publicKey);
 		JWTVerifier verifier = JWT.require(algorithm).build();
 
@@ -74,8 +75,6 @@ public class JwtHelper {
 		byte[] decodedPayloadBytes = Base64.getDecoder().decode(payload);
 		String decodedPayloadString = new String(decodedPayloadBytes);
 
-		Object jsonObject = objectMapper.readValue(decodedPayloadString, Object.class);
-
-		return ((Map<String, Object>) jsonObject);
+		return objectMapper.readValue(decodedPayloadString, Object.class);
 	}
 }

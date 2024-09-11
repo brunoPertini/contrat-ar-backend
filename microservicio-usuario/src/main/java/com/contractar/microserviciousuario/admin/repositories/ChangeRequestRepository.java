@@ -15,7 +15,7 @@ public interface ChangeRequestRepository extends CrudRepository<ChangeRequest, L
 	@SuppressWarnings("unchecked")
 	public ChangeRequest save(ChangeRequest request);
 	
-	@Query(value = "SELECT cr.id FROM change_request cr WHERE (source_table_id =:sourceTableId) AND NOT was_applied AND exists \n"
+	@Query(value = "SELECT cr.id FROM change_request cr WHERE (source_table_ids LIKE:sourceTableIds) AND NOT was_applied AND exists \n"
 			+ "(SELECT id FROM contract_ar.change_request c WHERE c.id = cr.id AND c.attributes LIKE %:searchAttribute%)", nativeQuery = true)
-	public Long getMatchingChangeRequest(@Param("sourceTableId")  Long sourceTableId, @Param("searchAttribute") String searchAttribute);
+	public Long getMatchingChangeRequest(@Param("sourceTableIds")  String sourceTableIds, @Param("searchAttribute") String searchAttribute);
 }

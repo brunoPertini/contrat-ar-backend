@@ -4,6 +4,7 @@ import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
@@ -39,6 +40,8 @@ public class ProveedorVendibleAdminDTO {
 	
 	private VendibleCategoryAccesor category;
 	
+	private PostState state;
+
 	public ProveedorVendibleAdminDTO() {}
  
 	public ProveedorVendibleAdminDTO(ProveedorVendibleAccesor proveedorVendible) {
@@ -56,6 +59,7 @@ public class ProveedorVendibleAdminDTO {
 		this.category = proveedorVendible.getCategory();
 		this.proveedorId = proveedorVendible.getProveedor().getId();
 		this.proveedorName = proveedorVendible.getProveedor().getName() + " " + proveedorVendible.getProveedor().getSurname();
+		this.state = proveedorVendible.getState();
 		
 	}
 
@@ -153,6 +157,14 @@ public class ProveedorVendibleAdminDTO {
 	
 	public VendibleCategoryAccesor getCategory() {
 		return category;
-	}	
+	}
+	
+	public PostState getState() {
+		return state;
+	}
+
+	public void setState(PostState state) {
+		this.state = state;
+	}
 	
 }

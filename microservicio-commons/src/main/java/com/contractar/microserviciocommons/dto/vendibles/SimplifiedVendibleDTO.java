@@ -3,6 +3,7 @@ package com.contractar.microserviciocommons.dto.vendibles;
 import java.util.List;
 import java.util.Map;
 
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microserviciocommons.dto.proveedorvendible.AbstractProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.category.CategoryHierarchy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,6 +13,7 @@ public class SimplifiedVendibleDTO extends AbstractProveedorVendibleDTO {
 
 	private Long vendibleId;
 	private Point location;
+	private PostState state;
 
 	private List<String> categoryNames;
 
@@ -46,6 +48,14 @@ public class SimplifiedVendibleDTO extends AbstractProveedorVendibleDTO {
 
 	public void setLocation(Point location) {
 		this.location = location;
+	}
+	
+	public PostState getState() {
+		return state;
+	}
+
+	public void setState(PostState state) {
+		this.state = state;
 	}
 
 	@JsonIgnore

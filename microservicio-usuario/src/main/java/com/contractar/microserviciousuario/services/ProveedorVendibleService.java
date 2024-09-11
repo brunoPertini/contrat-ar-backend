@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Point;
@@ -30,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
@@ -42,6 +44,7 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateRuntimeException;
 import com.contractar.microserviciocommons.helpers.DistanceCalculator;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
@@ -77,6 +80,9 @@ public class ProveedorVendibleService {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	@Autowired
+	private RestTemplate restTemplate;
 
 	@Value("${microservicio-vendible.url}")
 	private String SERVICIO_VENDIBLE_URL;
@@ -86,6 +92,9 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
+	
+	@Value("${microservicio-config.url}")
+	private String serviceConfigUrl;
 
 	private static int SLIDER_MIN_PRICE;
 	private static int SLIDER_MAX_PRICE;
@@ -110,6 +119,14 @@ public class ProveedorVendibleService {
 		this.distancesForSlider = distancesForSlider;
 	}
 
+	public ProveedorVendible save(ProveedorVendible post) {
+		return repository.save(post);
+	}
+
+	public ProveedorVendible findById(ProveedorVendibleId id) throws VendibleNotFoundException {
+		return this.repository.findById(id).orElseThrow(VendibleNotFoundException::new);
+	}
+
 	public ProveedorVendible bindVendibleToProveedor(VendibleAccesor vendible, Proveedor proveedor,
 			ProveedorVendible proveedorVendible) throws VendibleAlreadyBindedException {
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedor.getId(), vendible.getId());
@@ -131,26 +148,84 @@ public class ProveedorVendibleService {
 		}
 	}
 
-	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData)
-			throws VendibleNotFoundException, VendibleUpdateException {
+	/**
+	 * Checks the only state change flow a proveedor can make without explicit admin
+	 * approval.
+	 * 
+	 * @param vendible
+	 * @param newData
+	 * @throws VendibleUpdateRuntimeException
+	 */
+	public void handlePostStateChange(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
+			throws VendibleUpdateRuntimeException {
+		boolean isChangingToPaused = vendible.getState().equals(PostState.ACTIVE)
+				&& newData.getState().equals(PostState.PAUSED);
+
+		boolean isChangingToActive = vendible.getState().equals(PostState.PAUSED)
+				&& newData.getState().equals(PostState.ACTIVE);
+
+		if (!isChangingToPaused && !isChangingToActive) {
+			final String fullUrl =  serviceConfigUrl + "/i18n/" + "exceptions.vendible.update";
+			String exceptionMessage = restTemplate.getForObject(fullUrl, String.class);
+			throw new VendibleUpdateRuntimeException(exceptionMessage);
+		}
+	}
+
+	private void performPostUpdate(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
+			throws VendibleUpdateException {
+		try {
+			ReflectionHelper.applySetterFromExistingFields(newData, vendible,
+					ReflectionHelper.getObjectClassFullName(newData),
+					ReflectionHelper.getObjectClassFullName(vendible));
+		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
+				| InvocationTargetException e) {
+			throw new VendibleUpdateException();
+		}
+		repository.save(vendible);
+	}
+
+	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData,
+			HttpServletRequest request) throws VendibleNotFoundException, VendibleUpdateException,
+			InvocationTargetException, IllegalAccessException, ClassNotFoundException {
 		if (newData.getImagenUrl() != null
 				&& !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
 		}
 
+		Map<String, Object> dtoRawFields = ReflectionHelper.getObjectFields(newData);
+		
+		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
+
+		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
+				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
+
+		
+
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
-		ProveedorVendible vendible = this.repository.findById(id).orElseThrow(() -> new VendibleNotFoundException());
+		ProveedorVendible vendible = this.findById(id);
 
-		String dtoFullClassName = ProveedorVendibleUpdateDTO.class.getPackage().getName()
-				+ ".ProveedorVendibleUpdateDTO";
-		String entityFullClassName = ProveedorVendible.class.getPackage().getName() + ".ProveedorVendible";
+		if (!isChangingState && !changesNeedApproval) {
+			performPostUpdate(vendible, newData);
+		} else {
+			if (isChangingState) {
+				handlePostStateChange(vendible, newData);
+				performPostUpdate(vendible, newData);
+			} else {
+				String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
+						.replace("{vendibleId}", vendibleId.toString()).replace("{proveedorId}", proveedorId.toString());
 
-		try {
-			ReflectionHelper.applySetterFromExistingFields(newData, vendible, dtoFullClassName, entityFullClassName);
-			repository.save(vendible);
-		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
-				| InvocationTargetException e) {
-			throw new VendibleUpdateException();
+				HttpHeaders headers = new HttpHeaders();
+				headers.set("Authorization", request.getHeader("Authorization"));
+
+				HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
+						new ProveedorVendibleUpdateDTO(PostState.ACTIVE), headers);
+
+				httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
+
+				newData.setState(PostState.IN_REVIEW);
+				performPostUpdate(vendible, newData);
+			}
+
 		}
 	}
 
@@ -181,6 +256,7 @@ public class ProveedorVendibleService {
 			simplifiedVendibleDTO.setOffersDelivery(pv.getOffersDelivery());
 			simplifiedVendibleDTO.setOffersInCustomAddress(pv.getOffersInCustomAddress());
 			simplifiedVendibleDTO.setLocation(pv.getLocation());
+			simplifiedVendibleDTO.setState(pv.getState());
 
 			VendibleHelper.addCategoriasToResponse(pv, response);
 
@@ -223,7 +299,7 @@ public class ProveedorVendibleService {
 	}
 
 	private <T> List<T> getSublistForPagination(Pageable pageRequest, List<T> sourceList) {
-		if(pageRequest.getOffset() >= sourceList.size()) {
+		if (pageRequest.getOffset() >= sourceList.size()) {
 			return sourceList;
 		}
 
@@ -234,21 +310,27 @@ public class ProveedorVendibleService {
 		return sourceList.subList(start, end);
 	}
 
-	private Point getUserLocationFromHeaders(HttpServletRequest request) {
-		String getClientIdUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_ID_FROM_TOKEN;
+	public Object getUserPayloadFromToken(HttpServletRequest request) {
+		String getPayloadUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", request.getHeader("Authorization"));
 
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 
-		ResponseEntity<Long> getClientIdResponse = httpClient.exchange(getClientIdUrl, HttpMethod.GET, entity,
-				Long.class);
+		ResponseEntity<Object> getPayloadResponse = httpClient.exchange(getPayloadUrl, HttpMethod.GET, entity,
+				Object.class);
 
-		Long clienteId = getClientIdResponse.getBody();
+		return getPayloadResponse.getBody();
+	}
+
+	private Point getUserLocationFromHeaders(HttpServletRequest request) {
+		Map<String, Object> headersPayload = ((Map<String, Object>) getUserPayloadFromToken(request));
+
+		Long userId = Long.parseLong((String) headersPayload.get("id"));
 
 		String getUserFieldUrl = SERVICIO_USUARIO_URL + (UsersControllerUrls.GET_USUARIO_FIELD
-				.replace("{userId}", clienteId.toString()).replace("{fieldName}", "location"));
+				.replace("{userId}", userId.toString()).replace("{fieldName}", "location"));
 
 		Object userLocationObj = httpClient.getForObject(getUserFieldUrl, Object.class);
 
@@ -280,25 +362,24 @@ public class ProveedorVendibleService {
 
 		return isPostLocationOk;
 	}
-	
-	private Page<ProveedorVendible> findAllByLocationAndPlanConstraints(Long vendibleId, Point userLocation, Pageable pageable) {
 
-	    List<ProveedorVendible> filteredPosts = repository.getPostsOfProveedoresWithValidSubscription(vendibleId)
-	    		.stream()
-	        .filter(post -> {
-	           return proveedorMatchesPlanConstraint(post,userLocation);
-	        })
-	        .collect(Collectors.toList());
+	private Page<ProveedorVendible> findAllByLocationAndPlanConstraints(Long vendibleId, Point userLocation,
+			Pageable pageable) {
 
-	    List<ProveedorVendible> pageContent = getSublistForPagination(pageable, filteredPosts);
-	    return new PageImpl<>(pageContent, pageable, filteredPosts.size());
+		List<ProveedorVendible> filteredPosts = repository.getPostsOfProveedoresWithValidSubscription(vendibleId)
+				.stream().filter(post -> {
+					return proveedorMatchesPlanConstraint(post, userLocation);
+				}).collect(Collectors.toList());
+
+		List<ProveedorVendible> pageContent = getSublistForPagination(pageable, filteredPosts);
+		return new PageImpl<>(pageContent, pageable, filteredPosts.size());
 	}
-
 
 	/**
 	 * Gets all the providers that offer the given vendible. They should comply with
 	 * their subscription constraints, and, if they are present, with the distances
-	 * and prices filters.
+	 * and prices filters. As this is invoked by a client, only posts with ACTIVE
+	 * state should be filtered
 	 * 
 	 * @param vendibleId  Product or service id
 	 * @param minDistance Minimum distance (from client's location) a vendible is
@@ -329,7 +410,7 @@ public class ProveedorVendibleService {
 		this.pricesForSlider = new ArrayList<>();
 		this.distancesForSlider = new ArrayList<>();
 		Map<Long, Double> distances = new HashMap<>();
-		
+
 		ArrayList<DistanceProveedorDTO> posts = (ArrayList<DistanceProveedorDTO>) results.filter(proveedorVendible -> {
 			double distanceNotRounded = DistanceCalculator.resolveDistanceFromClient(userLocation, proveedorVendible);
 
@@ -344,32 +425,32 @@ public class ProveedorVendibleService {
 				chainCreator.setToCompareDistance(distance);
 				chainCreator.setToComparePrice(proveedorVendible.getPrecio());
 			}
-			
+
 			boolean filterResult = chainNotExists || chainCreator.runChain();
-					
+
 			if (filterResult) {
 				distances.put(proveedorVendible.getId().getProveedorId(), distance);
 			}
 
 			return filterResult;
-			
+
 		}).map(proveedorVendible -> {
 			DistanceProveedorDTO distanceDTO = new DistanceProveedorDTO(proveedorVendible.getId().getVendibleId(),
 					proveedorVendible.getId().getProveedorId(), proveedorVendible.getVendible().getNombre(),
 					proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(),
 					proveedorVendible.getTipoPrecio(), proveedorVendible.getOffersDelivery(),
 					proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
-					proveedorVendible.getStock(), proveedorVendible.getCategory().getId(), distances.get(proveedorVendible.getId().getProveedorId()));
+					proveedorVendible.getStock(), proveedorVendible.getCategory().getId(),
+					distances.get(proveedorVendible.getId().getProveedorId()));
 
 			distanceDTO.setPlanId(proveedorVendible.getProveedor().getSuscripcion().getPlan().getId());
 
 			ProveedorDTO toAddProveedor = new ProveedorDTO(proveedorVendible.getProveedor());
 			toAddProveedor.setLocation(proveedorVendible.getLocation());
 			proveedores.add(toAddProveedor);
-			
+
 			return distanceDTO;
 		}).stream().collect(Collectors.toList());
-
 
 		setMinAndMaxForSlider(response);
 
@@ -381,7 +462,7 @@ public class ProveedorVendibleService {
 					shouldSortByDistance);
 			posts.sort(comparator);
 		}
-		
+
 		response.setVendibles(new PageImpl(posts, pageable, results.getTotalElements()));
 		response.setProveedores(getSublistForPagination(pageable, new ArrayList<>(proveedores)));
 

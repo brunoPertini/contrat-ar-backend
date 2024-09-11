@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -18,6 +21,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+import com.contractar.microservicioadapter.enums.PostState;
+import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
@@ -27,12 +32,14 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.helpers.StringHelper;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciousuario.models.VendibleCategory;
 import com.contractar.microserviciovendible.repository.ProductoRepository;
@@ -41,6 +48,7 @@ import com.contractar.microserviciovendible.repository.VendibleCategoryRepositor
 import com.contractar.microserviciovendible.repository.VendibleRepository;
 import com.contractar.microserviciovendible.services.resolvers.VendibleFetchingMethodResolver;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -116,7 +124,7 @@ public class VendibleService {
 
 		if (shouldNotCheckForParents) {
 			VendibleCategory isolatedCategory = vendibleCategoryRepository.findAloneCategory(baseCategoryName);
-			boolean existsAsIsolatedCategpry =  isolatedCategory != null;
+			boolean existsAsIsolatedCategpry = isolatedCategory != null;
 
 			if (existsAsIsolatedCategpry) {
 				return isolatedCategory;
@@ -126,8 +134,8 @@ public class VendibleService {
 			return vendibleCategoryRepository.save(baseCategory);
 		}
 
-		VendibleCategory persistedBaseCategory = vendibleCategoryRepository.findByHierarchy(baseCategoryName, firstParentName,
-				secondParentName);
+		VendibleCategory persistedBaseCategory = vendibleCategoryRepository.findByHierarchy(baseCategoryName,
+				firstParentName, secondParentName);
 
 		boolean hierachyExists = persistedBaseCategory != null;
 		categoryParentAux = null;
@@ -163,11 +171,11 @@ public class VendibleService {
 			return categoryParentAux;
 
 		}
-		
+
 		if (firstParentName != null && secondParentName != null) {
 			return persistedBaseCategory;
 		}
-		
+
 		baseCategory.setParent(persistedBaseCategory.getParent());
 		return vendibleCategoryRepository.save(baseCategory);
 
@@ -179,16 +187,32 @@ public class VendibleService {
 				: productoRepository.save(vendible);
 	}
 
-	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId)
-			throws UserNotFoundException, CantCreateException {
+	public void requestPostStateChange(Long proveedorId, Long vendibleId, PostState state, HttpServletRequest request) {
+		String url = microServicioUsuarioUrl + AdminControllerUrls.ADMIN_POST_BY_ID
+				.replace("{id}", proveedorId.toString()).replace("{vendibleId}", vendibleId.toString());
 
-		boolean hasVendibleToLink = vendible.getProveedoresVendibles().size() > 0;
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", request.getHeader("Authorization"));
+
+		ProveedorVendibleAdminDTO body = new ProveedorVendibleAdminDTO();
+		body.setState(state);
+
+		HttpEntity entity = new HttpEntity(body, headers);
+
+		restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
+	}
+
+	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId, HttpServletRequest request)
+			throws UserNotFoundException, CantCreateException, CouldntChangeStateException {
+
+		boolean hasVendibleToLink = !vendible.getProveedoresVendibles().isEmpty();
 
 		if (proveedorId == null || !hasVendibleToLink) {
 			throw new CantCreateException();
 		}
 
-		ProveedorVendibleAccesor firstPv = vendible.getProveedoresVendibles().toArray(new ProveedorVendibleAccesor[0])[0];
+		ProveedorVendibleAccesor firstPv = vendible.getProveedoresVendibles()
+				.toArray(new ProveedorVendibleAccesor[0])[0];
 
 		VendibleCategory vendibleCategory = (VendibleCategory) firstPv.getCategory();
 
@@ -229,8 +253,11 @@ public class VendibleService {
 							.replace("{vendibleId}", addedVendible.getId().toString());
 
 			ProveedorVendibleAccesor pv = (ProveedorVendibleAccesor) vendible.getProveedoresVendibles().toArray()[0];
+			pv.setState(PostState.IN_REVIEW);
 
 			ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
+
+			requestPostStateChange(proveedorId, addedVendible.getId(), PostState.ACTIVE, request);
 
 			return addVendibleResponse.getStatusCodeValue() == 200 ? addedVendible : null;
 
@@ -318,9 +345,8 @@ public class VendibleService {
 		return valueOpt.isPresent() ? valueOpt.get() : null;
 	}
 
-	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {		
+	public List<String> getCategoryHierachy(VendibleCategory baseCategory) {
 		VendibleCategory category = vendibleCategoryRepository.findById(baseCategory.getId()).get();
-		
 
 		return VendibleHelper.fetchHierachyForCategory(category).stream().map(cat -> cat.getName())
 				.collect(Collectors.toList());

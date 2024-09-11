@@ -20,7 +20,21 @@ public class ChangeRequestRepositoryImpl {
 
 	public void applyChangeRequest(ChangeRequest changeRequest) throws ChangeConfirmException {
 		StringBuilder queryBuilder = new StringBuilder("UPDATE ").append(changeRequest.getSourceTable()).append(" SET ")
-				.append(changeRequest.getAttributes()).append(" WHERE ("+changeRequest.getSourceTableIdName()+"=" + changeRequest.getSourceTableId() + ")");
+				.append(changeRequest.getAttributes());
+		
+		List<String> sourceTableIdNames = changeRequest.getSourceTableIdNames();
+		List<Long> sourceTableIds = changeRequest.getSourceTableIds();
+		
+		int i = 0;
+		
+		queryBuilder.append(" WHERE ("+sourceTableIdNames.get(i)+"=" + sourceTableIds.get(i) + ")");
+		
+		i += 1;
+		
+		while(i< sourceTableIdNames.size()) {
+			queryBuilder.append(" AND ("+sourceTableIdNames.get(i)+"=" + sourceTableIds.get(i) + ")");
+			i+=1;
+		}
 
 		try {
 			int updatedCount = entityManager.createNativeQuery(queryBuilder.toString()).executeUpdate();
