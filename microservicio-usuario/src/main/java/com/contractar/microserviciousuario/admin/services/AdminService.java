@@ -3,15 +3,20 @@ package com.contractar.microserviciousuario.admin.services;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
@@ -42,6 +47,7 @@ import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
@@ -66,6 +72,12 @@ public class AdminService {
 
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@Value("${microservicio-config.url}")
+	private String serviceConfigUrl;
 
 	private final String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado";
 
@@ -175,18 +187,15 @@ public class AdminService {
 	}
 
 	public void updatePostAdmin(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId,
-			HttpServletRequest request) throws VendibleNotFoundException, ClassNotFoundException,
-	IllegalArgumentException,
-	IllegalAccessException,
-	InvocationTargetException, 
-	ChangeAlreadyRequestedException {
+			HttpServletRequest request)
+			throws VendibleNotFoundException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException,
+			InvocationTargetException, ChangeAlreadyRequestedException {
 		Map<String, Object> tokenPayload = (Map<String, Object>) proveedorVendibleService
 				.getUserPayloadFromToken(request);
 
 		String role = (String) tokenPayload.get("role");
-		
-		ProveedorVendible post = proveedorVendibleService
-				.findById(new ProveedorVendibleId(proveedorId, vendibleId));
+
+		ProveedorVendible post = proveedorVendibleService.findById(new ProveedorVendibleId(proveedorId, vendibleId));
 
 		if (role.startsWith("ADMIN")) {
 			ReflectionHelper.applySetterFromExistingFields(newInfo, post,
@@ -201,7 +210,9 @@ public class AdminService {
 					throw new RuntimeException(e);
 				}
 			}, () -> {
-				throw new OperationNotAllowedException();
+				final String fullUrl =  serviceConfigUrl + "/i18n/" + "exceptions.operation.not.allowed";
+				String exceptionMessage = restTemplate.getForObject(fullUrl, String.class);
+				throw new OperationNotAllowedException(exceptionMessage);
 			});
 		}
 	}

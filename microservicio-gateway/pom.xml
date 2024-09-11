@@ -74,6 +74,12 @@
         	<groupId>com.contractar</groupId>
         	<artifactId>microservicio-commons</artifactId>
         	<version>0.0.1-SNAPSHOT</version>
+        	<exclusions>
+        		<exclusion>
+        			<groupId>org.springframework.cloud</groupId>
+        			<artifactId>spring-cloud-starter-config</artifactId>
+        		</exclusion>
+        	</exclusions>
         </dependency>
     </dependencies>
     <build>
