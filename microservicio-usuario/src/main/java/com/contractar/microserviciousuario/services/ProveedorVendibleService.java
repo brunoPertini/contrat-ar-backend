@@ -80,6 +80,9 @@ public class ProveedorVendibleService {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	@Autowired
+	private RestTemplate restTemplate;
 
 	@Value("${microservicio-vendible.url}")
 	private String SERVICIO_VENDIBLE_URL;
@@ -89,6 +92,9 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
+	
+	@Value("${microservicio-config.url}")
+	private String serviceConfigUrl;
 
 	private static int SLIDER_MIN_PRICE;
 	private static int SLIDER_MAX_PRICE;
@@ -159,7 +165,9 @@ public class ProveedorVendibleService {
 				&& newData.getState().equals(PostState.ACTIVE);
 
 		if (!isChangingToPaused && !isChangingToActive) {
-			throw new VendibleUpdateRuntimeException();
+			final String fullUrl =  serviceConfigUrl + "/i18n/" + "exceptions.vendible.update";
+			String exceptionMessage = restTemplate.getForObject(fullUrl, String.class);
+			throw new VendibleUpdateRuntimeException(exceptionMessage);
 		}
 	}
 

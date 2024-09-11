@@ -29,6 +29,8 @@ public class ChangeRequestRepositoryImpl {
 		
 		queryBuilder.append(" WHERE ("+sourceTableIdNames.get(i)+"=" + sourceTableIds.get(i) + ")");
 		
+		i += 1;
+		
 		while(i< sourceTableIdNames.size()) {
 			queryBuilder.append(" AND ("+sourceTableIdNames.get(i)+"=" + sourceTableIds.get(i) + ")");
 			i+=1;

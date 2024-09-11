@@ -3,16 +3,13 @@ package com.contractar.microserviciousuario.admin.services;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -47,7 +44,6 @@ import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
@@ -75,7 +71,7 @@ public class AdminService {
 
 	@Autowired
 	private RestTemplate restTemplate;
-	
+
 	@Value("${microservicio-config.url}")
 	private String serviceConfigUrl;
 
@@ -99,6 +95,11 @@ public class AdminService {
 				}
 
 			});
+	
+	private String getMessageTag(String tagId) {
+		final String fullUrl =  serviceConfigUrl + "/i18n/" +tagId;
+		return restTemplate.getForObject(fullUrl, String.class);
+	}
 
 	public boolean requestExists(Long sourceTableId, List<String> attributes) {
 		return !attributes.isEmpty() && repositoryImpl.getMatchingChangeRequest(sourceTableId, attributes) != null;
@@ -110,8 +111,7 @@ public class AdminService {
 		boolean alreadyRequested = repository.getMatchingChangeRequest(concatenatedIds, "state") != null;
 
 		if (alreadyRequested) {
-			throw new ChangeAlreadyRequestedException(
-					"Ya registramos un cambio para este producto/servicio y está en revisión. Por favor, esperá a que se confirme antes de realizar otro");
+			throw new ChangeAlreadyRequestedException(getMessageTag("exceptions.change.already.requested"));
 		}
 
 		// Only state should be approved by an admin, the other attributes can be
@@ -210,9 +210,7 @@ public class AdminService {
 					throw new RuntimeException(e);
 				}
 			}, () -> {
-				final String fullUrl =  serviceConfigUrl + "/i18n/" + "exceptions.operation.not.allowed";
-				String exceptionMessage = restTemplate.getForObject(fullUrl, String.class);
-				throw new OperationNotAllowedException(exceptionMessage);
+				throw new OperationNotAllowedException(getMessageTag("exceptions.operation.not.allowed"));
 			});
 		}
 	}

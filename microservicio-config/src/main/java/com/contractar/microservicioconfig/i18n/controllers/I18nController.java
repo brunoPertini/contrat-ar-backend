@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microservicioconfig.i18n.config.MessageConfig;
 
-@RestController()
+@RestController
 @RequestMapping("/i18n")
 public class I18nController {
 	@Autowired
