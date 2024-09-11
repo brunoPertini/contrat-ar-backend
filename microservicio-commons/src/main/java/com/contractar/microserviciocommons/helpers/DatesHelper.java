@@ -1,40 +1,34 @@
 package com.contractar.microserviciocommons.helpers;
 
-import java.util.Locale;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
 public final class DatesHelper {
-    @Autowired
-    private MessageSource messageSource;
+    private RestTemplate httpClient;
     
-	private Locale locale;
-	
-	@Autowired
-	public DatesHelper() {
-		this.locale = new Locale("es", "AR");
-	}
-	
-	public DatesHelper(Locale locale) {
-		this.locale = locale;
-	}
-
-	public Locale getLocale() {
-		return locale;
-	}
-
-	public void setLocale(Locale locale) {
-		this.locale = locale;
+    @Value("${microservicio-config.url}")
+    private String serviceConfigUrl;
+    
+    private String getMessageUrl;
+    
+    @PostConstruct
+    public void init() {
+    	this.getMessageUrl = serviceConfigUrl + "/i18n/";
+    }
+    	
+	public DatesHelper(RestTemplate restTemplate) {
+		this.httpClient = restTemplate;
 	}
 	
 	public String getMonthAndYearPattern() {
-		return  messageSource.getMessage("date.format.month.and.year", null, locale);
+		return  httpClient.getForObject(getMessageUrl+"date.format.month.and.year", String.class);
 	}
 	
 	public String getFullDatePattern() {
-		return  messageSource.getMessage("date.format.default", null, locale);
+		return  httpClient.getForObject(getMessageUrl+"date.format.default", String.class);
 	}
 }
