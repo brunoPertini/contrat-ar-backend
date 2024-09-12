@@ -185,6 +185,15 @@ public class AdminService {
 			}
 		});
 	}
+	
+	private void performPostUpdate(ProveedorVendible post, ProveedorVendibleAdminDTO newInfo) throws ClassNotFoundException,
+	IllegalArgumentException,
+	IllegalAccessException,
+	InvocationTargetException{
+		ReflectionHelper.applySetterFromExistingFields(newInfo, post,
+				ReflectionHelper.getObjectClassFullName(newInfo), ReflectionHelper.getObjectClassFullName(post));
+		proveedorVendibleService.save(post);
+	}
 
 	public void updatePostAdmin(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId,
 			HttpServletRequest request)
@@ -195,20 +204,29 @@ public class AdminService {
 
 		String role = (String) tokenPayload.get("role");
 
-		ProveedorVendible post = proveedorVendibleService.findById(new ProveedorVendibleId(proveedorId, vendibleId));
+		ProveedorVendible post = proveedorVendibleService.findById(new ProveedorVendibleId(proveedorId, vendibleId));	
 
 		if (role.startsWith("ADMIN")) {
-			ReflectionHelper.applySetterFromExistingFields(newInfo, post,
-					ReflectionHelper.getObjectClassFullName(newInfo), ReflectionHelper.getObjectClassFullName(post));
-			proveedorVendibleService.save(post);
+			performPostUpdate(post, newInfo);
 		} else {
 			Optional.ofNullable(newInfo.getState()).ifPresentOrElse((state) -> {
-				proveedorVendibleService.handlePostStateChange(post, new ProveedorVendibleUpdateDTO(state));
-				try {
-					addChangeRequestEntry(newInfo, proveedorId, vendibleId);
-				} catch (IllegalAccessException | ChangeAlreadyRequestedException e) {
-					throw new RuntimeException(e);
+				boolean canUpdateStraight = proveedorVendibleService.canUpdatePostStateChange(post,  new ProveedorVendibleUpdateDTO(state));
+				
+				if (canUpdateStraight) {
+					try {
+						performPostUpdate(post, newInfo);
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+					
+				} else {
+					try {
+						addChangeRequestEntry(newInfo, proveedorId, vendibleId);
+					} catch (IllegalAccessException | ChangeAlreadyRequestedException e) {
+						throw new RuntimeException(e);
+					}
 				}
+				
 			}, () -> {
 				throw new OperationNotAllowedException(getMessageTag("exceptions.operation.not.allowed"));
 			});

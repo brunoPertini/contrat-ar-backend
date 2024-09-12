@@ -80,7 +80,7 @@ public class ProveedorVendibleService {
 
 	@Autowired
 	private ObjectMapper objectMapper;
-	
+
 	@Autowired
 	private RestTemplate restTemplate;
 
@@ -92,7 +92,7 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
-	
+
 	@Value("${microservicio-config.url}")
 	private String serviceConfigUrl;
 
@@ -156,7 +156,7 @@ public class ProveedorVendibleService {
 	 * @param newData
 	 * @throws VendibleUpdateRuntimeException
 	 */
-	public void handlePostStateChange(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
+	public boolean canUpdatePostStateChange(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
 			throws VendibleUpdateRuntimeException {
 		boolean isChangingToPaused = vendible.getState().equals(PostState.ACTIVE)
 				&& newData.getState().equals(PostState.PAUSED);
@@ -164,11 +164,14 @@ public class ProveedorVendibleService {
 		boolean isChangingToActive = vendible.getState().equals(PostState.PAUSED)
 				&& newData.getState().equals(PostState.ACTIVE);
 
-		if (!isChangingToPaused && !isChangingToActive) {
-			final String fullUrl =  serviceConfigUrl + "/i18n/" + "exceptions.vendible.update";
-			String exceptionMessage = restTemplate.getForObject(fullUrl, String.class);
-			throw new VendibleUpdateRuntimeException(exceptionMessage);
-		}
+		/*
+		 * if (!isChangingToPaused && !isChangingToActive) { final String fullUrl =
+		 * serviceConfigUrl + "/i18n/" + "exceptions.vendible.update"; String
+		 * exceptionMessage = restTemplate.getForObject(fullUrl, String.class); throw
+		 * new VendibleUpdateRuntimeException(exceptionMessage); }
+		 */
+
+		return isChangingToPaused || isChangingToActive;
 	}
 
 	private void performPostUpdate(ProveedorVendible vendible, ProveedorVendibleUpdateDTO newData)
@@ -193,13 +196,11 @@ public class ProveedorVendibleService {
 		}
 
 		Map<String, Object> dtoRawFields = ReflectionHelper.getObjectFields(newData);
-		
+
 		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
 
 		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
 				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
-
-		
 
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.findById(id);
@@ -208,24 +209,26 @@ public class ProveedorVendibleService {
 			performPostUpdate(vendible, newData);
 		} else {
 			if (isChangingState) {
-				handlePostStateChange(vendible, newData);
-				performPostUpdate(vendible, newData);
-			} else {
-				String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
-						.replace("{vendibleId}", vendibleId.toString()).replace("{proveedorId}", proveedorId.toString());
+				boolean canUpdateStraight = canUpdatePostStateChange(vendible, newData);
+				if (canUpdateStraight) {
+					performPostUpdate(vendible, newData);
+				} else {
+					String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
+							.replace("{vendibleId}", vendibleId.toString())
+							.replace("{proveedorId}", proveedorId.toString());
 
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Authorization", request.getHeader("Authorization"));
+					HttpHeaders headers = new HttpHeaders();
+					headers.set("Authorization", request.getHeader("Authorization"));
 
-				HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
-						new ProveedorVendibleUpdateDTO(PostState.ACTIVE), headers);
+					HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
+							new ProveedorVendibleUpdateDTO(PostState.ACTIVE), headers);
 
-				httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
+					httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
 
-				newData.setState(PostState.IN_REVIEW);
-				performPostUpdate(vendible, newData);
+					newData.setState(PostState.IN_REVIEW);
+					performPostUpdate(vendible, newData);
+				}
 			}
-
 		}
 	}
 
