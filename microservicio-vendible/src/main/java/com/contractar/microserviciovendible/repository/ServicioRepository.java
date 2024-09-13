@@ -17,12 +17,20 @@ public interface ServicioRepository extends PagingAndSortingRepository<Servicio,
 	
 	public List<Servicio> findAll();
 	
-	public List<Servicio> findByNombreContainingIgnoreCaseOrderByNombreAsc(String nombre);
+	@Query(value = "SELECT s FROM Servicio s JOIN FETCH ProveedorVendible pv WHERE pv.state LIKE 'ACTIVE'")
+	public List<Servicio> findAllOnlyWithActivePosts();
+	
+	@Query(value = "SELECT DISTINCT s FROM Servicio s "
+			+ "JOIN FETCH ProveedorVendible pv ON pv.vendible = s "
+			+ "WHERE s.nombre LIKE %:nombre% AND pv.state = 'ACTIVE'")
+	public List<Servicio> findByNombreContainingIgnoreCaseOrderByNombreAsc(@Param("nombre") String nombre);
+
 	
 	@Query(value = "SELECT v.* FROM vendible v "
 			+ "INNER JOIN proveedor_vendible pv ON (v.vendible_id=pv.vendible_id)"
 			+ "INNER JOIN vendible_category vc ON (pv.category_id=vc.id)"
 			+ "WHERE v.vendible_type = 'servicio' "
+			+ "AND pv.state = 'ACTIVE' "
 			+ "AND v.nombre LIKE %:nombre%  "
 			+ "AND vc.id=:categoryId "
 			+ "ORDER BY v.nombre ASC", nativeQuery = true)

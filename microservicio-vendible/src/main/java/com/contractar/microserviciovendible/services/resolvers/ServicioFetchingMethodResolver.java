@@ -23,7 +23,7 @@ public class ServicioFetchingMethodResolver implements VendibleFetchingMethodRes
 	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId) {
 		return () -> {
 			if(Optional.ofNullable(nombre).isEmpty()) {
-				return this.servicioRepository.findAll();
+				return this.servicioRepository.findAllOnlyWithActivePosts();
 			}
 			
 		    if (Optional.ofNullable(categoryId).isPresent()) {

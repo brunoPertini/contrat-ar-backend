@@ -358,7 +358,7 @@ public class VendibleService {
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
 
 		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryId).get().stream()
-				.forEach(vendible -> {
+				.forEach(vendible -> { 
 					Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper
 							.getProveedoresVendibles(response, vendible);
 					if (proveedoresVendibles.size() > 0) {

@@ -196,39 +196,33 @@ public class ProveedorVendibleService {
 		}
 
 		Map<String, Object> dtoRawFields = ReflectionHelper.getObjectFields(newData);
-
-		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
-
-		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
-				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
-
+		
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.findById(id);
 
-		if (!isChangingState && !changesNeedApproval) {
+		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
+		
+		boolean canUpdateStraight = isChangingState && canUpdatePostStateChange(vendible, newData);
+
+		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
+				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
+		
+		if (isChangingState && !canUpdateStraight || changesNeedApproval) {
+			newData.setState(PostState.IN_REVIEW);
 			performPostUpdate(vendible, newData);
+			String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
+					.replace("{vendibleId}", vendibleId.toString())
+					.replace("{proveedorId}", proveedorId.toString());
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", request.getHeader("Authorization"));
+
+			HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
+					new ProveedorVendibleUpdateDTO(PostState.ACTIVE), headers);
+
+			httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
 		} else {
-			if (isChangingState) {
-				boolean canUpdateStraight = canUpdatePostStateChange(vendible, newData);
-				if (canUpdateStraight) {
-					performPostUpdate(vendible, newData);
-				} else {
-					String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
-							.replace("{vendibleId}", vendibleId.toString())
-							.replace("{proveedorId}", proveedorId.toString());
-
-					HttpHeaders headers = new HttpHeaders();
-					headers.set("Authorization", request.getHeader("Authorization"));
-
-					HttpEntity<ProveedorVendibleUpdateDTO> entity = new HttpEntity<>(
-							new ProveedorVendibleUpdateDTO(PostState.ACTIVE), headers);
-
-					httpClient.exchange(url, HttpMethod.PUT, entity, Void.class);
-
-					newData.setState(PostState.IN_REVIEW);
-					performPostUpdate(vendible, newData);
-				}
-			}
+			performPostUpdate(vendible, newData);
 		}
 	}
 
