@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
 
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -17,7 +18,8 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 /**
- * Class that filters posts in DDBB by using CriteriaBuilder predicates for each field.
+ * Class that filters posts in DDBB by using CriteriaBuilder predicates for each
+ * field.
  */
 public class ProveedorVendibleFilteringStrategy {
 	private Map<String, Predicate> fieldsStrategies = new HashMap<>();
@@ -25,6 +27,8 @@ public class ProveedorVendibleFilteringStrategy {
 	public static final String FIELD_PROVEEDOR_NAME = "proveedorName";
 
 	public static final String FIELD_PROVEEDOR_SURNAME = "proveedorSurname";
+
+	public static final String FIELD_VENDIBLE_NOMBRE = "vendibleNombre";
 
 	public static final String FIELD_CATEGORY_NAME = "categoryName";
 
@@ -41,6 +45,8 @@ public class ProveedorVendibleFilteringStrategy {
 	public static final String FIELD_OFFERS_CUSTOM_ADDRESS = "offersInCustomAddress";
 
 	public static final String FIELD_PRICE_TYPE = "priceType";
+	
+	public static final String FIELD_STATE = "state";
 
 	private Path ddbbSourceObject;
 
@@ -56,6 +62,8 @@ public class ProveedorVendibleFilteringStrategy {
 					filters.getProveedorName());
 			processStringLikeNotExactCondition(FIELD_PROVEEDOR_SURNAME, root, cb, List.of("proveedor", "surname"),
 					filters.getProveedorSurname());
+			processStringLikeNotExactCondition(FIELD_VENDIBLE_NOMBRE, root, cb, List.of("vendible", "nombre"),
+					filters.getVendibleNombre());
 			processStringLikeNotExactCondition(FIELD_CATEGORY_NAME, root, cb, List.of("category", "name"),
 					filters.getCategoryName());
 
@@ -71,6 +79,8 @@ public class ProveedorVendibleFilteringStrategy {
 					filters.isOffersInCustomAddress());
 
 			processPriceTypeEqualsCondition(FIELD_PRICE_TYPE, root, cb, List.of("tipoPrecio"), filters.getPriceType());
+			
+			processPostStateEqualsCondition(FIELD_STATE, root, cb, List.of("state"), filters.getState());
 		});
 	}
 
@@ -129,6 +139,19 @@ public class ProveedorVendibleFilteringStrategy {
 
 	private void processPriceTypeEqualsCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
 			List<String> rootAttributes, PriceTypeInterface value) {
+		if (!isValueNull.apply(value)) {
+			ddbbSourceObject = root;
+
+			for (String attribute : rootAttributes) {
+				ddbbSourceObject = ddbbSourceObject.get(attribute);
+			}
+
+			this.fieldsStrategies.put(mapKey, cb.equal(ddbbSourceObject, value));
+		}
+	}
+	
+	private void processPostStateEqualsCondition(String mapKey, Root<?> root, CriteriaBuilder cb,
+			List<String> rootAttributes,PostState value) {
 		if (!isValueNull.apply(value)) {
 			ddbbSourceObject = root;
 

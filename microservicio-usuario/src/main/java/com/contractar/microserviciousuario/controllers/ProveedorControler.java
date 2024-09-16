@@ -60,11 +60,19 @@ public class ProveedorControler {
 				: new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
-	@GetMapping("/proveedor/{proveedorId}/vendible")
+	@Deprecated(forRemoval = true)
+	@GetMapping(ProveedorControllerUrls.GET_VENDIBLES_OF_PROVEEDOR)
 	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedor(
 			@PathVariable("proveedorId") Long proveedorId) {
 		return new ResponseEntity<ProveedorVendiblesResponseDTO>(
-				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId), HttpStatus.OK);
+				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId, null), HttpStatus.OK);
+	}
+	
+	@PostMapping(ProveedorControllerUrls.GET_VENDIBLES_OF_PROVEEDOR)
+	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedorV2(@PathVariable("proveedorId") Long proveedorId,
+			@RequestBody(required = false) ProveedorVendibleFilter filters) {
+		return new ResponseEntity<ProveedorVendiblesResponseDTO>(
+				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId, filters), HttpStatus.OK);
 	}
 
 	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS)

@@ -1,5 +1,6 @@
 package com.contractar.microserviciocommons.dto.proveedorvendible;
 
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 
@@ -8,6 +9,8 @@ import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
  */
 public class ProveedorVendibleFilter {
 	private String proveedorName;
+	
+	private String vendibleNombre;
 	
 	private String proveedorSurname;
 	
@@ -27,13 +30,12 @@ public class ProveedorVendibleFilter {
 	
 	private Integer maxStock;
 	
+	private PostState state;
+
 	public ProveedorVendibleFilter () {}
 	
-
-	public ProveedorVendibleFilter(String proveedorName, String proveedorSurname, Integer minPrice, Integer maxPrice, PriceTypeInterface priceType,
+	private ProveedorVendibleFilter(Integer minPrice, Integer maxPrice, PriceTypeInterface priceType,
 			Boolean offersDelivery, Boolean offersInCustomAddress, String categoryName, Integer minStock, Integer maxStock) {
-		this.proveedorName = proveedorName;
-		this.proveedorSurname = proveedorSurname;
 		this.minPrice = minPrice;
 		this.maxPrice = maxPrice;
 		this.priceType = priceType;
@@ -42,6 +44,20 @@ public class ProveedorVendibleFilter {
 		this.categoryName = categoryName;
 		this.minStock = minStock;
 		this.maxStock = maxStock;
+	}
+	
+
+	public ProveedorVendibleFilter(String proveedorName, String proveedorSurname, Integer minPrice, Integer maxPrice, PriceTypeInterface priceType,
+			Boolean offersDelivery, Boolean offersInCustomAddress, String categoryName, Integer minStock, Integer maxStock) {
+		this(minPrice, maxPrice, priceType, offersDelivery, offersInCustomAddress, categoryName, minStock, maxStock);
+		this.proveedorName = proveedorName;
+		this.proveedorSurname = proveedorSurname;
+	}
+	
+	public ProveedorVendibleFilter(String vendibleNombre, Integer minPrice, Integer maxPrice, PriceTypeInterface priceType,
+			Boolean offersDelivery, Boolean offersInCustomAddress, String categoryName, Integer minStock, Integer maxStock) {
+		this(minPrice, maxPrice, priceType, offersDelivery, offersInCustomAddress, categoryName, minStock, maxStock);
+		this.vendibleNombre = vendibleNombre;
 	}
 
 	public String getProveedorName() {
@@ -124,5 +140,21 @@ public class ProveedorVendibleFilter {
 		this.maxStock = maxStock;
 	}
 	
+	public String getVendibleNombre() {
+		return vendibleNombre;
+	}
+
+
+	public void setVendibleNombre(String vendibleNombre) {
+		this.vendibleNombre = vendibleNombre;
+	}
 	
+	public PostState getState() {
+		return state;
+	}
+
+	public void setState(PostState state) {
+		this.state = state;
+	}
+
 }

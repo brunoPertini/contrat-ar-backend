@@ -196,23 +196,22 @@ public class ProveedorVendibleService {
 		}
 
 		Map<String, Object> dtoRawFields = ReflectionHelper.getObjectFields(newData);
-		
+
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.findById(id);
 
 		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
-		
+
 		boolean canUpdateStraight = isChangingState && canUpdatePostStateChange(vendible, newData);
 
 		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
 				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
-		
+
 		if (isChangingState && !canUpdateStraight || changesNeedApproval) {
 			newData.setState(PostState.IN_REVIEW);
 			performPostUpdate(vendible, newData);
 			String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
-					.replace("{vendibleId}", vendibleId.toString())
-					.replace("{proveedorId}", proveedorId.toString());
+					.replace("{vendibleId}", vendibleId.toString()).replace("{proveedorId}", proveedorId.toString());
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Authorization", request.getHeader("Authorization"));
@@ -224,44 +223,6 @@ public class ProveedorVendibleService {
 		} else {
 			performPostUpdate(vendible, newData);
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public ProveedorVendiblesResponseDTO getProveedorVendiblesInfo(Long proveedorId) {
-		List<ProveedorVendible> results = repository.getProveedorVendibleInfo(proveedorId);
-
-		ProveedorVendiblesResponseDTO response = new ProveedorVendiblesResponseDTO();
-
-		for (ProveedorVendible pv : results) {
-			SimplifiedVendibleDTO simplifiedVendibleDTO = new SimplifiedVendibleDTO();
-
-			String getVendibleHierachyStringUrl = (SERVICIO_VENDIBLE_URL
-					+ VendiblesControllersUrls.GET_CATEGORY_HIERACHY);
-
-			List<String> categoryNames = pv.getCategory() != null
-					? httpClient.postForObject(getVendibleHierachyStringUrl, pv.getCategory(), List.class)
-					: List.of();
-
-			simplifiedVendibleDTO.setVendibleId(pv.getVendible().getId());
-			simplifiedVendibleDTO.setVendibleNombre(pv.getVendible().getNombre());
-			simplifiedVendibleDTO.setDescripcion(pv.getDescripcion());
-			simplifiedVendibleDTO.setImagenUrl(StringUtils.isEmpty(pv.getImagenUrl()) ? null : pv.getImagenUrl());
-			simplifiedVendibleDTO.setCategoryNames(categoryNames);
-			simplifiedVendibleDTO.setPrecio(pv.getPrecio());
-			simplifiedVendibleDTO.setStock(pv.getStock());
-			simplifiedVendibleDTO.setTipoPrecio(pv.getTipoPrecio());
-			simplifiedVendibleDTO.setOffersDelivery(pv.getOffersDelivery());
-			simplifiedVendibleDTO.setOffersInCustomAddress(pv.getOffersInCustomAddress());
-			simplifiedVendibleDTO.setLocation(pv.getLocation());
-			simplifiedVendibleDTO.setState(pv.getState());
-
-			VendibleHelper.addCategoriasToResponse(pv, response);
-
-			response.getVendibles().add(simplifiedVendibleDTO);
-		}
-
-		return response;
-
 	}
 
 	private void setMinAndMaxForSlider(VendibleProveedoresDTO response) {
@@ -467,11 +428,51 @@ public class ProveedorVendibleService {
 
 	}
 
+	@SuppressWarnings("unchecked")
+	public ProveedorVendiblesResponseDTO getProveedorVendiblesInfo(Long proveedorId,
+			@Nullable ProveedorVendibleFilter filters) {
+		// TODO: implementar caché acá
+		List<ProveedorVendible> results = customRepository.get(proveedorId, filters, "proveedor");
+
+		ProveedorVendiblesResponseDTO response = new ProveedorVendiblesResponseDTO();
+
+		for (ProveedorVendible pv : results) {
+			SimplifiedVendibleDTO simplifiedVendibleDTO = new SimplifiedVendibleDTO();
+
+			String getVendibleHierachyStringUrl = (SERVICIO_VENDIBLE_URL
+					+ VendiblesControllersUrls.GET_CATEGORY_HIERACHY);
+
+			List<String> categoryNames = pv.getCategory() != null
+					? httpClient.postForObject(getVendibleHierachyStringUrl, pv.getCategory(), List.class)
+					: List.of();
+
+			simplifiedVendibleDTO.setVendibleId(pv.getVendible().getId());
+			simplifiedVendibleDTO.setVendibleNombre(pv.getVendible().getNombre());
+			simplifiedVendibleDTO.setDescripcion(pv.getDescripcion());
+			simplifiedVendibleDTO.setImagenUrl(StringUtils.isEmpty(pv.getImagenUrl()) ? null : pv.getImagenUrl());
+			simplifiedVendibleDTO.setCategoryNames(categoryNames);
+			simplifiedVendibleDTO.setPrecio(pv.getPrecio());
+			simplifiedVendibleDTO.setStock(pv.getStock());
+			simplifiedVendibleDTO.setTipoPrecio(pv.getTipoPrecio());
+			simplifiedVendibleDTO.setOffersDelivery(pv.getOffersDelivery());
+			simplifiedVendibleDTO.setOffersInCustomAddress(pv.getOffersInCustomAddress());
+			simplifiedVendibleDTO.setLocation(pv.getLocation());
+			simplifiedVendibleDTO.setState(pv.getState());
+
+			VendibleHelper.addCategoriasToResponse(pv, response);
+
+			response.getVendibles().add(simplifiedVendibleDTO);
+		}
+
+		return response;
+
+	}
+
 	public PostsResponseDTO getPostsOfVendible(Long vendibleId, int page, int size,
 			@Nullable ProveedorVendibleFilter filters) {
 
 		// TODO: implementar caché acá
-		List<ProveedorVendible> allResults = customRepository.get(vendibleId, filters);
+		List<ProveedorVendible> allResults = customRepository.get(vendibleId, filters, "vendible");
 
 		Pageable pageRequest = PageRequest.of(page, size);
 

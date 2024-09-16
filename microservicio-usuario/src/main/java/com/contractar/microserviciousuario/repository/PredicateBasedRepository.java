@@ -35,5 +35,5 @@ public abstract class PredicateBasedRepository<T, K, U> {
 		this.root = criteriaQuery.from(baseClass);
 	}
 
-	public abstract List<T> get(K id, U filters);
+	public abstract List<T> get(K id, U filters, String rootEntityName);
 }
