@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,9 +101,24 @@ public class AdminService {
 		final String fullUrl =  serviceConfigUrl + "/i18n/" +tagId;
 		return restTemplate.getForObject(fullUrl, String.class);
 	}
+	
+	public List<ChangeRequest> findAll() {
+		return repository.findAll();
+	}
 
-	public boolean requestExists(Long sourceTableId, List<String> attributes) {
-		return !attributes.isEmpty() && repositoryImpl.getMatchingChangeRequest(sourceTableId, attributes) != null;
+	public boolean requestExists(List<Long> sourceTableIds, List<String> attributes) {
+		String idsAsString = sourceTableIds.size() > 1 ? sourceTableIds.stream()
+				.map(id -> id.toString())
+				.collect(Collectors.toList())
+				.stream()
+				.reduce("", (acum, attribute) -> acum + "," + attribute) 
+				: sourceTableIds.get(0).toString();
+		
+		String attributesAsString = attributes.size() > 1 ? attributes.stream()
+				.reduce("", (acum, attribute) -> acum + "," + attribute)
+				: attributes.get(0).toString();
+		
+		return !attributes.isEmpty() && repository.getMatchingChangeRequest(idsAsString, attributesAsString) != null;
 	}
 
 	public void addChangeRequestEntry(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId)
@@ -163,7 +179,7 @@ public class AdminService {
 			try {
 				Long subscriptionId = foundProveedor.getSuscripcion().getId();
 
-				boolean infoAlreadyRequested = requestExists(subscriptionId, List.of(newPlanId.toString()));
+				boolean infoAlreadyRequested = requestExists(List.of(subscriptionId), List.of(newPlanId.toString()));
 
 				if (infoAlreadyRequested) {
 					throw new ChangeAlreadyRequestedException();

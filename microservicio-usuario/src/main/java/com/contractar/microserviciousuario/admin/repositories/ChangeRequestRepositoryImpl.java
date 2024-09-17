@@ -51,29 +51,4 @@ public class ChangeRequestRepositoryImpl {
 		}
 
 	}
-	
-	 public Long getMatchingChangeRequest(Long sourceTableId, List<String> searchAttributes) {
-	        StringBuilder queryBuilder = new StringBuilder(
-	            "SELECT cr.id FROM change_request cr WHERE (source_table_id = :sourceTableId) AND NOT was_applied");
-
-	        for (int i = 0; i < searchAttributes.size(); i++) {
-	            queryBuilder.append(" AND EXISTS (SELECT id FROM change_request c WHERE c.id = cr.id AND c.attributes LIKE :searchAttribute")
-	                        .append(i)
-	                        .append(")");
-	        }
-
-	        Query query = entityManager.createNativeQuery(queryBuilder.toString());
-	        query.setParameter("sourceTableId", sourceTableId);
-
-	        for (int i = 0; i < searchAttributes.size(); i++) {
-	            query.setParameter("searchAttribute" + i, "%" + searchAttributes.get(i) + "%");
-	        }
-
-	        try {
-	        	return (Long) query.getSingleResult();
-	        } catch (Exception e) {
-	        	return null;
-	        }
-	    }
-
 }

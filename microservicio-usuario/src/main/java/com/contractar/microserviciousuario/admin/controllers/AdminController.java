@@ -20,9 +20,11 @@ import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciousuario.admin.dtos.ChangeRequestSearchDTO;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
@@ -46,11 +48,9 @@ public class AdminController {
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
-	@GetMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
-	public ResponseEntity<?> requestChangeExists(
-			@RequestParam(required = true, name = "sourceTableId") Long sourceTableId,
-			@RequestParam(required = true, name = "searchAttributes") List<String> searchAttributes) {
-		boolean requestExists = adminService.requestExists(sourceTableId, searchAttributes);
+	@PostMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
+	public ResponseEntity<?> requestChangeExists(@RequestBody(required = true) ChangeRequestSearchDTO body) {
+		boolean requestExists = adminService.requestExists(body.getSearchIds(), body.getSearchAttributes());
 		return requestExists ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
@@ -115,5 +115,10 @@ public class AdminController {
 	public ResponseEntity<Void> deleteUsuario(@PathVariable("id") Long userId)  throws UserNotFoundException {
 		adminService.deleteUser(userId);
 		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+	}
+	
+	@GetMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
+	public ResponseEntity<List<ChangeRequest>> findAll() {
+		return new ResponseEntity<List<ChangeRequest>>(adminService.findAll(), HttpStatusCode.valueOf(200));
 	}
 }
