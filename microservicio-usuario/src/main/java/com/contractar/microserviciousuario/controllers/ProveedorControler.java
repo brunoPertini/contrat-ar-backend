@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.controllers;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -20,12 +21,16 @@ import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendib
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
+import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
+import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.services.ProveedorService;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
@@ -104,5 +109,13 @@ public class ProveedorControler {
 		return new ResponseEntity<>(
 				proveedorVendibleService.getPostsOfVendible(vendibleId, page, DEFAULT_PAGE_SIZE, filters),
 				HttpStatus.OK);
+	}
+	
+	@GetMapping(VendiblesControllersUrls.INTERNAL_POST_BY_ID)
+	public ResponseEntity<SimplifiedVendibleDTO> seePostDetail(@PathVariable("vendibleId") Long vendibleId,
+			@PathVariable("proveedorId") Long proveedorId) throws VendibleNotFoundException {
+		ProveedorVendible entity = proveedorVendibleService.findById(new ProveedorVendibleId(proveedorId, vendibleId));
+		SimplifiedVendibleDTO dto = new SimplifiedVendibleDTO(entity, List.of());
+		return new ResponseEntity<>(dto, HttpStatus.OK);
 	}
 }

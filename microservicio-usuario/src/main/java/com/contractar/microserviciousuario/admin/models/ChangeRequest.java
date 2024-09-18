@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.contractar.microserviciousuario.models.converters.LongListConverter;
 import com.contractar.microserviciousuario.models.converters.StringListConverter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
@@ -18,6 +20,7 @@ import jakarta.persistence.GenerationType;
  * operation on the database. 
  */
 @Entity
+@JsonPropertyOrder({ "id", "sourceTable", "attributes", "sourceTableIdNames", "sourceTableIds", "wasApplied"})
 public class ChangeRequest implements Serializable {
 
 	private static final long serialVersionUID = -7844170990511109741L;
@@ -25,7 +28,7 @@ public class ChangeRequest implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@Convert(converter = StringListConverter.class)
 	@Column(nullable = false)
 	private List<String> sourceTableIdNames;
@@ -40,6 +43,7 @@ public class ChangeRequest implements Serializable {
 	@Column(nullable = false)
 	private String attributes;
 
+	@JsonProperty("wasApplied")
 	private boolean wasApplied;
 	
 	public ChangeRequest() {}
@@ -51,6 +55,15 @@ public class ChangeRequest implements Serializable {
 		this.sourceTableIds = sourceTableIds;
 		this.sourceTableIdNames = sourceTableIdNames;
 	}
+	
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
 
 	public String getSourceTable() {
 		return sourceTable;
