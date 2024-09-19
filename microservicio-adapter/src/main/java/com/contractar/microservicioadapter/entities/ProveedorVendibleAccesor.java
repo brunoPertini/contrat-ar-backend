@@ -39,4 +39,6 @@ public interface ProveedorVendibleAccesor {
 	
 	public PostState getState();
 	
+	public String getVendibleType();
+	
 }

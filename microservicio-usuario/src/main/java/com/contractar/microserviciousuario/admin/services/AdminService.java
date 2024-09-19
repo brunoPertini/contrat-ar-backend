@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
+import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
@@ -135,6 +135,8 @@ public class AdminService {
 		if (newInfo.getState() != null) {
 			ChangeRequest newRequest = new ChangeRequest("proveedor_vendible", "state='" + newInfo.getState() + "'",
 					false, List.of(proveedorId, vendibleId), List.of("proveedor_id", "vendible_id"));
+			
+			newRequest.setChangeDetailUrl(ProveedorVendibleAdminDTO.getDTODetailUrl(proveedorId, vendibleId));
 			repository.save(newRequest);
 		}
 	}
@@ -189,6 +191,8 @@ public class AdminService {
 
 				ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false,
 						List.of(subscriptionId), List.of("id"));
+				
+				planChangeRequest.setChangeDetailUrl(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION.replace("{proveedorId}", proveedorId.toString()));
 				repository.save(planChangeRequest);
 			} catch (ChangeAlreadyRequestedException e) {
 				throw new RuntimeException(e);

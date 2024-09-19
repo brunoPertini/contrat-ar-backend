@@ -225,4 +225,9 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 		return state;
 	}
 
+	@Override
+	public String getVendibleType() {
+		return this.getVendible().getVendibleType();
+	}
+
 }

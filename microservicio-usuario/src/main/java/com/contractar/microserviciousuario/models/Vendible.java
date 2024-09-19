@@ -22,7 +22,7 @@ import jakarta.validation.constraints.NotBlank;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "vendible_type", discriminatorType = DiscriminatorType.STRING)
 @Entity
-public class Vendible implements Serializable, VendibleAccesor {
+public abstract class Vendible implements Serializable, VendibleAccesor {
 
 	private static final long serialVersionUID = -6708815378872073493L;
 
@@ -75,5 +75,7 @@ public class Vendible implements Serializable, VendibleAccesor {
 		this.nombre = nombre;
 		this.proveedoresVendibles = proveedoresVendibles;
 	}
+	
+	public abstract String getVendibleType();
 
 }

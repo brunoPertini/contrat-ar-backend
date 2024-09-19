@@ -32,6 +32,7 @@ public class SimplifiedVendibleDTO extends AbstractProveedorVendibleDTO {
 		this.location = entity.getLocation();
 		this.state = entity.getState();
 		this.categoryNames = categoryNames;
+		this.setVendibleType(entity.getVendibleType());
 	}
 
 	public SimplifiedVendibleDTO() {

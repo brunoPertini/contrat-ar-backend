@@ -30,8 +30,8 @@ public class ProveedorDeserializer extends UserDeserializer {
 		JsonNode node = jsonParser.getCodec().readTree(jsonParser);
 
 		String planId = node.get("plan").asText();
-		String getPlanUrl = microservicioUsuarioUrl
-				+ ProveedorControllerUrls.GET_PLAN_BY_ID.replace("{planId}", planId);
+		// String getPlanUrl = microservicioUsuarioUrl
+				// + ProveedorControllerUrls.GET_PLAN_BY_ID.replace("{planId}", planId);
 
 		// TODO: fixear esto
 		// ResponseEntity<Plan> getPlanResponse = restTemplate.getForEntity(getPlanUrl, Plan.class);

@@ -10,4 +10,6 @@ public interface VendibleAccesor {
 	public Long getId();
 
 	public Set<? extends ProveedorVendibleAccesor> getProveedoresVendibles();
+	
+	public String getVendibleType();
 }

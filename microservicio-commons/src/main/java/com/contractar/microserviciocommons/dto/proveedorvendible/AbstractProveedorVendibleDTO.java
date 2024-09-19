@@ -4,8 +4,8 @@ import com.contractar.microservicioadapter.dtos.AbstractProveedorVendibleDTOAcce
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 
-public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorVendibleDTOAccesor{
-	
+public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorVendibleDTOAccesor {
+
 	private Long vendibleId;
 
 	private String vendibleNombre;
@@ -13,19 +13,20 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 	private String descripcion;
 
 	private int precio;
-	
+
 	private PriceTypeInterface tipoPrecio;
-	
+
 	private boolean offersDelivery;
-	
+
 	private boolean offersInCustomAddress;
 
 	private String imagenUrl;
 
 	private int stock;
-	
+
 	private Long vendibleCategoryId;
-	
+
+	private String vendibleType;
 
 	public AbstractProveedorVendibleDTO(Long vendibleId, String vendibleNombre, String descripcion, int precio,
 			PriceTypeInterface tipoPrecio, boolean offersDelivery, boolean offersInCustomAddress, String imagenUrl,
@@ -89,7 +90,7 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 	public int getStock() {
 		return stock;
 	}
-	
+
 	public Long getVendibleId() {
 		return vendibleId;
 	}
@@ -101,7 +102,7 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
-	
+
 	public Long getVendibleCategoryId() {
 		return vendibleCategoryId;
 	}
@@ -109,7 +110,7 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 	public void setVendibleCategoryId(Long vendibleCategoryId) {
 		this.vendibleCategoryId = vendibleCategoryId;
 	}
-	
+
 	public PriceTypeInterface getTipoPrecio() {
 		return tipoPrecio;
 	}
@@ -125,13 +126,24 @@ public abstract class AbstractProveedorVendibleDTO implements AbstractProveedorV
 	public void setOffersDelivery(boolean offersDelivery) {
 		this.offersDelivery = offersDelivery;
 	}
-	
+
 	public boolean isOffersInCustomAddress() {
 		return offersInCustomAddress;
 	}
 
 	public void setOffersInCustomAddress(boolean offersInCustomAddress) {
 		this.offersInCustomAddress = offersInCustomAddress;
+	}
+
+	@Override
+	public String getVendibleType() {
+		return this.vendibleType;
+	}
+
+	@Override
+	public void setVendibleType(String vendibleType) {
+		this.vendibleType = vendibleType;
+
 	}
 
 }

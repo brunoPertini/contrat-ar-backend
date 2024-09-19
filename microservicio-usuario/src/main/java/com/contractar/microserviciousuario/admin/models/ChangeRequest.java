@@ -46,6 +46,8 @@ public class ChangeRequest implements Serializable {
 	@JsonProperty("wasApplied")
 	private boolean wasApplied;
 	
+	private String changeDetailUrl;
+	
 	public ChangeRequest() {}
 
 	public ChangeRequest(String table, String attributes, boolean wasApplied, List<Long> sourceTableIds, List<String> sourceTableIdNames) {
@@ -104,4 +106,13 @@ public class ChangeRequest implements Serializable {
 	public void setSourceTableId(List<Long> sourceTableIds) {
 		this.sourceTableIds = sourceTableIds;
 	}
+	
+	public String getChangeDetailUrl() {
+		return changeDetailUrl;
+	}
+
+	public void setChangeDetailUrl(String changeDetailUrl) {
+		this.changeDetailUrl = changeDetailUrl;
+	}
+
 }

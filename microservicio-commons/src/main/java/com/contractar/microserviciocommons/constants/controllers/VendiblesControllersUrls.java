@@ -8,6 +8,8 @@ public class VendiblesControllersUrls {
 	
 	public static final String GET_VENDIBLE = "/vendible";
 	
+	public static final String GET_VENDIBLE_DETAIL = GET_VENDIBLE + "/{vendibleId}/proveedor/{proveedorId}";
+	
 	public static final String GET_SERVICE = "/service";
 	
 	public static final String SAVE_SERVICE = "/service";
