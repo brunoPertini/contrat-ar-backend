@@ -58,9 +58,11 @@ public class ServicioController {
 
 	@GetMapping(VendiblesControllersUrls.GET_SERVICE)
 	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam(required = false) String nombre,
-			@RequestParam(required = false) Long category) {
+			@RequestParam(required = false) Long category,
+			HttpServletRequest request) {
 		return new ResponseEntity<VendiblesResponseDTO>(this.vendibleService.findByNombreAsc(nombre,
 				category,
-				servicioFetchingMethodResolver), HttpStatus.OK);
+				servicioFetchingMethodResolver,
+				request), HttpStatus.OK);
 	}
 }

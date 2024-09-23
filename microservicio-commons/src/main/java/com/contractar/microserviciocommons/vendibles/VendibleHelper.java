@@ -175,10 +175,10 @@ public final class VendibleHelper {
 	}
 
 	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
-			VendibleAccesor vendible) {
+			VendibleAccesor vendible, boolean filterOnlyActive) {
 		return vendible.getProveedoresVendibles()
 				.stream()
-				.filter(pv -> pv.getState().equals(PostState.ACTIVE))
+				.filter(pv ->  !filterOnlyActive || pv.getState().equals(PostState.ACTIVE))
 				.map(proveedorVendible -> {
 			ProveedorAccessor proveedor = proveedorVendible.getProveedor();
 			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(vendible.getId(), proveedor.getId(), vendible.getNombre(),

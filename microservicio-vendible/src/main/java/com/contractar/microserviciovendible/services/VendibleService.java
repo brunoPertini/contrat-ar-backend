@@ -3,6 +3,7 @@ package com.contractar.microserviciovendible.services;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,7 +23,9 @@ import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microservicioadapter.enums.PostState;
+import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
@@ -67,6 +70,9 @@ public class VendibleService {
 
 	@Value("${microservicio-usuario.url}")
 	private String microServicioUsuarioUrl;
+	
+	@Value("${microservicio-security.url}")
+	private String SERVICIO_SECURITY_URL;
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -77,6 +83,20 @@ public class VendibleService {
 	private VendibleCategory categoryParentAux;
 
 	private static final int CATEGORY_BOUND = 3;
+	
+	private Object readJwtPayload(HttpServletRequest request) {
+		String getPayloadUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", request.getHeader("Authorization"));
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<Object> getPayloadResponse = restTemplate.exchange(getPayloadUrl, HttpMethod.GET, entity,
+				Object.class);
+
+		return getPayloadResponse.getBody();
+	}
 
 	@Transactional
 	private VendibleCategory persistCategoryHierachy(VendibleCategory baseCategory) throws CantCreateException {
@@ -354,14 +374,19 @@ public class VendibleService {
 	}
 
 	public VendiblesResponseDTO findByNombreAsc(String nombre, Long categoryId,
-			VendibleFetchingMethodResolver repositoryMethodResolver) {
+			VendibleFetchingMethodResolver repositoryMethodResolver, HttpServletRequest request) {
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
+		
+		String userRole = (String)((Map<String, Object>) this.readJwtPayload(request)).get("role");
 
-		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryId).get().stream()
+		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryId, userRole).get().stream()
 				.forEach(vendible -> { 
 					Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper
-							.getProveedoresVendibles(response, vendible);
-					if (proveedoresVendibles.size() > 0) {
+							.getProveedoresVendibles(response,
+									vendible,
+									!userRole.equals(RolesNames.RolesValues.ADMIN.toString())
+									);
+					if (!proveedoresVendibles.isEmpty()) {
 						response.getVendibles().put(vendible.getNombre(), proveedoresVendibles);
 						vendible.getProveedoresVendibles().forEach(proveedorVendible -> {
 							CategorizableObject categorizableProveedorVendible = (CategorizableObject) proveedorVendible;

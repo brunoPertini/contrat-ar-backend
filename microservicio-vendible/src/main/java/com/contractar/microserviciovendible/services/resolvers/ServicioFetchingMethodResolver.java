@@ -20,19 +20,19 @@ public class ServicioFetchingMethodResolver implements VendibleFetchingMethodRes
 	private ServicioRepository servicioRepository;
 	
 	@Override
-	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId) {
+	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId, String userRole) {
 		return () -> {
 			if(Optional.ofNullable(nombre).isEmpty()) {
-				return this.servicioRepository.findAllOnlyWithActivePosts();
+				return this.servicioRepository.findAllOnlyWithActivePosts(userRole);
 			}
 			
 		    if (Optional.ofNullable(categoryId).isPresent()) {
 		        return Optional.ofNullable(vendibleService.findCategoryById(categoryId))
 		                .map((category) -> this.servicioRepository.findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(nombre,
-		                		category.getId()))
-		                .orElseGet(() -> this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre));
+		                		category.getId(), userRole))
+		                .orElseGet(() -> this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre, userRole));
 		    } else {
-		        return this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre);
+		        return this.servicioRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre, userRole);
 		    }
 		};
 	}
