@@ -5,6 +5,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
+import com.contractar.microserviciousuario.serialization.VendibleDeserializer;
+import com.contractar.microserviciousuario.serialization.VendibleSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -21,6 +25,8 @@ import jakarta.validation.constraints.NotBlank;
 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "vendible_type", discriminatorType = DiscriminatorType.STRING)
+@JsonSerialize(using = VendibleSerializer.class)
+@JsonDeserialize(using = VendibleDeserializer.class)
 @Entity
 public abstract class Vendible implements Serializable, VendibleAccesor {
 

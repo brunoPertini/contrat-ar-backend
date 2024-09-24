@@ -18,6 +18,8 @@ public interface ProveedorVendibleAccesor {
 	public String getImagenUrl();
 
 	public int getStock();
+	
+	public void setVendible(VendibleAccesor vendible);
 
 	public VendibleAccesor getVendible();
 

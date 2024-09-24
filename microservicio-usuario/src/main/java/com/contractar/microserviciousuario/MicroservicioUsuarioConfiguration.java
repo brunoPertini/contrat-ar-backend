@@ -12,7 +12,10 @@ import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.contractar.microserviciousuario.models.Usuario;
+import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciousuario.serialization.UserDetailsDeserializer;
+import com.contractar.microserviciousuario.serialization.VendibleDeserializer;
+import com.contractar.microserviciousuario.serialization.VendibleSerializer;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.InjectableValues;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,6 +63,9 @@ public class MicroservicioUsuarioConfiguration {
 		module.addSerializer(Point.class, new UbicacionSerializer());
 		module.addDeserializer(Point.class, new UbicacionDeserializer());
 		module.addDeserializer(Usuario.class, new UserDetailsDeserializer());
+		
+		module.addSerializer(Vendible.class, new VendibleSerializer());
+		module.addDeserializer(Vendible.class, new VendibleDeserializer());
 		
 		objectMapper.registerModule(module);
 

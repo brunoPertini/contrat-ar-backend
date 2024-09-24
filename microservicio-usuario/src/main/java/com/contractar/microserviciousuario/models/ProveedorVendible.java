@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import org.locationtech.jts.geom.Point;
 
@@ -76,7 +77,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	@NotNull
 	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
 	private boolean offersDelivery;
-	
+
 	@NotNull
 	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
 	private boolean offersInCustomAddress;
@@ -84,7 +85,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	@OneToOne
 	@NotNull
 	private VendibleCategory category;
-	
+
 	@Enumerated(EnumType.STRING)
 	private PostState state;
 
@@ -149,14 +150,14 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public VendibleAccesor getVendible() {
 		return vendible;
 	}
-	
+
 	@JsonSetter
 	public void setVendible(Vendible vendible) {
 		this.vendible = vendible;
 	}
 
 	public void setVendible(VendibleAccesor vendible) {
-		this.vendible = (Vendible)vendible;
+		this.vendible = (Vendible) vendible;
 	}
 
 	public Proveedor getProveedor() {
@@ -190,7 +191,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public void setOffersDelivery(boolean offersDelivery) {
 		this.offersDelivery = offersDelivery;
 	}
-	
+
 	public boolean getOffersInCustomAddress() {
 		return offersInCustomAddress;
 	}
@@ -203,12 +204,11 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public VendibleCategoryAccesor getCategory() {
 		return this.category;
 	}
-	
+
 	@JsonSetter
 	public void setCategory(VendibleCategory category) {
 		this.category = category;
 	}
-	
 
 	@Override
 	public void setCategory(VendibleCategoryAccesor category) {
@@ -217,7 +217,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 
 	@Override
 	public void setState(PostState state) {
-		this.state = state;		
+		this.state = state;
 	}
 
 	@Override
@@ -227,7 +227,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 
 	@Override
 	public String getVendibleType() {
-		return this.getVendible().getVendibleType();
+		return Optional.ofNullable(this.getVendible()).map(v -> v.getVendibleType()).orElse("");
 	}
 
 }
