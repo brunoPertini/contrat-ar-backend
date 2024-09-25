@@ -34,6 +34,8 @@ import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepositoryImpl;
 import com.contractar.microserviciousuario.admin.repositories.UsuarioAdminCustomRepository;
+import com.contractar.microserviciousuario.admin.utils.ChangeRequestDenyFactoryStrategy;
+import com.contractar.microserviciousuario.admin.utils.ChangeRequestDenyStrategy;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -71,6 +73,9 @@ public class AdminService {
 	private UsuarioRepository usuarioRepository;
 
 	@Autowired
+	private ChangeRequestRepository changeRequestRepository;
+
+	@Autowired
 	private RestTemplate restTemplate;
 
 	@Value("${microservicio-config.url}")
@@ -96,28 +101,29 @@ public class AdminService {
 				}
 
 			});
-	
+
 	private String getMessageTag(String tagId) {
-		final String fullUrl =  serviceConfigUrl + "/i18n/" +tagId;
+		final String fullUrl = serviceConfigUrl + "/i18n/" + tagId;
 		return restTemplate.getForObject(fullUrl, String.class);
 	}
-	
+
 	public List<ChangeRequest> findAll() {
 		return repository.findAll();
 	}
 
+	public ProveedorVendible findPost(ProveedorVendibleId id) throws VendibleNotFoundException {
+		return this.proveedorVendibleService.findById(id);
+	}
+
 	public boolean requestExists(List<Long> sourceTableIds, List<String> attributes) {
-		String idsAsString = sourceTableIds.size() > 1 ? sourceTableIds.stream()
-				.map(id -> id.toString())
-				.collect(Collectors.toList())
-				.stream()
-				.reduce("", (acum, attribute) -> acum + "," + attribute) 
+		String idsAsString = sourceTableIds.size() > 1 ? sourceTableIds.stream().map(id -> id.toString())
+				.collect(Collectors.toList()).stream().reduce("", (acum, attribute) -> acum + "," + attribute)
 				: sourceTableIds.get(0).toString();
-		
-		String attributesAsString = attributes.size() > 1 ? attributes.stream()
-				.reduce("", (acum, attribute) -> acum + "," + attribute)
+
+		String attributesAsString = attributes.size() > 1
+				? attributes.stream().reduce("", (acum, attribute) -> acum + "," + attribute)
 				: attributes.get(0).toString();
-		
+
 		return !attributes.isEmpty() && repository.getMatchingChangeRequest(idsAsString, attributesAsString) != null;
 	}
 
@@ -135,7 +141,7 @@ public class AdminService {
 		if (newInfo.getState() != null) {
 			ChangeRequest newRequest = new ChangeRequest("proveedor_vendible", "state='" + newInfo.getState() + "'",
 					false, List.of(proveedorId, vendibleId), List.of("proveedor_id", "vendible_id"));
-			
+
 			newRequest.setChangeDetailUrl(ProveedorVendibleAdminDTO.getDTODetailUrl(proveedorId, vendibleId));
 			repository.save(newRequest);
 		}
@@ -191,8 +197,9 @@ public class AdminService {
 
 				ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false,
 						List.of(subscriptionId), List.of("id"));
-				
-				planChangeRequest.setChangeDetailUrl(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION.replace("{proveedorId}", proveedorId.toString()));
+
+				planChangeRequest.setChangeDetailUrl(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION
+						.replace("{proveedorId}", proveedorId.toString()));
 				repository.save(planChangeRequest);
 			} catch (ChangeAlreadyRequestedException e) {
 				throw new RuntimeException(e);
@@ -205,13 +212,11 @@ public class AdminService {
 			}
 		});
 	}
-	
-	private void performPostUpdate(ProveedorVendible post, ProveedorVendibleAdminDTO newInfo) throws ClassNotFoundException,
-	IllegalArgumentException,
-	IllegalAccessException,
-	InvocationTargetException{
-		ReflectionHelper.applySetterFromExistingFields(newInfo, post,
-				ReflectionHelper.getObjectClassFullName(newInfo), ReflectionHelper.getObjectClassFullName(post));
+
+	public void performPostUpdate(ProveedorVendible post, ProveedorVendibleAdminDTO newInfo)
+			throws ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		ReflectionHelper.applySetterFromExistingFields(newInfo, post, ReflectionHelper.getObjectClassFullName(newInfo),
+				ReflectionHelper.getObjectClassFullName(post));
 		proveedorVendibleService.save(post);
 	}
 
@@ -224,21 +229,22 @@ public class AdminService {
 
 		String role = (String) tokenPayload.get("role");
 
-		ProveedorVendible post = proveedorVendibleService.findById(new ProveedorVendibleId(proveedorId, vendibleId));	
+		ProveedorVendible post = proveedorVendibleService.findById(new ProveedorVendibleId(proveedorId, vendibleId));
 
 		if (role.startsWith("ADMIN")) {
 			performPostUpdate(post, newInfo);
 		} else {
 			Optional.ofNullable(newInfo.getState()).ifPresentOrElse((state) -> {
-				boolean canUpdateStraight = proveedorVendibleService.canUpdatePostStateChange(post,  new ProveedorVendibleUpdateDTO(state));
-				
+				boolean canUpdateStraight = proveedorVendibleService.canUpdatePostStateChange(post,
+						new ProveedorVendibleUpdateDTO(state));
+
 				if (canUpdateStraight) {
 					try {
 						performPostUpdate(post, newInfo);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
-					
+
 				} else {
 					try {
 						addChangeRequestEntry(newInfo, proveedorId, vendibleId);
@@ -246,23 +252,39 @@ public class AdminService {
 						throw new RuntimeException(e);
 					}
 				}
-				
+
 			}, () -> {
 				throw new OperationNotAllowedException(getMessageTag("exceptions.operation.not.allowed"));
 			});
 		}
 	}
 
-	public void confirmChangeRequest(Long id) throws ChangeConfirmException {
+	private ChangeRequest findById(Long id) throws ChangeConfirmException {
 		Optional<ChangeRequest> requestOpt = repository.findById(id);
 
 		if (requestOpt.isEmpty()) {
 			throw new ChangeConfirmException();
 		}
 
-		ChangeRequest change = requestOpt.get();
+		return requestOpt.get();
+	}
+
+	public void confirmChangeRequest(Long id) throws ChangeConfirmException {
+
+		ChangeRequest change = this.findById(id);
 
 		repositoryImpl.applyChangeRequest(change);
+	}
+
+	public void deleteChangeRequest(Long id) {
+		this.changeRequestRepository.deleteById(id);
+	}
+
+	public void denyChangeRequest(Long id) throws ChangeConfirmException, VendibleNotFoundException,
+			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		ChangeRequest request = this.findById(id);
+		ChangeRequestDenyStrategy denyStrategy = ChangeRequestDenyFactoryStrategy.create(request);
+		denyStrategy.run(request, this);
 	}
 
 	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters,

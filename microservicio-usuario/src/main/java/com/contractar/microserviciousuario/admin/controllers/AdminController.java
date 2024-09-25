@@ -48,6 +48,14 @@ public class AdminController {
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
+	@DeleteMapping(AdminControllerUrls.CHANGE_REQUEST_BY_ID)
+	public ResponseEntity<?> denyRequestChange(@PathVariable("id") Long id)
+			throws ChangeConfirmException, VendibleNotFoundException, ClassNotFoundException, IllegalArgumentException,
+			IllegalAccessException, InvocationTargetException {
+		adminService.denyChangeRequest(id);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+
 	@PostMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
 	public ResponseEntity<?> requestChangeExists(@RequestBody(required = true) ChangeRequestSearchDTO body) {
 		boolean requestExists = adminService.requestExists(body.getSearchIds(), body.getSearchAttributes());
@@ -67,56 +75,53 @@ public class AdminController {
 	}
 
 	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR_SUBSCRIPTION_PLAN_CHANGE)
-	public ResponseEntity<Void> updateProveedorPlan(@PathVariable("proveedorId") Long proveedorId, @PathVariable("planId") Long newPlanId)
-			throws ChangeAlreadyRequestedException, ChangeConfirmException {
+	public ResponseEntity<Void> updateProveedorPlan(@PathVariable("proveedorId") Long proveedorId,
+			@PathVariable("planId") Long newPlanId) throws ChangeAlreadyRequestedException, ChangeConfirmException {
 		adminService.addChangeRequestEntry(proveedorId, newPlanId);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
-	
+
 	@PatchMapping(AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID)
-	public ResponseEntity<Void> updateProveedor (@PathVariable("id")Long userId, @RequestBody @Valid ProveedorPersonalDataUpdateDTO body) throws ClassNotFoundException,
-	IllegalAccessException, InvocationTargetException {
+	public ResponseEntity<Void> updateProveedor(@PathVariable("id") Long userId,
+			@RequestBody @Valid ProveedorPersonalDataUpdateDTO body)
+			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		adminService.updateProveedorPersonalData(userId, body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
-		
+
 	@PatchMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
-	public ResponseEntity<Void> updateProveedor (@PathVariable("id")Long userId, @RequestBody @Valid UsuarioPersonalDataUpdateDTO body) throws ClassNotFoundException,
-	IllegalAccessException, InvocationTargetException {
+	public ResponseEntity<Void> updateProveedor(@PathVariable("id") Long userId,
+			@RequestBody @Valid UsuarioPersonalDataUpdateDTO body)
+			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		adminService.updateClientePersonalData(userId, body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
-	
-	
-	  @PutMapping(AdminControllerUrls.ADMIN_POST_BY_ID) 
-	  public ResponseEntity<?> updatePost(@PathVariable(name = "id") Long proveedorId,
-			 @PathVariable(name = "vendibleId") Long
-	  vendibleId, @RequestBody ProveedorVendibleAdminDTO body,
-	  HttpServletRequest request) throws IllegalAccessException,
-	  ChangeAlreadyRequestedException,
-	  VendibleNotFoundException,
-	  ClassNotFoundException,
-	  IllegalArgumentException,
-	  InvocationTargetException {
-		  	adminService.updatePostAdmin(body, proveedorId, vendibleId, request);
-			return new ResponseEntity<>(HttpStatusCode.valueOf(200));	
-	  }
-	 
+
+	@PutMapping(AdminControllerUrls.ADMIN_POST_BY_ID)
+	public ResponseEntity<?> updatePost(@PathVariable(name = "id") Long proveedorId,
+			@PathVariable(name = "vendibleId") Long vendibleId, @RequestBody ProveedorVendibleAdminDTO body,
+			HttpServletRequest request) throws IllegalAccessException, ChangeAlreadyRequestedException,
+			VendibleNotFoundException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
+		adminService.updatePostAdmin(body, proveedorId, vendibleId, request);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
 
 	@PostMapping(AdminControllerUrls.USUARIOS_BASE_URL)
 	public ResponseEntity<?> getUsuarios(@RequestParam(name = "type", required = true) UsuariosTypeFilter usuarioType,
 			@RequestParam(name = "plan", required = false) Long planId,
-			@RequestParam(name = "showOnlyActives", required=false) Boolean onlyActives,
+			@RequestParam(name = "showOnlyActives", required = false) Boolean onlyActives,
 			@RequestBody UsuarioFiltersDTO filters) throws IllegalAccessException {
-		return new ResponseEntity<>(adminService.getAllFilteredUsuarios(usuarioType.toString(), filters, onlyActives, planId), HttpStatusCode.valueOf(200));
+		return new ResponseEntity<>(
+				adminService.getAllFilteredUsuarios(usuarioType.toString(), filters, onlyActives, planId),
+				HttpStatusCode.valueOf(200));
 	}
-	
+
 	@DeleteMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
-	public ResponseEntity<Void> deleteUsuario(@PathVariable("id") Long userId)  throws UserNotFoundException {
+	public ResponseEntity<Void> deleteUsuario(@PathVariable("id") Long userId) throws UserNotFoundException {
 		adminService.deleteUser(userId);
 		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 	}
-	
+
 	@GetMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
 	public ResponseEntity<List<ChangeRequest>> findAll() {
 		return new ResponseEntity<List<ChangeRequest>>(adminService.findAll(), HttpStatusCode.valueOf(200));
