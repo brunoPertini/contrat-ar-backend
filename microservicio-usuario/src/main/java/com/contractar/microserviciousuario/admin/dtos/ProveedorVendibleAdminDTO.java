@@ -22,17 +22,17 @@ public class ProveedorVendibleAdminDTO {
 
 	private String descripcion;
 
-	private int precio;
+	private Integer precio;
 
 	private PriceTypeInterface tipoPrecio;
 
-	private boolean offersDelivery;
+	private Boolean offersDelivery;
 
-	private boolean offersInCustomAddress;
+	private Boolean offersInCustomAddress;
 
 	private String imagenUrl;
 
-	private int stock;
+	private Integer stock;
 
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
@@ -81,7 +81,7 @@ public class ProveedorVendibleAdminDTO {
 		this.descripcion = descripcion;
 	}
 
-	public int getPrecio() {
+	public Integer getPrecio() {
 		return precio;
 	}
 
@@ -97,7 +97,7 @@ public class ProveedorVendibleAdminDTO {
 		this.tipoPrecio = tipoPrecio;
 	}
 
-	public boolean isOffersDelivery() {
+	public Boolean getOffersDelivery() {
 		return offersDelivery;
 	}
 
@@ -105,7 +105,7 @@ public class ProveedorVendibleAdminDTO {
 		this.offersDelivery = offersDelivery;
 	}
 
-	public boolean isOffersInCustomAddress() {
+	public Boolean getOffersInCustomAddress() {
 		return offersInCustomAddress;
 	}
 
@@ -121,7 +121,7 @@ public class ProveedorVendibleAdminDTO {
 		this.imagenUrl = imagenUrl;
 	}
 
-	public int getStock() {
+	public Integer getStock() {
 		return stock;
 	}
 
@@ -170,8 +170,7 @@ public class ProveedorVendibleAdminDTO {
 	}
 
 	public static String getDTODetailUrl(Long proveedorId, Long vendibleId) {
-		return VendiblesControllersUrls.GET_VENDIBLE_DETAIL
-				.replace("{proveedorId}", proveedorId.toString())
+		return VendiblesControllersUrls.GET_VENDIBLE_DETAIL.replace("{proveedorId}", proveedorId.toString())
 				.replace("{vendibleId}", vendibleId.toString());
 	}
 
