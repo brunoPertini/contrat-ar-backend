@@ -23,17 +23,17 @@ public interface ServicioRepository extends PagingAndSortingRepository<Servicio,
 	
 	@Query(value = "SELECT DISTINCT s FROM Servicio s "
 			+ "JOIN FETCH ProveedorVendible pv ON pv.vendible = s "
-			+ "WHERE s.nombre LIKE %:nombre% AND :userRole='ADMIN' OR pv.state = 'ACTIVE'")
+			+ "WHERE ((s.nombre LIKE %:nombre%) AND (:userRole='ADMIN' OR pv.state = 'ACTIVE'))")
 	public List<Servicio> findByNombreContainingIgnoreCaseOrderByNombreAsc(@Param("nombre") String nombre, @Param("userRole") String userRole);
 
 	
 	@Query(value = "SELECT v.* FROM vendible v "
 			+ "INNER JOIN proveedor_vendible pv ON (v.vendible_id=pv.vendible_id)"
 			+ "INNER JOIN vendible_category vc ON (pv.category_id=vc.id)"
-			+ "WHERE v.vendible_type = 'servicio' "
-			+ "AND :userRole = 'ADMIN' OR pv.state='ACTIVE' "
-			+ "AND v.nombre LIKE %:nombre%  "
-			+ "AND vc.id=:categoryId "
+			+ "WHERE ((v.vendible_type = 'servicio') "
+			+ "AND (:userRole = 'ADMIN' OR pv.state='ACTIVE') "
+			+ "AND (v.nombre LIKE %:nombre%)  "
+			+ "AND (vc.id=:categoryId))"
 			+ "ORDER BY v.nombre ASC", nativeQuery = true)
 	public List<Servicio> findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(@Param("nombre") String nombre,
 			@Param("categoryId") Long categoryId, @Param("userRole") String userRole);

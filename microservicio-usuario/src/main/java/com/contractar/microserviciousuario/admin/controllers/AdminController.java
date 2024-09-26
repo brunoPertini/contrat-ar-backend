@@ -124,6 +124,6 @@ public class AdminController {
 
 	@GetMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
 	public ResponseEntity<List<ChangeRequest>> findAll() {
-		return new ResponseEntity<List<ChangeRequest>>(adminService.findAll(), HttpStatusCode.valueOf(200));
+		return new ResponseEntity<List<ChangeRequest>>(adminService.findAllChangeRequests(), HttpStatusCode.valueOf(200));
 	}
 }

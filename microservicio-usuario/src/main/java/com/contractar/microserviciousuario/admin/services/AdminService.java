@@ -107,7 +107,7 @@ public class AdminService {
 		return restTemplate.getForObject(fullUrl, String.class);
 	}
 
-	public List<ChangeRequest> findAll() {
+	public List<ChangeRequest> findAllChangeRequests() {
 		return repository.findAll();
 	}
 
@@ -116,12 +116,11 @@ public class AdminService {
 	}
 
 	public boolean requestExists(List<Long> sourceTableIds, List<String> attributes) {
-		String idsAsString = sourceTableIds.size() > 1 ? sourceTableIds.stream().map(id -> id.toString())
-				.collect(Collectors.toList()).stream().reduce("", (acum, attribute) -> acum + "," + attribute)
-				: sourceTableIds.get(0).toString();
+		String idsAsString = sourceTableIds.size() > 1 ? Helper.joinString.apply(sourceTableIds.stream().map(id -> id.toString())
+				.collect(Collectors.toList())) : sourceTableIds.get(0).toString();
 
 		String attributesAsString = attributes.size() > 1
-				? attributes.stream().reduce("", (acum, attribute) -> acum + "," + attribute)
+				? Helper.joinString.apply(attributes)
 				: attributes.get(0).toString();
 
 		return !attributes.isEmpty() && repository.getMatchingChangeRequest(idsAsString, attributesAsString) != null;
@@ -150,7 +149,7 @@ public class AdminService {
 	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, List<String> sourceTableIds)
 			throws IllegalAccessException, ChangeAlreadyRequestedException {
 		HashMap<String, Object> infoAsMap = (HashMap<String, Object>) ReflectionHelper.getObjectFields(newInfo);
-		String concatenatedIds = sourceTableIds.stream().reduce("", (acum, id) -> acum + "," + id);
+		String concatenatedIds = Helper.joinString.apply(sourceTableIds);
 
 		boolean someInfoAlreadyRequested = infoAsMap.keySet().stream().anyMatch(newInfoKey -> {
 			Long matchingRequest = repository.getMatchingChangeRequest(concatenatedIds, newInfoKey);
@@ -345,5 +344,9 @@ public class AdminService {
 		} else {
 			proveedorRepository.deleteById(userId);
 		}
+	}
+	
+	private final class Helper {
+		static Function<List<String>, String> joinString = (inputList) -> inputList.stream().reduce("", (acum, attribute) -> acum + "," + attribute);
 	}
 }

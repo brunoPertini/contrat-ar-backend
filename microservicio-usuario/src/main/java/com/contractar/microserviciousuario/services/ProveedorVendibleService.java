@@ -164,13 +164,6 @@ public class ProveedorVendibleService {
 		boolean isChangingToActive = vendible.getState().equals(PostState.PAUSED)
 				&& newData.getState().equals(PostState.ACTIVE);
 
-		/*
-		 * if (!isChangingToPaused && !isChangingToActive) { final String fullUrl =
-		 * serviceConfigUrl + "/i18n/" + "exceptions.vendible.update"; String
-		 * exceptionMessage = restTemplate.getForObject(fullUrl, String.class); throw
-		 * new VendibleUpdateRuntimeException(exceptionMessage); }
-		 */
-
 		return isChangingToPaused || isChangingToActive;
 	}
 

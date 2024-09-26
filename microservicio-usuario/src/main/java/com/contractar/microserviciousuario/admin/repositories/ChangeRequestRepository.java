@@ -24,8 +24,4 @@ public interface ChangeRequestRepository extends CrudRepository<ChangeRequest, L
 			+ "(SELECT id FROM contract_ar.change_request c WHERE c.id = cr.id AND c.attributes LIKE %:searchAttribute%)", nativeQuery = true)
 	public Long getMatchingChangeRequest(@Param("sourceTableIds") String sourceTableIds,
 			@Param("searchAttribute") String searchAttribute);
-
-	@Query(value = "SELECT * FROM change_request cr WHERE (source_table_ids LIKE:sourceTableIds)  AND  c.attributes LIKE %:searchAttribute%", nativeQuery = true)
-	public List<ChangeRequest> getMatchingAllChangeRequest(@Param("sourceTableIds") String sourceTableIds,
-			@Param("searchAttribute") String searchAttribute);
 }
