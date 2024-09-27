@@ -26,7 +26,8 @@ final class Queries {
 	 static final String GET_POSTS_OF_VENDIBLE_WITH_VALID_SUSCRIPTION = "SELECT pv from ProveedorVendible  pv "
 	 		+ "JOIN pv.proveedor p "
 	 		+ "JOIN p.suscripcion s "
-	 		+ "WHERE pv.vendible.id=:vendibleId "
+	 		+ "WHERE pv.state LIKE 'ACTIVE' AND "
+	 		+ "pv.vendible.id=:vendibleId "
 	 		+ "AND p.active"
 	 		+ " AND s.isActive "
 	 		+ "ORDER BY s.plan DESC"; 

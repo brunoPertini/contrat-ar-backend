@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
@@ -174,8 +175,11 @@ public final class VendibleHelper {
 	}
 
 	public static Set<SimplifiedProveedorVendibleDTO> getProveedoresVendibles(VendiblesResponseDTO response,
-			VendibleAccesor vendible) {
-		return vendible.getProveedoresVendibles().stream().map(proveedorVendible -> {
+			VendibleAccesor vendible, boolean filterOnlyActive) {
+		return vendible.getProveedoresVendibles()
+				.stream()
+				.filter(pv ->  !filterOnlyActive || pv.getState().equals(PostState.ACTIVE))
+				.map(proveedorVendible -> {
 			ProveedorAccessor proveedor = proveedorVendible.getProveedor();
 			SimplifiedProveedorVendibleDTO proveedorVendibleDTO = new SimplifiedProveedorVendibleDTO(vendible.getId(), proveedor.getId(), vendible.getNombre(),
 				proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(), proveedorVendible.getTipoPrecio(),

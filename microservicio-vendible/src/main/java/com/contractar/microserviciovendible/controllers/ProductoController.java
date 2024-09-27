@@ -17,6 +17,7 @@ import com.contractar.microserviciocommons.dto.vendibles.VendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
@@ -24,6 +25,7 @@ import com.contractar.microserviciousuario.models.Producto;
 import com.contractar.microserviciovendible.services.VendibleService;
 import com.contractar.microserviciovendible.services.resolvers.ProductoFetchingMethodResolver;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @Controller
@@ -38,8 +40,9 @@ public class ProductoController {
 
 	@PostMapping(VendiblesControllersUrls.SAVE_PRODUCT)
 	public ResponseEntity<ProductoDTO> save(@RequestBody @Valid Producto producto,
-			@RequestParam(required = false) Long proveedorId) throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException {
-		Producto addedProducto = (Producto) vendibleService.save(producto, vendibleType, proveedorId);
+			@RequestParam(required = false) Long proveedorId,
+			HttpServletRequest request) throws VendibleAlreadyExistsException, UserNotFoundException, CantCreateException, CouldntChangeStateException {
+		Producto addedProducto = (Producto) vendibleService.save(producto, vendibleType, proveedorId, request);
 		ProductoDTO productoDTO = new ProductoDTO(addedProducto.getNombre());
 		return new ResponseEntity<ProductoDTO>(productoDTO, HttpStatus.CREATED);
 	}
@@ -54,7 +57,8 @@ public class ProductoController {
 
 	@GetMapping(VendiblesControllersUrls.GET_PRODUCT)
 	public ResponseEntity<VendiblesResponseDTO> findByNombre(@RequestParam(required = false) String nombre,
-			@RequestParam(required = false) Long category) {
-		return new ResponseEntity<VendiblesResponseDTO>(this.vendibleService.findByNombreAsc(nombre, category, productoFetchingMethodResolver), HttpStatus.OK);
+			@RequestParam(required = false) Long category,
+			HttpServletRequest request) {
+		return new ResponseEntity<VendiblesResponseDTO>(this.vendibleService.findByNombreAsc(nombre, category, productoFetchingMethodResolver, request), HttpStatus.OK);
 	}
 }

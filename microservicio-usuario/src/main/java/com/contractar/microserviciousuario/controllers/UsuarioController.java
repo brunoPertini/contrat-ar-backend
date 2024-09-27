@@ -1,6 +1,8 @@
 package com.contractar.microserviciousuario.controllers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,6 +44,8 @@ import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.Usuario;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -54,7 +58,7 @@ public class UsuarioController {
 
 	@Autowired
 	private AdminService adminService;
-	
+
 	@Autowired
 	private DtoHelper dtoHelper;
 
@@ -105,8 +109,8 @@ public class UsuarioController {
 	}
 
 	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
-	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId, @RequestParam(name = "formatType", required = false) 
-	DateFormatType formatType)
+	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId,
+			@RequestParam(name = "formatType", required = false) DateFormatType formatType)
 			throws UserNotFoundException {
 		Usuario user = this.usuarioService.findById(userId, false);
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
@@ -122,13 +126,14 @@ public class UsuarioController {
 
 		return new ResponseEntity<>(usuarioDTO, HttpStatus.OK);
 	}
-	
+
 	@GetMapping(UsersControllerUrls.GET_USUARIO_FIELD)
-	public ResponseEntity<Object> getUsuarioFields(@PathVariable("userId") Long userId, 
+	public ResponseEntity<Object> getUsuarioFields(@PathVariable("userId") Long userId,
 			@PathVariable("fieldName") String field) throws UserNotFoundException, IllegalAccessException {
 		Object fieldValue = usuarioService.getUsuarioField(field, userId);
-		return fieldValue != null ? new ResponseEntity<>(fieldValue, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		
+		return fieldValue != null ? new ResponseEntity<>(fieldValue, HttpStatus.OK)
+				: new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -156,10 +161,11 @@ public class UsuarioController {
 	}
 
 	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
-			@Valid @RequestBody ProveedorVendibleUpdateDTO body)
-			throws VendibleNotFoundException, VendibleUpdateException {
-		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body);
+	public ResponseEntity<?> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
+			@Valid @RequestBody ProveedorVendibleUpdateDTO body, HttpServletRequest request) throws VendibleNotFoundException,
+			VendibleUpdateException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
+
+		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body, request);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
 
@@ -167,7 +173,7 @@ public class UsuarioController {
 	public ResponseEntity<?> changeUserSensibleInfo(@PathVariable Long usuarioId,
 			@RequestBody UsuarioSensibleInfoDTO body) throws ChangeAlreadyRequestedException {
 		try {
-			adminService.addChangeRequestEntry(body, usuarioId);
+			adminService.addChangeRequestEntry(body, List.of(usuarioId.toString()));
 			return ResponseEntity.ok().build();
 		} catch (IllegalAccessException e) {
 			return new ExceptionFactory().getResponseException(

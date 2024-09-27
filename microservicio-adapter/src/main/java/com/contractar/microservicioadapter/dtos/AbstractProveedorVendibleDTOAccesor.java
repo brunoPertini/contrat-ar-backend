@@ -24,4 +24,8 @@ public interface AbstractProveedorVendibleDTOAccesor {
 	public boolean isOffersInCustomAddress();
 	
 	public Long getPlanId();
+	
+	public void setVendibleType(String vendibleType);
+	
+	public String getVendibleType();
 }

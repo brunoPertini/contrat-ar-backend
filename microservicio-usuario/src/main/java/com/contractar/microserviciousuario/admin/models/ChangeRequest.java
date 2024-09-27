@@ -1,9 +1,16 @@
 package com.contractar.microserviciousuario.admin.models;
 
 import java.io.Serializable;
+import java.util.List;
+
+import com.contractar.microserviciousuario.models.converters.LongListConverter;
+import com.contractar.microserviciousuario.models.converters.StringListConverter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +20,7 @@ import jakarta.persistence.GenerationType;
  * operation on the database. 
  */
 @Entity
+@JsonPropertyOrder({ "id", "sourceTable", "attributes", "sourceTableIdNames", "sourceTableIds", "wasApplied"})
 public class ChangeRequest implements Serializable {
 
 	private static final long serialVersionUID = -7844170990511109741L;
@@ -20,12 +28,14 @@ public class ChangeRequest implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
+	@Convert(converter = StringListConverter.class)
 	@Column(nullable = false)
-	private String sourceTableIdName;
+	private List<String> sourceTableIdNames;
 	
+	@Convert(converter = LongListConverter.class)
 	@Column(nullable = false)
-	private Long sourceTableId;
+	private List<Long> sourceTableIds;
 
 	@Column(nullable = false)
 	private String sourceTable;
@@ -33,17 +43,29 @@ public class ChangeRequest implements Serializable {
 	@Column(nullable = false)
 	private String attributes;
 
+	@JsonProperty("wasApplied")
 	private boolean wasApplied;
+	
+	private String changeDetailUrl;
 	
 	public ChangeRequest() {}
 
-	public ChangeRequest(String table, String attributes, boolean wasApplied, Long sourceTableId, String sourceTableIdName) {
+	public ChangeRequest(String table, String attributes, boolean wasApplied, List<Long> sourceTableIds, List<String> sourceTableIdNames) {
 		this.sourceTable = table;
 		this.attributes = attributes;
 		this.wasApplied = wasApplied;
-		this.sourceTableId = sourceTableId;
-		this.sourceTableIdName = sourceTableIdName;
+		this.sourceTableIds = sourceTableIds;
+		this.sourceTableIdNames = sourceTableIdNames;
 	}
+	
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
 
 	public String getSourceTable() {
 		return sourceTable;
@@ -69,19 +91,28 @@ public class ChangeRequest implements Serializable {
 		this.wasApplied = wasApplied;
 	}
 	
-	public String getSourceTableIdName() {
-		return sourceTableIdName;
+	public List<String> getSourceTableIdNames() {
+		return sourceTableIdNames;
 	}
 
-	public void setSourceTableIdName(String sourceTableIdName) {
-		this.sourceTableIdName = sourceTableIdName;
+	public void setSourceTableIdNames(List<String> sourceTableIdNames) {
+		this.sourceTableIdNames = sourceTableIdNames;
 	}
 	
-	public Long getSourceTableId() {
-		return sourceTableId;
+	public List<Long> getSourceTableIds() {
+		return sourceTableIds;
 	}
 
-	public void setSourceTableId(Long sourceTableId) {
-		this.sourceTableId = sourceTableId;
+	public void setSourceTableId(List<Long> sourceTableIds) {
+		this.sourceTableIds = sourceTableIds;
 	}
+	
+	public String getChangeDetailUrl() {
+		return changeDetailUrl;
+	}
+
+	public void setChangeDetailUrl(String changeDetailUrl) {
+		this.changeDetailUrl = changeDetailUrl;
+	}
+
 }

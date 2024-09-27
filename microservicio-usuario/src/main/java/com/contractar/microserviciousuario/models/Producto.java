@@ -16,4 +16,9 @@ public class Producto extends Vendible {
 	public Producto(String nombre) {
 		super(nombre);
 	}
+
+	@Override
+	public String getVendibleType() {
+		return "productos";
+	}
 }

@@ -20,19 +20,19 @@ public class ProductoFetchingMethodResolver implements VendibleFetchingMethodRes
 	private ProductoRepository productoRepository;
 
 	@Override
-	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId) {
+	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId, String userRole) {
 		return () -> {
 			if(Optional.ofNullable(nombre).isEmpty()) {
-				return this.productoRepository.findAll();
+				return this.productoRepository.findAllOnlyWithActivePosts(userRole);
 			}
 			
 		    if (Optional.ofNullable(categoryId).isPresent()) {
 		        return Optional.ofNullable(vendibleService.findCategoryById(categoryId))
 		                .map((category) -> this.productoRepository.findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(nombre,
-		                		category.getId()))
-		                .orElseGet(() -> this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre));
+		                		category.getId(), userRole))
+		                .orElseGet(() -> this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre, userRole));
 		    } else {
-		        return this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre);
+		        return this.productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre, userRole);
 		    }
 		};
 	}

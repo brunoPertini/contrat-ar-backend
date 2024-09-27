@@ -1,12 +1,14 @@
 package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microserviciocommons.constants.PriceType.PriceTypeValue;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
@@ -75,7 +77,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	@NotNull
 	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
 	private boolean offersDelivery;
-	
+
 	@NotNull
 	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
 	private boolean offersInCustomAddress;
@@ -83,6 +85,9 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	@OneToOne
 	@NotNull
 	private VendibleCategory category;
+
+	@Enumerated(EnumType.STRING)
+	private PostState state;
 
 	public ProveedorVendible() {
 	}
@@ -145,14 +150,14 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public VendibleAccesor getVendible() {
 		return vendible;
 	}
-	
+
 	@JsonSetter
 	public void setVendible(Vendible vendible) {
 		this.vendible = vendible;
 	}
 
 	public void setVendible(VendibleAccesor vendible) {
-		this.vendible = (Vendible)vendible;
+		this.vendible = (Vendible) vendible;
 	}
 
 	public Proveedor getProveedor() {
@@ -186,7 +191,7 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public void setOffersDelivery(boolean offersDelivery) {
 		this.offersDelivery = offersDelivery;
 	}
-	
+
 	public boolean getOffersInCustomAddress() {
 		return offersInCustomAddress;
 	}
@@ -199,16 +204,30 @@ public class ProveedorVendible implements Serializable, CategorizableObject, Pro
 	public VendibleCategoryAccesor getCategory() {
 		return this.category;
 	}
-	
+
 	@JsonSetter
 	public void setCategory(VendibleCategory category) {
 		this.category = category;
 	}
-	
 
 	@Override
 	public void setCategory(VendibleCategoryAccesor category) {
 		this.category = (VendibleCategory) category;
+	}
+
+	@Override
+	public void setState(PostState state) {
+		this.state = state;
+	}
+
+	@Override
+	public PostState getState() {
+		return state;
+	}
+
+	@Override
+	public String getVendibleType() {
+		return Optional.ofNullable(this.getVendible()).map(v -> v.getVendibleType()).orElse("");
 	}
 
 }

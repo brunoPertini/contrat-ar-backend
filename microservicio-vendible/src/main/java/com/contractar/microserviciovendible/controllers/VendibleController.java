@@ -11,15 +11,20 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleDTO;
+import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorVendibleAdminDTO;
 import com.contractar.microserviciousuario.models.Vendible;
 import com.contractar.microserviciousuario.models.VendibleCategory;
 import com.contractar.microserviciovendible.services.VendibleService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @Controller
@@ -61,6 +66,15 @@ public class VendibleController {
 	@PostMapping(VendiblesControllersUrls.GET_CATEGORY_HIERACHY)
 	public ResponseEntity<List<String>> getVendibleCategoryHierachy(@RequestBody @Valid VendibleCategory body) {
 		return new ResponseEntity<List<String>>(vendibleService.getCategoryHierachy(body), HttpStatus.OK);
+	}
+	
+	@PutMapping(VendiblesControllersUrls.INTERNAL_POST_BY_ID)
+	public ResponseEntity<Void> requestPostStateChange(@PathVariable("vendibleId") Long vendibleId,
+			@PathVariable("proveedorId") Long proveedorId,
+			@RequestBody ProveedorVendibleAdminDTO body,
+			HttpServletRequest request) throws CouldntChangeStateException {
+		vendibleService.requestPostStateChange(proveedorId, vendibleId, body.getState(), request);
+		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 	
 }

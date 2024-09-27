@@ -226,7 +226,7 @@ public class UsuarioService {
 			throws VendibleBindingException, VendibleAlreadyBindedException {
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(microservicioVendibleUrl)
-				.path(VendiblesControllersUrls.GET_VENDIBLE).queryParam("vendibleId", vendibleId);
+				.path(VendiblesControllersUrls.INTERNAL_GET_VENDIBLE).queryParam("vendibleId", vendibleId);
 
 		String getVendibleUrl = builder.toUriString();
 

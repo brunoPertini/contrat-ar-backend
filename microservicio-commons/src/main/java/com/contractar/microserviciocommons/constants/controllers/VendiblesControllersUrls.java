@@ -4,7 +4,11 @@ public class VendiblesControllersUrls {
 	
 	public static final String INTERNAL_GET_VENDIBLE = "/internal/vendible";
 	
+	public static final String INTERNAL_POST_BY_ID = INTERNAL_GET_VENDIBLE + "/{vendibleId}/proveedor/{proveedorId}";
+	
 	public static final String GET_VENDIBLE = "/vendible";
+	
+	public static final String GET_VENDIBLE_DETAIL = GET_VENDIBLE + "/{vendibleId}/proveedor/{proveedorId}";
 	
 	public static final String GET_SERVICE = "/service";
 	

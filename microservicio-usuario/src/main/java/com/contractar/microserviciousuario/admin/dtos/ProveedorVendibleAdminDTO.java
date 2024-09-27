@@ -4,43 +4,47 @@ import org.locationtech.jts.geom.Point;
 
 import com.contractar.microservicioadapter.entities.ProveedorVendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
+import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microservicioadapter.enums.PriceTypeInterface;
+import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-
 public class ProveedorVendibleAdminDTO {
-	
+
 	private Long proveedorId;
-	
+
 	private String proveedorName;
 
 	private String vendibleNombre;
 
 	private String descripcion;
 
-	private int precio;
-	
+	private Integer precio;
+
 	private PriceTypeInterface tipoPrecio;
-	
-	private boolean offersDelivery;
-	
-	private boolean offersInCustomAddress;
+
+	private Boolean offersDelivery;
+
+	private Boolean offersInCustomAddress;
 
 	private String imagenUrl;
 
-	private int stock;
-	
+	private Integer stock;
+
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	@JsonSerialize(using = UbicacionSerializer.class)
 	private Point location;
-	
+
 	private VendibleCategoryAccesor category;
-	
-	public ProveedorVendibleAdminDTO() {}
- 
+
+	private PostState state;
+
+	public ProveedorVendibleAdminDTO() {
+	}
+
 	public ProveedorVendibleAdminDTO(ProveedorVendibleAccesor proveedorVendible) {
 		this.vendibleNombre = proveedorVendible.getVendible().getNombre();
 		this.descripcion = proveedorVendible.getDescripcion();
@@ -55,8 +59,10 @@ public class ProveedorVendibleAdminDTO {
 		}
 		this.category = proveedorVendible.getCategory();
 		this.proveedorId = proveedorVendible.getProveedor().getId();
-		this.proveedorName = proveedorVendible.getProveedor().getName() + " " + proveedorVendible.getProveedor().getSurname();
-		
+		this.proveedorName = proveedorVendible.getProveedor().getName() + " "
+				+ proveedorVendible.getProveedor().getSurname();
+		this.state = proveedorVendible.getState();
+
 	}
 
 	public String getVendibleNombre() {
@@ -75,7 +81,7 @@ public class ProveedorVendibleAdminDTO {
 		this.descripcion = descripcion;
 	}
 
-	public int getPrecio() {
+	public Integer getPrecio() {
 		return precio;
 	}
 
@@ -91,7 +97,7 @@ public class ProveedorVendibleAdminDTO {
 		this.tipoPrecio = tipoPrecio;
 	}
 
-	public boolean isOffersDelivery() {
+	public Boolean getOffersDelivery() {
 		return offersDelivery;
 	}
 
@@ -99,7 +105,7 @@ public class ProveedorVendibleAdminDTO {
 		this.offersDelivery = offersDelivery;
 	}
 
-	public boolean isOffersInCustomAddress() {
+	public Boolean getOffersInCustomAddress() {
 		return offersInCustomAddress;
 	}
 
@@ -115,7 +121,7 @@ public class ProveedorVendibleAdminDTO {
 		this.imagenUrl = imagenUrl;
 	}
 
-	public int getStock() {
+	public Integer getStock() {
 		return stock;
 	}
 
@@ -130,7 +136,7 @@ public class ProveedorVendibleAdminDTO {
 	public void setLocation(Point location) {
 		this.location = location;
 	}
-	
+
 	public Long getProveedorId() {
 		return proveedorId;
 	}
@@ -150,9 +156,22 @@ public class ProveedorVendibleAdminDTO {
 	public void setCategory(VendibleCategoryAccesor category) {
 		this.category = category;
 	}
-	
+
 	public VendibleCategoryAccesor getCategory() {
 		return category;
-	}	
-	
+	}
+
+	public PostState getState() {
+		return state;
+	}
+
+	public void setState(PostState state) {
+		this.state = state;
+	}
+
+	public static String getDTODetailUrl(Long proveedorId, Long vendibleId) {
+		return VendiblesControllersUrls.GET_VENDIBLE_DETAIL.replace("{proveedorId}", proveedorId.toString())
+				.replace("{vendibleId}", vendibleId.toString());
+	}
+
 }

@@ -15,4 +15,9 @@ public class Servicio extends Vendible {
 	public Servicio(String nombre) {
 		super(nombre);
 	}
+
+	@Override
+	public String getVendibleType() {
+		return "servicios";
+	}
 }

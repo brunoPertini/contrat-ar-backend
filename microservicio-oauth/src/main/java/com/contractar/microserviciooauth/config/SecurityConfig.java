@@ -41,12 +41,15 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 		http.csrf().disable();
+		
+		// TODO: NINGUN ENDPOINT PUEDE SER ACCESIBLE POR ALGUN HOST EXTERNO AL ECOSISTEMA DE LOS MICROSERVICIOS
 
 		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/error",
 				"/actuator/**",
 				"/oauth/login",
 				"/oauth/userId",
-				"/oauth/public_key")
+				"/oauth/public_key",
+				"/oauth/token/payload")
 				.anonymous().anyRequest().authenticated());
 
 		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));

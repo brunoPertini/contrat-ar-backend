@@ -20,13 +20,13 @@ public class ProveedorVendibleCustomRepository
 	}
 
 	@Override
-	public List<ProveedorVendible> get(Long vendibleId, ProveedorVendibleFilter filters) {
+	public List<ProveedorVendible> get(Long vendibleId, ProveedorVendibleFilter filters, String rootEntityName) {
 		ProveedorVendibleFilteringStrategy byPredicateStrategies = new ProveedorVendibleFilteringStrategy(
 				criteriaBuilder, root, filters);
 
 		List<Predicate> predicates = byPredicateStrategies.getAllStrategies();
 
-		predicates.add(criteriaBuilder.equal(root.get("vendible").get("id"), vendibleId));
+		predicates.add(criteriaBuilder.equal(root.get(rootEntityName).get("id"), vendibleId));
 
 		if (!predicates.isEmpty()) {
 			criteriaQuery.where(predicates.toArray(new Predicate[0]));
@@ -41,5 +41,4 @@ public class ProveedorVendibleCustomRepository
 
 		return entityManager.createQuery(criteriaQuery).getResultList();
 	}
-
 }

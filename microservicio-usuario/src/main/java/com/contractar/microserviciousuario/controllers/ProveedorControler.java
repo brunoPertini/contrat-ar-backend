@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.controllers;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -16,16 +17,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
+import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
-import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
+import com.contractar.microserviciousuario.models.ProveedorVendible;
+import com.contractar.microserviciousuario.models.ProveedorVendibleId;
+import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.services.ProveedorService;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 import com.contractar.microserviciousuario.services.UsuarioService;
@@ -52,19 +58,28 @@ public class ProveedorControler {
 		return new ResponseEntity<>(proveedorService.findAll(), HttpStatus.OK);
 	}
 
-	@GetMapping(ProveedorControllerUrls.GET_PLAN_BY_ID)
-	public ResponseEntity<?> getPlan(@PathVariable("planId") Long planId) {
-		Plan foundPlan = proveedorService.findPlanById(planId);
+	@GetMapping(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION)
+	public ResponseEntity<SuscripcionDTO> getSuscripcion(@PathVariable("proveedorId") Long proveedorId) throws UserNotFoundException {
+		Suscripcion suscripcion = (Suscripcion) proveedorService.findById(proveedorId).getSuscripcion();
 
-		return foundPlan != null ? new ResponseEntity<>(foundPlan, HttpStatus.OK)
-				: new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		return  new ResponseEntity<>(new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
+				suscripcion.getUsuario().getId(),
+				suscripcion.getPlan().getId(), suscripcion.getCreatedDate()), HttpStatus.OK);
 	}
 
-	@GetMapping("/proveedor/{proveedorId}/vendible")
+	@Deprecated(forRemoval = true)
+	@GetMapping(ProveedorControllerUrls.GET_VENDIBLES_OF_PROVEEDOR)
 	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedor(
 			@PathVariable("proveedorId") Long proveedorId) {
 		return new ResponseEntity<ProveedorVendiblesResponseDTO>(
-				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId), HttpStatus.OK);
+				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId, null), HttpStatus.OK);
+	}
+	
+	@PostMapping(ProveedorControllerUrls.GET_VENDIBLES_OF_PROVEEDOR)
+	public ResponseEntity<ProveedorVendiblesResponseDTO> getVendiblesInfoOfProveedorV2(@PathVariable("proveedorId") Long proveedorId,
+			@RequestBody(required = false) ProveedorVendibleFilter filters) {
+		return new ResponseEntity<ProveedorVendiblesResponseDTO>(
+				proveedorVendibleService.getProveedorVendiblesInfo(proveedorId, filters), HttpStatus.OK);
 	}
 
 	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_POSTS)
@@ -96,5 +111,13 @@ public class ProveedorControler {
 		return new ResponseEntity<>(
 				proveedorVendibleService.getPostsOfVendible(vendibleId, page, DEFAULT_PAGE_SIZE, filters),
 				HttpStatus.OK);
+	}
+	
+	@GetMapping(VendiblesControllersUrls.GET_VENDIBLE_DETAIL)
+	public ResponseEntity<SimplifiedVendibleDTO> seePostDetail(@PathVariable("vendibleId") Long vendibleId,
+			@PathVariable("proveedorId") Long proveedorId) throws VendibleNotFoundException {
+		ProveedorVendible entity = proveedorVendibleService.findById(new ProveedorVendibleId(proveedorId, vendibleId));
+		SimplifiedVendibleDTO dto = new SimplifiedVendibleDTO(entity, List.of());
+		return new ResponseEntity<>(dto, HttpStatus.OK);
 	}
 }

@@ -86,6 +86,12 @@ public final class ReflectionHelper {
 		return fields.toArray(new Field[fields.size()]);
 	}
 
+	/**
+	 * 
+	 * @param obj
+	 * @return obj fields in a Map, containing no null values
+	 * @throws IllegalAccessException
+	 */
 	public static Map<String, Object> getObjectFields(Object obj) throws IllegalAccessException {
 		Map<String, Object> map = new HashMap<>();
 		Class<?> clazz = obj.getClass();

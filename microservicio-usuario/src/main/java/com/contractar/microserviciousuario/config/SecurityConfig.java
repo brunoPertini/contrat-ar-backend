@@ -50,7 +50,9 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		String adminRole = RolesValues.ADMIN.name();
 		
-		final String [] personalDataUrls = { AdminControllerUrls.ADMIN_USUARIOS_BY_ID, AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID };
+		final String [] personalDataUrls = { AdminControllerUrls.ADMIN_USUARIOS_BY_ID,
+				AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID,
+				AdminControllerUrls.CHANGE_REQUEST_BY_ID};
 
 		http.cors().configurationSource(request -> {
 			CorsConfiguration corsConfiguration = new CorsConfiguration();
@@ -67,7 +69,7 @@ public class SecurityConfig {
 								.hasAuthority(adminRole)
 								.requestMatchers(HttpMethod.PATCH, personalDataUrls)
 								.hasAuthority(adminRole)
-								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
+								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.ADMIN_USUARIOS_BY_ID, AdminControllerUrls.CHANGE_REQUEST_BY_ID )
 								.hasAuthority(adminRole)
 								.anyRequest().permitAll())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt());
