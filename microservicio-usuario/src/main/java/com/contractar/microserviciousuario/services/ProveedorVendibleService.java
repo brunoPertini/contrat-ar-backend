@@ -81,9 +81,6 @@ public class ProveedorVendibleService {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@Autowired
-	private RestTemplate restTemplate;
-
 	@Value("${microservicio-vendible.url}")
 	private String SERVICIO_VENDIBLE_URL;
 
@@ -192,6 +189,8 @@ public class ProveedorVendibleService {
 
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.findById(id);
+		
+		PostState vendibleCurrentState = vendible.getState();
 
 		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
 
@@ -200,7 +199,7 @@ public class ProveedorVendibleService {
 		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
 				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
 
-		if (isChangingState && !canUpdateStraight || changesNeedApproval) {
+		if (isChangingState && !canUpdateStraight || changesNeedApproval || vendibleCurrentState.equals(PostState.REJECTED)) {
 			newData.setState(PostState.IN_REVIEW);
 			performPostUpdate(vendible, newData);
 			String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID

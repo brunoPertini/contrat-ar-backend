@@ -13,18 +13,20 @@ import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 public class VendibleChangeRequestStrategy implements ChangeRequestDenyStrategy {
 
 	@Override
-	public void run(ChangeRequest request, AdminService adminService) throws VendibleNotFoundException,
-			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public void run(ChangeRequest request, AdminService adminService) {
 		Long proveedorId = request.getSourceTableIds().get(0);
 		Long vendibleId = request.getSourceTableIds().get(1);
+		
 
-		ProveedorVendible post = adminService.findPost(new ProveedorVendibleId(proveedorId, vendibleId));
-		ProveedorVendibleAdminDTO stateChanged = new ProveedorVendibleAdminDTO();
-		stateChanged.setState(PostState.REJECTED);
-
-		adminService.performPostUpdate(post, stateChanged);
-		adminService.deleteChangeRequest(request.getId());
-
+		try {
+			ProveedorVendible post = adminService.findPost(new ProveedorVendibleId(proveedorId, vendibleId));
+			ProveedorVendibleAdminDTO stateChanged = new ProveedorVendibleAdminDTO();
+			stateChanged.setState(PostState.REJECTED);
+			adminService.performPostUpdate(post, stateChanged);
+		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
+				| InvocationTargetException | VendibleNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

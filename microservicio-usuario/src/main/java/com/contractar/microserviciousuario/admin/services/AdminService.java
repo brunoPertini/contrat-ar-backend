@@ -35,7 +35,6 @@ import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepos
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepositoryImpl;
 import com.contractar.microserviciousuario.admin.repositories.UsuarioAdminCustomRepository;
 import com.contractar.microserviciousuario.admin.utils.ChangeRequestDenyFactoryStrategy;
-import com.contractar.microserviciousuario.admin.utils.ChangeRequestDenyStrategy;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -279,11 +278,14 @@ public class AdminService {
 		this.changeRequestRepository.deleteById(id);
 	}
 
-	public void denyChangeRequest(Long id) throws ChangeConfirmException, VendibleNotFoundException,
-			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public void denyChangeRequest(Long id) throws ChangeConfirmException {
 		ChangeRequest request = this.findById(id);
-		ChangeRequestDenyStrategy denyStrategy = ChangeRequestDenyFactoryStrategy.create(request);
-		denyStrategy.run(request, this);
+		Optional.ofNullable(ChangeRequestDenyFactoryStrategy.create(request)).ifPresent(denyStrategy -> {
+			denyStrategy.run(request, this);
+		});
+		
+		this.deleteChangeRequest(request.getId());
+		
 	}
 
 	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters,
