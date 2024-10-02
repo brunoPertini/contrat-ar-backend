@@ -51,7 +51,8 @@ public class MailingService {
 		try {
 			String emailContent = new FileReader()
 					.readFile("/static/registration-link-template.html")
-					.replaceAll("\\$\\{registrationLink\\}", "http://google.com");
+					.replaceAll("\\$\\{registrationLink\\}", "http://google.com")
+					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 			
 			this.sendEmail(emailAddress, "¡Bienvenido a Contract-Ar!", emailContent, true);
 		} catch(IOException | MessagingException e) {

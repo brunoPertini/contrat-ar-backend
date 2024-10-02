@@ -32,10 +32,10 @@ public class JwtHelper {
 		this.publicKey = storePublicKey;
 	}
 
-	public String createJwtForClaims(String subject, Map<String, Object> claims) {
+	public String createJwtForClaims(String subject, Map<String, Object> claims, int expiresInMinutes) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(Instant.now().toEpochMilli());
-		calendar.add(Calendar.MINUTE, 40);
+		calendar.add(Calendar.MINUTE, expiresInMinutes);
 
 		JWTCreator.Builder jwtBuilder = JWT.create().withSubject(subject);
 
@@ -65,7 +65,7 @@ public class JwtHelper {
 	public Object parsePayloadFromJwt(String jwtToken) throws JsonProcessingException {
 		Algorithm algorithm = Algorithm.RSA256(publicKey);
 		JWTVerifier verifier = JWT.require(algorithm).build();
-
+		
 		DecodedJWT decodedJWT = verifier.verify(jwtToken.replace("Bearer ", ""));
 
 		String payload = decodedJWT.getPayload();

@@ -31,10 +31,12 @@ import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioCommonInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstractDTO;
+import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -83,6 +85,17 @@ public class UsuarioService {
 	
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
+	
+	@Value("${microservicio-config.url}")
+	private String serviceConfigUrl;
+	
+	@Value("${microservicio-security.url}")
+	private String serviceSecurityUrl;
+	
+	private String getMessageTag(String tagId) {
+		final String fullUrl = serviceConfigUrl + "/i18n/" + tagId;
+		return httpClient.getForObject(fullUrl, String.class);
+	}
 	
 	private void requestUsuarioActiveFlag(Long userId) throws UserCreationException {
 		String url = microservicioUsuarioUrl + AdminControllerUrls.ADMIN_USUARIOS_BY_ID.replace("{id}", userId.toString());
@@ -284,5 +297,21 @@ public class UsuarioService {
 		}
 		
 		return fields.get(field);
+	}
+	
+	public void sendRegistrationLinkEmail(String email) throws UserNotFoundException, UserInactiveException, AccountVerificationException {
+		Usuario foundUser = this.findByEmail(email);
+		
+		if (foundUser.isAcountVerified()) {
+			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
+		}
+		
+		if (Optional.ofNullable(foundUser.getAccountVerificationToken()).isEmpty()) {
+			String createdToken = httpClient.getForObject(serviceSecurityUrl + SecurityControllerUrls.GET_TOKEN_FOR_LINK,
+					String.class,
+					Map.of("email", email));
+			
+			foundUser.setAccountVerificationToken(createdToken);
+		}
 	}
 }

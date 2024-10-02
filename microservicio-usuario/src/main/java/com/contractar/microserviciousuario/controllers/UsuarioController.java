@@ -186,4 +186,9 @@ public class UsuarioController {
 			@RequestParam("longitude") double longitude) {
 		return new ResponseEntity<>(this.usuarioService.translateCoordinates(latitude, longitude), HttpStatus.OK);
 	}
+	
+	@PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL)
+	public ResponseEntity<?> sendRegistrationLinkEmail(@RequestParam(name = "email", required = true) {
+		
+	}
 }

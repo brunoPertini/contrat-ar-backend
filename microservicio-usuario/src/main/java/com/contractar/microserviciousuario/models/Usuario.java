@@ -69,6 +69,10 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 
 	private LocalDate createdAt;
 
+	private boolean acountVerified;
+
+	private String accountVerificationToken;
+
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 	}
@@ -189,4 +193,21 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	public void setCreatedAt(LocalDate createdAt) {
 		this.createdAt = createdAt;
 	}
+
+	public boolean isAcountVerified() {
+		return acountVerified;
+	}
+
+	public void setAcountVerified(boolean acountVerified) {
+		this.acountVerified = acountVerified;
+	}
+
+	public String getAccountVerificationToken() {
+		return accountVerificationToken;
+	}
+
+	public void setAccountVerificationToken(String accountVerificationToken) {
+		this.accountVerificationToken = accountVerificationToken;
+	}
+
 }

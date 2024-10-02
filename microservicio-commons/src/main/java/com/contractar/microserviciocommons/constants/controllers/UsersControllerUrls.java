@@ -19,4 +19,6 @@ public final class UsersControllerUrls {
 	public static final String USUARIO_BASE_URL = "/usuarios/{usuarioId}";
 	
 	public static final String CREATE_CLIENTE = "/usuarios/cliente";
+	
+	public static final String SEND_REGISTRATION_LINK_EMAIL = "/usuarios/link";
 }
