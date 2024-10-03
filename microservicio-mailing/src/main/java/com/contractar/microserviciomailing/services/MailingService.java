@@ -1,14 +1,12 @@
 package com.contractar.microserviciomailing.services;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.function.Consumer;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.contractar.microserviciomailing.utils.EmailType;
+import com.contractar.microserviciomailing.dtos.RegistrationLinkMailInfo;
 import com.contractar.microserviciomailing.utils.FileReader;
 
 import jakarta.mail.MessagingException;
@@ -21,15 +19,9 @@ public class MailingService {
 
 	private Environment env;
 
-	private Map<EmailType, Consumer<String>> emailHandlers = Map.of(EmailType.REGISTRATION_LINK, MailingService.this::sendRegistrationLinkEmail);
-
 	public MailingService(Environment env, JavaMailSender mailSender) {
 		this.env = env;
 		this.mailSender = mailSender;
-	}
-
-	public void sendEmail(String emailAddress, EmailType emailType) {
-		emailHandlers.get(emailType).accept(emailAddress);
 	}
 
 	public void sendEmail(String mailAddress, String title, String bodyMessage, boolean isMultiPart)
@@ -47,14 +39,16 @@ public class MailingService {
 		mailSender.send(message);
 	}
 
-	public void sendRegistrationLinkEmail(String emailAddress) {
+	public void sendRegistrationLinkEmail(RegistrationLinkMailInfo mailInfo) {
 		try {
+			String accountConfirmationUrl = env.getProperty("signup.verificationLink.url")+"?token="+mailInfo.getToken()+"&email="+mailInfo.getToAddress();
+			
 			String emailContent = new FileReader()
 					.readFile("/static/registration-link-template.html")
-					.replaceAll("\\$\\{registrationLink\\}", "http://google.com")
+					.replaceAll("\\$\\{registrationLink\\}", accountConfirmationUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 			
-			this.sendEmail(emailAddress, "¡Bienvenido a Contract-Ar!", emailContent, true);
+			this.sendEmail(mailInfo.getToAddress(), "¡Bienvenido a Contract-Ar!", emailContent, true);
 		} catch(IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}

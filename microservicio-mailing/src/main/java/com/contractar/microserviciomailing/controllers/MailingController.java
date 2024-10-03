@@ -7,13 +7,12 @@ import org.springframework.mail.MailParseException;
 import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.contractar.microserviciomailing.dtos.RegistrationLinkMailInfo;
 import com.contractar.microserviciomailing.services.MailingService;
-import com.contractar.microserviciomailing.utils.EmailType;
 
-import jakarta.mail.MessagingException;
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 
 @RestController
 public class MailingController {
@@ -21,11 +20,10 @@ public class MailingController {
 	@Autowired
 	private MailingService service;
 
-	@PostMapping("/mail")
-	ResponseEntity<Void> sendEmail(@RequestBody MailInfo mailInfo,
-			@RequestParam(required = true) EmailType emailType) throws MessagingException {
+	@PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL)
+	ResponseEntity<Void> sendEmail(@RequestBody RegistrationLinkMailInfo mailInfo) {
 		try {
-			service.sendEmail(mailInfo.getToAddress(), emailType);
+			service.sendRegistrationLinkEmail(mailInfo);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (MailSendException | MailParseException e) {
 			System.out.println(e.getMessage());

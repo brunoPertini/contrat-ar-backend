@@ -20,5 +20,5 @@ public final class UsersControllerUrls {
 	
 	public static final String CREATE_CLIENTE = "/usuarios/cliente";
 	
-	public static final String SEND_REGISTRATION_LINK_EMAIL = "/usuarios/link";
+	public static final String SEND_REGISTRATION_LINK_EMAIL = "/mail/signup/link";
 }

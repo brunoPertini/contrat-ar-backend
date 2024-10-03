@@ -1,6 +1,6 @@
-package com.contractar.microserviciomailing.controllers;
+package com.contractar.microserviciomailing.dtos;
 
-public final class MailInfo {
+public class MailInfo {
 	private String toAddress;
 
 	public MailInfo() {
