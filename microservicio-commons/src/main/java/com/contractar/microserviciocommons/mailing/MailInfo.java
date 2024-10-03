@@ -1,6 +1,10 @@
-package com.contractar.microserviciomailing.dtos;
+package com.contractar.microserviciocommons.mailing;
+
+import jakarta.validation.constraints.NotBlank;
 
 public class MailInfo {
+	
+	@NotBlank
 	private String toAddress;
 
 	public MailInfo() {

@@ -90,7 +90,7 @@ public class SecurityController {
 	}
 
 	@GetMapping(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN)
-	public ResponseEntity getTokenPayloadFromHeaders(HttpServletRequest request) throws JsonProcessingException {
+	public ResponseEntity<?> getTokenPayloadFromHeaders(HttpServletRequest request) throws JsonProcessingException {
 		return ResponseEntity.ok(jwtHelper.parsePayloadFromJwt(request.getHeader("authorization")));
 
 	}
@@ -98,5 +98,11 @@ public class SecurityController {
 	@GetMapping(SecurityControllerUrls.GET_TOKEN_FOR_LINK)
 	public ResponseEntity<?> getVerificationTokenForLink(@RequestParam(name = "email", required = true) String userMail) {
 		return ResponseEntity.ok(jwtHelper.createJwtForClaims(userMail,  Map.of() , 5));
+	}
+	
+	@GetMapping(SecurityControllerUrls.TOKEN_BASE_PATH)
+	public ResponseEntity<?> verifyToken(@RequestParam(required = true) String token) {
+		boolean result = jwtHelper.verifyToken(token);
+		return new ResponseEntity<>(result ? HttpStatus.OK : HttpStatus.CONFLICT); 
 	}
 }

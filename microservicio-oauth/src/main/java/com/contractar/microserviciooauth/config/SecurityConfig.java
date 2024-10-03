@@ -49,8 +49,7 @@ public class SecurityConfig {
 				"/oauth/login",
 				"/oauth/userId",
 				"/oauth/public_key",
-				"/oauth/token/payload",
-				"/oauth/token/link")
+				"/oauth/token/**")
 				.anonymous().anyRequest().authenticated());
 
 		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));

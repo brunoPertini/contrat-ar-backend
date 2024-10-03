@@ -6,7 +6,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.contractar.microserviciomailing.dtos.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
 import com.contractar.microserviciomailing.utils.FileReader;
 
 import jakarta.mail.MessagingException;

@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.contractar.microserviciomailing.dtos.RegistrationLinkMailInfo;
 import com.contractar.microserviciomailing.services.MailingService;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
 
 @RestController
 public class MailingController {

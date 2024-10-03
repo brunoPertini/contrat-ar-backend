@@ -25,6 +25,7 @@ import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendib
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
+import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -162,8 +163,9 @@ public class UsuarioController {
 
 	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
 	public ResponseEntity<?> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
-			@Valid @RequestBody ProveedorVendibleUpdateDTO body, HttpServletRequest request) throws VendibleNotFoundException,
-			VendibleUpdateException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
+			@Valid @RequestBody ProveedorVendibleUpdateDTO body, HttpServletRequest request)
+			throws VendibleNotFoundException, VendibleUpdateException, InvocationTargetException,
+			IllegalAccessException, ClassNotFoundException {
 
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body, request);
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
@@ -186,12 +188,12 @@ public class UsuarioController {
 			@RequestParam("longitude") double longitude) {
 		return new ResponseEntity<>(this.usuarioService.translateCoordinates(latitude, longitude), HttpStatus.OK);
 	}
-	
-	/*
-	 * @PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL) public
-	 * ResponseEntity<?> sendRegistrationLinkEmail(@RequestParam(name = "email",
-	 * required = true) {
-	 * 
-	 * }
-	 */
+
+	@PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL)
+	public ResponseEntity<?> sendRegistrationLinkEmail(@RequestParam(required = true) String email)
+			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
+		this.usuarioService.sendRegistrationLinkEmail(email);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
 }

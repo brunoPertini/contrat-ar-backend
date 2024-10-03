@@ -1,6 +1,9 @@
-package com.contractar.microserviciomailing.dtos;
+package com.contractar.microserviciocommons.mailing;
+
+import jakarta.validation.constraints.NotBlank;
 
 public class RegistrationLinkMailInfo extends MailInfo {
+	@NotBlank
 	private String token;
 
 	public String getToken() {
