@@ -47,6 +47,7 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
+import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
@@ -102,6 +103,13 @@ public class UsuarioService {
 		return httpClient.getForObject(fullUrl, String.class);
 	}
 
+	private boolean checkUserToken(String token) {
+		UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
+				.path(SecurityControllerUrls.TOKEN_BASE_PATH).queryParam("token", token);
+
+		return httpClient.getForObject(tokenCheckUrlBuilder.toUriString(), Boolean.class);
+	}
+
 	private void requestUsuarioActiveFlag(Long userId) throws UserCreationException {
 		String url = microservicioUsuarioUrl
 				+ AdminControllerUrls.ADMIN_USUARIOS_BY_ID.replace("{id}", userId.toString());
@@ -111,17 +119,16 @@ public class UsuarioService {
 			throw new UserCreationException();
 		}
 	}
-	
+
 	private String getNewUserToken(String email, Usuario foundUser) {
 		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
-				.path(SecurityControllerUrls.GET_TOKEN_FOR_LINK)
-                .queryParam("email", email);
-		
+				.path(SecurityControllerUrls.GET_TOKEN_FOR_LINK).queryParam("email", email);
+
 		String linkToken = httpClient.getForObject(uriBuilder.toUriString(), String.class);
-		
+
 		foundUser.setAccountVerificationToken(linkToken);
 		this.usuarioRepository.save(foundUser);
-		
+
 		return linkToken;
 	}
 
@@ -319,42 +326,64 @@ public class UsuarioService {
 	}
 
 	@Transactional
-	public void sendRegistrationLinkEmail(String email) throws UserNotFoundException, UserInactiveException, AccountVerificationException {
+	public void sendRegistrationLinkEmail(String email)
+			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
 		Usuario foundUser = this.findByEmail(email);
 		String linkToken;
-		
+
 		if (foundUser.isAccountVerified()) {
 			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
 		}
-		
+
 		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getAccountVerificationToken());
-		
+
 		if (storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get())) {
 			linkToken = getNewUserToken(email, foundUser);
 		} else {
 			String storedToken = storedTokenOpt.get();
-			
-			UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
-					.path(SecurityControllerUrls.TOKEN_BASE_PATH)
-					.queryParam("token", storedToken);
-					
-					
-			boolean isTokenOk = httpClient.getForObject(tokenCheckUrlBuilder.toUriString(), Boolean.class);
-			
+
+			boolean isTokenOk = checkUserToken(storedToken);
+
 			if (isTokenOk) {
 				throw new AccountVerificationException(getMessageTag("exceptions.account.linkAlreayRequested"));
 			} else {
 				linkToken = getNewUserToken(email, foundUser);
 			}
-			
-			
+
 		}
-		
-		ResponseEntity response = httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL, new RegistrationLinkMailInfo(email,
-				linkToken), Void.class);
-		
+
+		ResponseEntity response = httpClient.postForEntity(
+				mailingServiceUrl + UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL,
+				new RegistrationLinkMailInfo(email, linkToken), Void.class);
+
 		if (response.getStatusCodeValue() != 200) {
 			throw new AccountVerificationException(getMessageTag("exceptions.account.couldntSendEmail"));
 		}
+	}
+
+	@Transactional
+	public void acceptUserAccountActivation(String email, String token)
+			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
+		Usuario foundUser = this.findByEmail(email);
+
+		if (foundUser.isAccountVerified()) {
+			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
+		}
+
+		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getAccountVerificationToken());
+
+		boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
+
+		if (isTokenEmpty || !token.equals(storedTokenOpt.get()) || !checkUserToken(storedTokenOpt.get())) {
+			throw new AccountVerificationException(getMessageTag("exceptions.account.wrongToken"));
+		}
+
+		foundUser.setAccountVerified(true);
+		foundUser.setAccountVerificationToken("");
+		usuarioRepository.save(foundUser);
+
+		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.SIGNUP_OK_EMAIL, new MailInfo(email),
+				Void.class);
+
 	}
 }

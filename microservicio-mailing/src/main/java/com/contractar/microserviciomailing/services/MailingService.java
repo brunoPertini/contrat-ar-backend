@@ -6,6 +6,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
 import com.contractar.microserviciomailing.utils.FileReader;
 
@@ -49,6 +50,21 @@ public class MailingService {
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 			
 			this.sendEmail(mailInfo.getToAddress(), "¡Bienvenido a Contract-Ar!", emailContent, true);
+		} catch(IOException | MessagingException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public void sendWelcomeEmail(MailInfo mailInfo) {
+		try {
+			String signinUrl = env.getProperty("site.signin.url");
+			
+			String emailContent = new FileReader()
+					.readFile("/static/welcome-email-template.html")
+					.replaceAll("\\$\\{siteLink\\}", signinUrl)
+					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
+			
+			this.sendEmail(mailInfo.getToAddress(), "¡Tu cuenta fue activada!", emailContent, true);
 		} catch(IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}

@@ -34,6 +34,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingE
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
+import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
@@ -195,5 +196,12 @@ public class UsuarioController {
 		this.usuarioService.sendRegistrationLinkEmail(email);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-
+	
+	@PostMapping(UsersControllerUrls.SIGNUP_OK_EMAIL)
+	public ResponseEntity<?> confirmUserAccount(@RequestBody RegistrationLinkMailInfo body)
+			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
+		this.usuarioService.acceptUserAccountActivation(body.getToAddress(), body.getToken());
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
 }

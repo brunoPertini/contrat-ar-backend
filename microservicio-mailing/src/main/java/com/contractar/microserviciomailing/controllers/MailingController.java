@@ -12,16 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciomailing.services.MailingService;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
 
 @RestController
 public class MailingController {
-	
+
 	@Autowired
 	private MailingService service;
 
 	@PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL)
-	ResponseEntity<Void> sendEmail(@RequestBody RegistrationLinkMailInfo mailInfo) {
+	ResponseEntity<Void> sendRegistrationLinkEmail(@RequestBody RegistrationLinkMailInfo mailInfo) {
 		try {
 			service.sendRegistrationLinkEmail(mailInfo);
 			return new ResponseEntity<>(HttpStatus.OK);
@@ -29,7 +30,19 @@ public class MailingController {
 			System.out.println(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		}
-		
+
+	}
+
+	@PostMapping(UsersControllerUrls.SIGNUP_OK_EMAIL)
+	ResponseEntity<Void> sendWelcomeEmail(@RequestBody MailInfo mailInfo) {
+		try {
+			service.sendWelcomeEmail(mailInfo);
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (MailSendException | MailParseException e) {
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.CONFLICT);
+		}
+
 	}
 
 }

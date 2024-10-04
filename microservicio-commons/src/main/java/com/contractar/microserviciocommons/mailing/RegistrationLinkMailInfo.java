@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 public class RegistrationLinkMailInfo extends MailInfo {
 	@NotBlank
 	private String token;
+	
+	public RegistrationLinkMailInfo() {}
 
 	public String getToken() {
 		return token;
