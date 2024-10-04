@@ -101,8 +101,8 @@ public class SecurityController {
 	}
 	
 	@GetMapping(SecurityControllerUrls.TOKEN_BASE_PATH)
-	public ResponseEntity<?> verifyToken(@RequestParam(required = true) String token) {
+	public ResponseEntity<Boolean> verifyToken(@RequestParam(required = true) String token) {
 		boolean result = jwtHelper.verifyToken(token);
-		return new ResponseEntity<>(result ? HttpStatus.OK : HttpStatus.CONFLICT); 
+		return new ResponseEntity<Boolean>(result, HttpStatus.OK); 
 	}
 }

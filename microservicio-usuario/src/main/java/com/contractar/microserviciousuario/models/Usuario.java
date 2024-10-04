@@ -70,14 +70,14 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	private LocalDate createdAt;
 
 	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
-	private boolean acountVerified;
+	private boolean accountVerified;
 
-	@Column(columnDefinition = "VARCHAR(1000) DEFAULT ''")
+	@Column(columnDefinition = "VARCHAR(2000) DEFAULT ''")
 	private String accountVerificationToken;
 
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
-		this.acountVerified = false;
+		this.accountVerified = false;
 		this.accountVerificationToken = "";
 	}
 
@@ -93,7 +93,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 		this.password = password;
 		this.role = role;
 		this.phone = phone;
-		this.acountVerified = false;
+		this.accountVerified = false;
 		this.accountVerificationToken = "";
 	}
 
@@ -110,7 +110,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 		this.password = password;
 		this.role = role;
 		this.phone = phone;
-		this.acountVerified = false;
+		this.accountVerified = false;
 		this.accountVerificationToken = "";
 	}
 
@@ -202,12 +202,12 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 		this.createdAt = createdAt;
 	}
 
-	public boolean isAcountVerified() {
-		return acountVerified;
+	public boolean isAccountVerified() {
+		return accountVerified;
 	}
 
-	public void setAcountVerified(boolean acountVerified) {
-		this.acountVerified = acountVerified;
+	public void setAccountVerified(boolean accountVerified) {
+		this.accountVerified = accountVerified;
 	}
 
 	public String getAccountVerificationToken() {

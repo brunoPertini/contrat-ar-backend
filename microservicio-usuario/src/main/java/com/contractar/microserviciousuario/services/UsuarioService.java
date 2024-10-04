@@ -323,7 +323,7 @@ public class UsuarioService {
 		Usuario foundUser = this.findByEmail(email);
 		String linkToken;
 		
-		if (foundUser.isAcountVerified()) {
+		if (foundUser.isAccountVerified()) {
 			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
 		}
 		
@@ -333,10 +333,15 @@ public class UsuarioService {
 			linkToken = getNewUserToken(email, foundUser);
 		} else {
 			String storedToken = storedTokenOpt.get();
-			ResponseEntity tokenCheckResponse = httpClient.getForEntity(serviceSecurityUrl + SecurityControllerUrls.TOKEN_BASE_PATH, Void.class,
-					Map.of("token", storedToken));
 			
-			if (tokenCheckResponse.getStatusCode().equals(HttpStatusCode.valueOf(200))) {
+			UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
+					.path(SecurityControllerUrls.TOKEN_BASE_PATH)
+					.queryParam("token", storedToken);
+					
+					
+			boolean isTokenOk = httpClient.getForObject(tokenCheckUrlBuilder.toUriString(), Boolean.class);
+			
+			if (isTokenOk) {
 				throw new AccountVerificationException(getMessageTag("exceptions.account.linkAlreayRequested"));
 			} else {
 				linkToken = getNewUserToken(email, foundUser);
