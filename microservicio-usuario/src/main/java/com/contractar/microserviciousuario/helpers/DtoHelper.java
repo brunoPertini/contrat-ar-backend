@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario.helpers;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -34,11 +36,13 @@ public final class DtoHelper {
 	};
 
 	public static ProveedorDTO toProveedorDTO(Proveedor proveedor) {
-		Suscripcion usuarioSuscripcion = (Suscripcion) proveedor.getSuscripcion();
+		Suscripcion usuarioSuscripcion = Optional.ofNullable(proveedor.getSuscripcion())
+				.map(s -> (Suscripcion) s)
+				.orElse(null);
 
-		SuscripcionDTO suscripcion = new SuscripcionDTO(usuarioSuscripcion.getId(), usuarioSuscripcion.isActive(),
+		SuscripcionDTO suscripcion = usuarioSuscripcion != null ?  new SuscripcionDTO(usuarioSuscripcion.getId(), usuarioSuscripcion.isActive(),
 				usuarioSuscripcion.getUsuario().getId(), usuarioSuscripcion.getPlan().getId(),
-				usuarioSuscripcion.getCreatedDate());
+				usuarioSuscripcion.getCreatedDate()) : null;
 
 		return new ProveedorDTO(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(),
 				proveedor.isActive(), proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getDni(),
