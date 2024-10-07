@@ -1,10 +1,13 @@
 package com.contractar.microserviciomailing.services;
 
 import java.io.IOException;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
@@ -19,10 +22,21 @@ public class MailingService {
 	private JavaMailSender mailSender;
 
 	private Environment env;
+	
+	private RestTemplate httpClient;
+	
+	@Value("${configServiceUrl}")
+	private String configServiceUrl;
+	
+	private String getMessageTag(String tagId) {
+		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
+		return httpClient.getForObject(fullUrl, String.class);
+	}
 
-	public MailingService(Environment env, JavaMailSender mailSender) {
+	public MailingService(Environment env, JavaMailSender mailSender, RestTemplate httpClient) {
 		this.env = env;
 		this.mailSender = mailSender;
+		this.httpClient = httpClient;
 	}
 
 	public void sendEmail(String mailAddress, String title, String bodyMessage, boolean isMultiPart)
@@ -49,7 +63,7 @@ public class MailingService {
 					.replaceAll("\\$\\{registrationLink\\}", accountConfirmationUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 			
-			this.sendEmail(mailInfo.getToAddress(), "¡Bienvenido a Contract-Ar!", emailContent, true);
+			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.success.title"), emailContent, true);
 		} catch(IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}
@@ -64,7 +78,7 @@ public class MailingService {
 					.replaceAll("\\$\\{siteLink\\}", signinUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 			
-			this.sendEmail(mailInfo.getToAddress(), "¡Tu cuenta fue activada!", emailContent, true);
+			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.confirm.success.title"), emailContent, true);  
 		} catch(IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}

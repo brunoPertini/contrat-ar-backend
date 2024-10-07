@@ -3,8 +3,6 @@ package com.contractar.microserviciomailing.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailParseException;
-import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,25 +21,15 @@ public class MailingController {
 
 	@PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL)
 	ResponseEntity<Void> sendRegistrationLinkEmail(@RequestBody RegistrationLinkMailInfo mailInfo) {
-		try {
-			service.sendRegistrationLinkEmail(mailInfo);
-			return new ResponseEntity<>(HttpStatus.OK);
-		} catch (MailSendException | MailParseException e) {
-			System.out.println(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.CONFLICT);
-		}
+		service.sendRegistrationLinkEmail(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
 
 	}
 
 	@PostMapping(UsersControllerUrls.SIGNUP_OK_EMAIL)
 	ResponseEntity<Void> sendWelcomeEmail(@RequestBody MailInfo mailInfo) {
-		try {
-			service.sendWelcomeEmail(mailInfo);
-			return new ResponseEntity<>(HttpStatus.OK);
-		} catch (MailSendException | MailParseException e) {
-			System.out.println(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.CONFLICT);
-		}
+		service.sendWelcomeEmail(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
 
 	}
 

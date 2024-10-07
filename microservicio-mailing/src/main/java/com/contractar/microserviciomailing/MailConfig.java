@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class MailConfig {
@@ -33,5 +34,10 @@ public class MailConfig {
         props.put("mail.debug", "true");
 
         return mailSender;
+    }
+    
+    @Bean
+    RestTemplate httpClient() {
+    	return new RestTemplate();
     }
 }
