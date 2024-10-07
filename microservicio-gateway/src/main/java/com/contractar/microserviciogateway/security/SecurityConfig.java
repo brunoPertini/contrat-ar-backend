@@ -56,6 +56,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] clientesUrls = {"/cliente/**"};
 	
 	private final String[] adminUrls = {"/admin/**", "/admin/change-requests", "/admin/usuarios/proveedor/**"};
+	
+	private final String[] signupEmailUrls = {"/mail/signup/link", "/mail/signup/ok"};
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -119,7 +121,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error", "/geo/**").permitAll()
 				.antMatchers(HttpMethod.GET, "/plan").permitAll()
-				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId")
+				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", signupEmailUrls[0], signupEmailUrls[1])
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**", ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL) // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
