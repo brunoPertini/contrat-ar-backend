@@ -69,8 +69,16 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 
 	private LocalDate createdAt;
 
+	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
+	private boolean accountVerified;
+
+	@Column(columnDefinition = "VARCHAR(2000) DEFAULT ''")
+	private String accountVerificationToken;
+
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
+		this.accountVerified = false;
+		this.accountVerificationToken = "";
 	}
 
 	public Usuario(String name, String surname, String email, boolean isActive, Point location, LocalDate birthDate,
@@ -85,6 +93,8 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 		this.password = password;
 		this.role = role;
 		this.phone = phone;
+		this.accountVerified = false;
+		this.accountVerificationToken = "";
 	}
 
 	public Usuario(Long id, String name, String surname, String email, boolean isActive, Point location,
@@ -100,6 +110,8 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 		this.password = password;
 		this.role = role;
 		this.phone = phone;
+		this.accountVerified = false;
+		this.accountVerificationToken = "";
 	}
 
 	public Long getId() {
@@ -189,4 +201,21 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	public void setCreatedAt(LocalDate createdAt) {
 		this.createdAt = createdAt;
 	}
+
+	public boolean isAccountVerified() {
+		return accountVerified;
+	}
+
+	public void setAccountVerified(boolean accountVerified) {
+		this.accountVerified = accountVerified;
+	}
+
+	public String getAccountVerificationToken() {
+		return accountVerificationToken;
+	}
+
+	public void setAccountVerificationToken(String accountVerificationToken) {
+		this.accountVerificationToken = accountVerificationToken;
+	}
+
 }

@@ -51,8 +51,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	}
 
-	public String createJwtForUser(String email, String password, UsuarioOauthDTO userDetails, List<SimpleGrantedAuthority> authorities) 
-			throws UserNotFoundException {
+	public String createJwtForUser(String email, String password, UsuarioOauthDTO userDetails,
+			List<SimpleGrantedAuthority> authorities) throws UserNotFoundException {
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, Object> claims = new HashMap<>();
 			String userRole = userDetails.getRole().getNombre();
@@ -64,7 +64,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			claims.put("surname", userDetails.getSurname());
 			claims.put("indexPage", indexPage);
 			claims.put("authorities", authorities);
-			return jwtHelper.createJwtForClaims(email, claims);
+			return jwtHelper.createJwtForClaims(email, claims, 40);
 		}
 
 		throw new UserNotFoundException();

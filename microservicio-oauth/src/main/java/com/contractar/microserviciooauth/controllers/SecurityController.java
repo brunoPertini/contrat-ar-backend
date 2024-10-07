@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -88,8 +90,19 @@ public class SecurityController {
 	}
 
 	@GetMapping(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN)
-	public ResponseEntity getTokenPayloadFromHeaders(HttpServletRequest request) throws JsonProcessingException {
+	public ResponseEntity<?> getTokenPayloadFromHeaders(HttpServletRequest request) throws JsonProcessingException {
 		return ResponseEntity.ok(jwtHelper.parsePayloadFromJwt(request.getHeader("authorization")));
 
+	}
+	
+	@GetMapping(SecurityControllerUrls.GET_TOKEN_FOR_LINK)
+	public ResponseEntity<?> getVerificationTokenForLink(@RequestParam(name = "email", required = true) String userMail) {
+		return ResponseEntity.ok(jwtHelper.createJwtForClaims(userMail,  Map.of() , 5));
+	}
+	
+	@GetMapping(SecurityControllerUrls.TOKEN_BASE_PATH)
+	public ResponseEntity<Boolean> verifyToken(@RequestParam(required = true) String token) {
+		boolean result = jwtHelper.verifyToken(token);
+		return new ResponseEntity<Boolean>(result, HttpStatus.OK); 
 	}
 }

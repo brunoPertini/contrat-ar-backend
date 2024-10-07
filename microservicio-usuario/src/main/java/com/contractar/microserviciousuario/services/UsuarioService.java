@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -31,10 +32,13 @@ import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioCommonInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstractDTO;
+import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -43,11 +47,12 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
+import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
 
 @Service
 public class UsuarioService {
@@ -68,7 +73,7 @@ public class UsuarioService {
 
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
-	
+
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
 
@@ -77,15 +82,37 @@ public class UsuarioService {
 
 	@Value("${openstreet-api.url}")
 	private String openStreetAPIUrl;
-	
+
 	@Value("${microservicio-imagenes.url}")
 	private String microservicioImagenesUrl;
-	
+
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
-	
+
+	@Value("${microservicio-config.url}")
+	private String serviceConfigUrl;
+
+	@Value("${microservicio-security.url}")
+	private String serviceSecurityUrl;
+
+	@Value("${microservicio-mailing.url}")
+	private String mailingServiceUrl;
+
+	private String getMessageTag(String tagId) {
+		final String fullUrl = serviceConfigUrl + "/i18n/" + tagId;
+		return httpClient.getForObject(fullUrl, String.class);
+	}
+
+	private boolean checkUserToken(String token) {
+		UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
+				.path(SecurityControllerUrls.TOKEN_BASE_PATH).queryParam("token", token);
+
+		return httpClient.getForObject(tokenCheckUrlBuilder.toUriString(), Boolean.class);
+	}
+
 	private void requestUsuarioActiveFlag(Long userId) throws UserCreationException {
-		String url = microservicioUsuarioUrl + AdminControllerUrls.ADMIN_USUARIOS_BY_ID.replace("{id}", userId.toString());
+		String url = microservicioUsuarioUrl
+				+ AdminControllerUrls.ADMIN_USUARIOS_BY_ID.replace("{id}", userId.toString());
 		try {
 			httpClient.put(url, new UsuarioAbstractDTO(true));
 		} catch (RestClientException e) {
@@ -93,11 +120,23 @@ public class UsuarioService {
 		}
 	}
 
+	private String getNewUserToken(String email, Usuario foundUser) {
+		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
+				.path(SecurityControllerUrls.GET_TOKEN_FOR_LINK).queryParam("email", email);
+
+		String linkToken = httpClient.getForObject(uriBuilder.toUriString(), String.class);
+
+		foundUser.setAccountVerificationToken(linkToken);
+		this.usuarioRepository.save(foundUser);
+
+		return linkToken;
+	}
+
 	public Usuario create(Usuario usuario) {
 		return usuarioRepository.save(usuario);
 	}
 
-	@Transactional(rollbackOn = {UserCreationException.class})
+	@Transactional(rollbackOn = { UserCreationException.class })
 	public Proveedor createProveedor(Proveedor proveedor) throws UserCreationException {
 		String roleName = "PROVEEDOR_" + proveedor.getProveedorType().toString();
 		Optional<Role> roleOpt = roleRepository.findByNombre(roleName);
@@ -113,7 +152,7 @@ public class UsuarioService {
 
 	}
 
-	@Transactional(rollbackOn = {UserCreationException.class})
+	@Transactional(rollbackOn = { UserCreationException.class })
 	public Cliente createCliente(Cliente cliente) throws UserCreationException {
 		Role clienteRole = roleRepository.findByNombre(RolesValues.CLIENTE.toString()).get();
 		cliente.setRole(clienteRole);
@@ -130,7 +169,7 @@ public class UsuarioService {
 		if (!clienteOpt.isPresent()) {
 			throw new UserNotFoundException("El usuario no existe");
 		}
-		
+
 		Cliente cliente = clienteOpt.get();
 
 		String dtoFullClassName = UsuarioCommonInfoUpdateDTO.class.getPackage().getName()
@@ -147,40 +186,40 @@ public class UsuarioService {
 			throw e;
 		}
 	}
-	
-	public Proveedor updateProveedor(Long proovedorId, ProveedorInfoUpdateDTO newInfo) 
-			throws UserNotFoundException, ImageNotUploadedException, 
-			ClassNotFoundException, IllegalArgumentException,
+
+	public Proveedor updateProveedor(Long proovedorId, ProveedorInfoUpdateDTO newInfo)
+			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException {
 		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
 
 		if (!proveedorOpt.isPresent()) {
 			throw new UserNotFoundException("El usuario no existe");
 		}
-		
+
 		Proveedor proveedor = proveedorOpt.get();
 
 		if (Optional.ofNullable(newInfo.getFotoPerfilUrl()).isPresent()) {
-			 UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(microservicioImagenesUrl + ImagenesControllerUrls.IMAGE_BASE_URL)
-		                .queryParam("imagePath", newInfo.getFotoPerfilUrl());
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder
+					.fromHttpUrl(microservicioImagenesUrl + ImagenesControllerUrls.IMAGE_BASE_URL)
+					.queryParam("imagePath", newInfo.getFotoPerfilUrl());
 
 			ResponseEntity imageExistsResponse = httpClient.getForEntity(uriBuilder.toUriString(), Void.class);
-			
+
 			if (imageExistsResponse.getStatusCodeValue() != 200) {
 				throw new ImageNotUploadedException();
 			}
 		}
-		
+
 		String dtoFullClassName = ReflectionHelper.getObjectClassFullName(newInfo);
 
 		String entityFullClassName = ReflectionHelper.getObjectClassFullName(proveedor);
-		
-		ReflectionHelper.applySetterFromExistingFields(newInfo, proveedor, dtoFullClassName, entityFullClassName);		
-			
+
+		ReflectionHelper.applySetterFromExistingFields(newInfo, proveedor, dtoFullClassName, entityFullClassName);
+
 		proveedorRepository.save(proveedor);
-		
+
 		return proveedor;
-		
+
 	}
 
 	public boolean proveedorExistsByIdAndType(Long id, ProveedorType proveedorType) {
@@ -202,10 +241,10 @@ public class UsuarioService {
 
 		if (usuario == null)
 			throw new UserNotFoundException();
-		
+
 		if (!usuario.isActive())
 			throw new UserInactiveException();
-		
+
 		return usuario;
 	}
 
@@ -275,14 +314,76 @@ public class UsuarioService {
 					HttpStatusCode.valueOf(castedException.getStatusCode()));
 		}
 	}
-	
+
 	public Object getUsuarioField(String field, Long userId) throws UserNotFoundException, IllegalAccessException {
 		Usuario user = this.findById(userId, false);
 		Map<String, Object> fields = ReflectionHelper.getObjectFields(user);
 		if (!fields.containsKey(field)) {
 			return null;
 		}
-		
+
 		return fields.get(field);
+	}
+
+	@Transactional
+	public void sendRegistrationLinkEmail(String email)
+			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
+		Usuario foundUser = this.findByEmail(email);
+		String linkToken;
+
+		if (foundUser.isAccountVerified()) {
+			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
+		}
+
+		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getAccountVerificationToken());
+
+		if (storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get())) {
+			linkToken = getNewUserToken(email, foundUser);
+		} else {
+			String storedToken = storedTokenOpt.get();
+
+			boolean isTokenOk = checkUserToken(storedToken);
+
+			if (isTokenOk) {
+				throw new AccountVerificationException(getMessageTag("exceptions.account.linkAlreayRequested"));
+			} else {
+				linkToken = getNewUserToken(email, foundUser);
+			}
+
+		}
+
+		ResponseEntity response = httpClient.postForEntity(
+				mailingServiceUrl + UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL,
+				new RegistrationLinkMailInfo(email, linkToken), Void.class);
+
+		if (response.getStatusCodeValue() != 200) {
+			throw new AccountVerificationException(getMessageTag("exceptions.account.couldntSendEmail"));
+		}
+	}
+
+	@Transactional
+	public void acceptUserAccountActivation(String email, String token)
+			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
+		Usuario foundUser = this.findByEmail(email);
+
+		if (foundUser.isAccountVerified()) {
+			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
+		}
+
+		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getAccountVerificationToken());
+
+		boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
+
+		if (isTokenEmpty || !token.equals(storedTokenOpt.get()) || !checkUserToken(storedTokenOpt.get())) {
+			throw new AccountVerificationException(getMessageTag("exceptions.account.wrongToken"));
+		}
+
+		foundUser.setAccountVerified(true);
+		foundUser.setAccountVerificationToken("");
+		usuarioRepository.save(foundUser);
+
+		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.SIGNUP_OK_EMAIL, new MailInfo(email),
+				Void.class);
+
 	}
 }

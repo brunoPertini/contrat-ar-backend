@@ -54,3 +54,5 @@ microservicio-config/target/maven-status/maven-compiler-plugin/testCompile/defau
 microservicio-config/target/microservicio-config-0.0.1-SNAPSHOT.jar.original
 microservicio-config/target/surefire-reports/com.contractar.microservicioconfig.MicroservicioConfigApplicationTests.txt
 microservicio-config/target/surefire-reports/TEST-com.contractar.microservicioconfig.MicroservicioConfigApplicationTests.xml
+microservicio-mailing/bin/pom.xml
+microservicio-mailing/bin/*
