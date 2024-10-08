@@ -38,16 +38,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String email) {
-		try {
-			Map<String, String> parameters = Map.ofEntries(new AbstractMap.SimpleEntry<String, String>("email", email));
+		Map<String, String> parameters = Map.ofEntries(new AbstractMap.SimpleEntry<String, String>("email", email));
 
-			UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
+		UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
 
-			return user;
-
-		} catch (Exception e) {
-			throw e;
-		}
+		return user;
 
 	}
 

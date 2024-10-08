@@ -26,6 +26,7 @@ import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -65,6 +66,12 @@ public class ProveedorControler {
 		return  new ResponseEntity<>(new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
 				suscripcion.getUsuario().getId(),
 				suscripcion.getPlan().getId(), suscripcion.getCreatedDate()), HttpStatus.OK);
+	}
+	
+	@PostMapping(ProveedorControllerUrls.POST_PROVEEDOR_SUSCRIPCION)
+	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable("proveedorId") Long proveedorId, @PathVariable("planId") Long planId) throws UserNotFoundException,
+	CantCreateException {
+		return new ResponseEntity<SuscripcionDTO>(proveedorService.createSuscripcion(proveedorId, planId), HttpStatus.CREATED);
 	}
 
 	@Deprecated(forRemoval = true)

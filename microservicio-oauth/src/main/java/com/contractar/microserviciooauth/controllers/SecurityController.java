@@ -100,6 +100,21 @@ public class SecurityController {
 		return ResponseEntity.ok(jwtHelper.createJwtForClaims(userMail,  Map.of() , 5));
 	}
 	
+	@GetMapping(SecurityControllerUrls.GET_TOKEN_FOR_NEW_USER)
+	public ResponseEntity<?> getVerificationTokenForNewUser(@RequestParam(name = "email", required = true) String userMail,
+			@RequestParam(name = "userId", required = true) Long userId) {
+		
+		UsuarioOauthDTO createdUser = (UsuarioOauthDTO) userDetailsService.loadUserByUsername(userMail);
+		
+		SimpleGrantedAuthority authority = new SimpleGrantedAuthority(createdUser.getRole().getNombre());
+		List<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>(
+				Collections.singletonList(authority));
+		
+		return ResponseEntity.ok(jwtHelper.createJwtForClaims(userMail,
+				Map.of("id", userId, "authorities", authorities) ,
+				10));
+	}
+	
 	@GetMapping(SecurityControllerUrls.TOKEN_BASE_PATH)
 	public ResponseEntity<Boolean> verifyToken(@RequestParam(required = true) String token) {
 		boolean result = jwtHelper.verifyToken(token);

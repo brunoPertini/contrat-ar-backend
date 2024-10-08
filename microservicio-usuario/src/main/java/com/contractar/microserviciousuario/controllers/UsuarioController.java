@@ -74,7 +74,12 @@ public class UsuarioController {
 	public ResponseEntity<?> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
 		try {
 			Proveedor createdUsuario = usuarioService.createProveedor(usuario);
-			return new ResponseEntity<>(DtoHelper.toProveedorDTO(createdUsuario), HttpStatus.CREATED);
+			
+			String createdUserToken = usuarioService.getTokenForCreatedUser(createdUsuario.getEmail(), createdUsuario.getId());
+			ProveedorDTO responseBody = DtoHelper.toProveedorDTO(createdUsuario);
+			responseBody.setCreationToken(createdUserToken);		
+
+			return new ResponseEntity<>(responseBody, HttpStatus.CREATED);
 		} catch (Exception e) {
 			throw new UserCreationException();
 		}
@@ -101,8 +106,9 @@ public class UsuarioController {
 
 	@GetMapping(UsersControllerUrls.GET_USUARIOS)
 	public ResponseEntity<UsuarioOauthDTO> findByParam(@RequestParam(required = false) String email,
-			@RequestParam(required = false) Long id) throws UserNotFoundException, UserInactiveException {
-		Usuario usuario = email != null ? usuarioService.findByEmail(email) : usuarioService.findById(id, true);
+			@RequestParam(required = false) Long id,
+			@RequestParam(required = false, defaultValue = "true") String checkIfInactive) throws UserNotFoundException, UserInactiveException {
+		Usuario usuario = email != null ? usuarioService.findByEmail(email, Boolean.getBoolean(checkIfInactive)) : usuarioService.findById(id, true);
 
 		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getName(), usuario.getSurname(),
 				usuario.getEmail(), usuario.isActive(), usuario.getPassword(), new ArrayList<SimpleGrantedAuthority>(),
