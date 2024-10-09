@@ -89,7 +89,12 @@ public class UsuarioController {
 	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) throws UserCreationException {
 		try {
 			Cliente createdUsuario = usuarioService.createCliente(usuario);
-			return new ResponseEntity<>(DtoHelper.toUsuarioDTO(createdUsuario), HttpStatus.CREATED);
+			
+			String createdUserToken = usuarioService.getTokenForCreatedUser(createdUsuario.getEmail(), createdUsuario.getId());
+			UsuarioDTO responseBody = DtoHelper.toUsuarioDTO(createdUsuario);
+			responseBody.setCreationToken(createdUserToken);		
+			
+			return new ResponseEntity<>(responseBody, HttpStatus.CREATED);
 		} catch (Exception e) {
 			throw new UserCreationException();
 		}
