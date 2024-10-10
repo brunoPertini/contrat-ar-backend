@@ -113,7 +113,7 @@ public class UsuarioController {
 	public ResponseEntity<UsuarioOauthDTO> findByParam(@RequestParam(required = false) String email,
 			@RequestParam(required = false) Long id,
 			@RequestParam(required = false, defaultValue = "true") String checkIfInactive) throws UserNotFoundException, UserInactiveException {
-		Usuario usuario = email != null ? usuarioService.findByEmail(email, Boolean.getBoolean(checkIfInactive)) : usuarioService.findById(id, true);
+		Usuario usuario = email != null ? usuarioService.findByEmail(email, Boolean.parseBoolean(checkIfInactive)) : usuarioService.findById(id, true);
 
 		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getName(), usuario.getSurname(),
 				usuario.getEmail(), usuario.isActive(), usuario.getPassword(), new ArrayList<SimpleGrantedAuthority>(),
