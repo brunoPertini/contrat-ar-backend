@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.infra;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -46,7 +47,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class, IllegalAccessException.class,
 			InvocationTargetException.class, UserInactiveException.class, OperationNotAllowedException.class,
-			VendibleUpdateRuntimeException.class, AccountVerificationException.class, SubscriptionAlreadyExistsException.class})
+			VendibleUpdateRuntimeException.class, SubscriptionAlreadyExistsException.class})
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {
 		HttpStatus httpStatus = ex instanceof OperationNotAllowedException ? HttpStatus.FORBIDDEN : HttpStatus.CONFLICT;
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
@@ -67,5 +68,11 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),
 				HttpStatusCode.valueOf(castedException.getStatusCode()));
+	}
+	
+	@ExceptionHandler(value = { AccountVerificationException.class })
+	public ResponseEntity<Object> handleAccountVerificationExceptions(AccountVerificationException ex) {
+		return new ExceptionFactory().getResponseException(ex.getMessage(),
+				HttpStatusCode.valueOf(ex.getStatusCode()), Map.of("verificationCode", ex.getVerificationCode()));
 	}
 }

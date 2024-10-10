@@ -376,7 +376,7 @@ public class UsuarioService {
 		Usuario foundUser = this.findByEmail(email, false);
 
 		if (foundUser.isAccountVerified()) {
-			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
+			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"), 401);
 		}
 
 		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getAccountVerificationToken());
@@ -384,7 +384,7 @@ public class UsuarioService {
 		boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
 
 		if (isTokenEmpty || !token.equals(storedTokenOpt.get()) || !checkUserToken(storedTokenOpt.get())) {
-			throw new AccountVerificationException(getMessageTag("exceptions.account.wrongToken"));
+			throw new AccountVerificationException(getMessageTag("exceptions.account.wrongToken"), 400);
 		}
 
 		foundUser.setAccountVerified(true);
