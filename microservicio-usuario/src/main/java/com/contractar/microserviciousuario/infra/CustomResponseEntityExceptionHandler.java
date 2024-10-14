@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.infra;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.OperationNotAllowedException;
+import com.contractar.microserviciocommons.exceptions.vendibles.SubscriptionAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
@@ -45,7 +47,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class, IllegalAccessException.class,
 			InvocationTargetException.class, UserInactiveException.class, OperationNotAllowedException.class,
-			VendibleUpdateRuntimeException.class, AccountVerificationException.class})
+			VendibleUpdateRuntimeException.class, SubscriptionAlreadyExistsException.class})
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {
 		HttpStatus httpStatus = ex instanceof OperationNotAllowedException ? HttpStatus.FORBIDDEN : HttpStatus.CONFLICT;
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
@@ -66,5 +68,11 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),
 				HttpStatusCode.valueOf(castedException.getStatusCode()));
+	}
+	
+	@ExceptionHandler(value = { AccountVerificationException.class })
+	public ResponseEntity<Object> handleAccountVerificationExceptions(AccountVerificationException ex) {
+		return new ExceptionFactory().getResponseException(ex.getMessage(),
+				HttpStatusCode.valueOf(ex.getStatusCode()), Map.of("verificationCode", ex.getVerificationCode()));
 	}
 }

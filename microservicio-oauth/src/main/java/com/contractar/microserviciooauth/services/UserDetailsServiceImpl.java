@@ -1,6 +1,5 @@
 package com.contractar.microserviciooauth.services;
 
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,17 +36,21 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String email) {
-		try {
-			Map<String, String> parameters = Map.ofEntries(new AbstractMap.SimpleEntry<String, String>("email", email));
+	public UserDetails loadUserByUsername(String email) {		
+		Map<String, Object> parameters = Map.of("email", email, "checkIfInactive", "true");
 
-			UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
+		UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
 
-			return user;
+		return user;
 
-		} catch (Exception e) {
-			throw e;
-		}
+	}
+	
+	public UserDetails loadUserByEmail(String email, boolean checkIfInactive) {		
+		Map<String, Object> parameters = Map.of("email", email, "checkIfInactive", String.valueOf(checkIfInactive));
+
+		UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
+
+		return user;
 
 	}
 

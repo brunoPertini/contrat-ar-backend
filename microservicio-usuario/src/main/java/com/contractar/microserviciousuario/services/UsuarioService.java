@@ -98,12 +98,12 @@ public class UsuarioService {
 	@Value("${microservicio-mailing.url}")
 	private String mailingServiceUrl;
 
-	private String getMessageTag(String tagId) {
+	public String getMessageTag(String tagId) {
 		final String fullUrl = serviceConfigUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
 	}
 
-	private boolean checkUserToken(String token) {
+	public boolean checkUserToken(String token) {
 		UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
 				.path(SecurityControllerUrls.TOKEN_BASE_PATH).queryParam("token", token);
 
@@ -130,6 +130,15 @@ public class UsuarioService {
 		this.usuarioRepository.save(foundUser);
 
 		return linkToken;
+	}
+	
+	public String getTokenForCreatedUser(String email, Long userId) {
+		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
+				.path(SecurityControllerUrls.GET_TOKEN_FOR_NEW_USER)
+				.queryParam("userId", userId)
+				.queryParam("email", email);
+
+		return httpClient.getForObject(uriBuilder.toUriString(), String.class);
 	}
 
 	public Usuario create(Usuario usuario) {
@@ -235,15 +244,18 @@ public class UsuarioService {
 		throw new UserNotFoundException();
 	}
 
-	public Usuario findByEmail(String email) throws UserNotFoundException, UserInactiveException {
+	public Usuario findByEmail(String email, boolean checkIfInactive) throws UserNotFoundException, UserInactiveException {
 
 		Usuario usuario = usuarioRepository.findByEmail(email);
 
 		if (usuario == null)
 			throw new UserNotFoundException();
 
-		if (!usuario.isActive())
-			throw new UserInactiveException();
+		if (checkIfInactive && !usuario.isActive())
+			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"));
+		
+		if (checkIfInactive && !usuario.isAccountVerified())
+			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"));
 
 		return usuario;
 	}
@@ -328,7 +340,7 @@ public class UsuarioService {
 	@Transactional
 	public void sendRegistrationLinkEmail(String email)
 			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
-		Usuario foundUser = this.findByEmail(email);
+		Usuario foundUser = this.findByEmail(email, false);
 		String linkToken;
 
 		if (foundUser.isAccountVerified()) {
@@ -364,10 +376,10 @@ public class UsuarioService {
 	@Transactional
 	public void acceptUserAccountActivation(String email, String token)
 			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
-		Usuario foundUser = this.findByEmail(email);
+		Usuario foundUser = this.findByEmail(email, false);
 
 		if (foundUser.isAccountVerified()) {
-			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"));
+			throw new AccountVerificationException(this.getMessageTag("exceptions.account.alreadyVerified"), 401);
 		}
 
 		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getAccountVerificationToken());
@@ -375,7 +387,7 @@ public class UsuarioService {
 		boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
 
 		if (isTokenEmpty || !token.equals(storedTokenOpt.get()) || !checkUserToken(storedTokenOpt.get())) {
-			throw new AccountVerificationException(getMessageTag("exceptions.account.wrongToken"));
+			throw new AccountVerificationException(getMessageTag("exceptions.account.wrongToken"), 400);
 		}
 
 		foundUser.setAccountVerified(true);

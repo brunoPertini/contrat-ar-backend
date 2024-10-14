@@ -1,0 +1,14 @@
+package com.contractar.microserviciousuario.repository;
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+
+import com.contractar.microserviciousuario.models.Suscripcion;
+
+@Repository
+public interface SuscripcionRepository extends CrudRepository<Suscripcion, Long> {
+	@SuppressWarnings("unchecked")
+	public Suscripcion save(Suscripcion s);
+	
+	boolean existsByUsuario_Id(Long usuarioId);
+}
