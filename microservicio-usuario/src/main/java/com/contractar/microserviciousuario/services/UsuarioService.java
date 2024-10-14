@@ -254,7 +254,7 @@ public class UsuarioService {
 		if (checkIfInactive && !usuario.isActive())
 			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"));
 		
-		if (!usuario.isAccountVerified())
+		if (checkIfInactive && !usuario.isAccountVerified())
 			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"));
 
 		return usuario;
