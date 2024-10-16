@@ -56,3 +56,11 @@ microservicio-config/target/surefire-reports/com.contractar.microservicioconfig.
 microservicio-config/target/surefire-reports/TEST-com.contractar.microservicioconfig.MicroservicioConfigApplicationTests.xml
 microservicio-mailing/bin/pom.xml
 microservicio-mailing/bin/*
+microservicio-payment/.gitattributes
+microservicio-payment/.gitattributes
+microservicio-payment/.gitattributes
+microservicio-payment/.gitattributes
+microservicio-payment/.gitattributes
+microservicio-payment/bin/.gitattributes
+microservicio-payment/bin/mvnw
+microservicio-payment/bin/pom.xml
