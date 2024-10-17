@@ -2,24 +2,20 @@ package com.contractar.microserviciousuario.models;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanAccesor;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 /**
- * A subscription is a record that proves a provider can use a certain plan. It is considered active
- * while there are successful payments from the createdDate until today. 
+ * A subscription is a record that proves a provider can use a certain plan. It
+ * is considered active while there are successful payments from the createdDate
+ * until today.
  */
 @Entity
 public class Suscripcion implements Serializable, SuscripcionAccesor {
@@ -41,11 +37,7 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 
 	private LocalDate createdDate;
 
-	@OneToMany(mappedBy = "suscripcion", fetch = FetchType.LAZY, orphanRemoval = true)
-	private Set<Payment> payments;
-
 	public Suscripcion() {
-		this.payments = new LinkedHashSet<>();
 	}
 
 	public Suscripcion(boolean isActive, Proveedor usuario, Plan plan, LocalDate createdDate) {
@@ -53,7 +45,6 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 		this.usuario = usuario;
 		this.plan = plan;
 		this.createdDate = createdDate;
-		this.payments = new LinkedHashSet<>();
 	}
 
 	@Override
