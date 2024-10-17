@@ -28,6 +28,16 @@ public class PaymentProvider implements Serializable {
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private IntegrationType integrationType;
+	
+	private boolean isActive;
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
 
 	public Long getId() {
 		return id;
