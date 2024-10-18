@@ -12,6 +12,7 @@ public class AuthBody {
 	@JsonProperty("client_secret_id")
 	private String clientSecretId;
 
+	@JsonProperty("grant_type")
 	private final String grantType = "client_credentials";
 
 	public String getUsername() {

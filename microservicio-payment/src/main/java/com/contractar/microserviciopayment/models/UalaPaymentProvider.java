@@ -2,6 +2,7 @@ package com.contractar.microserviciopayment.models;
 
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 
 @Entity
@@ -9,6 +10,7 @@ public class UalaPaymentProvider extends PaymentProvider implements OutsitePayme
 
 	private static final long serialVersionUID = -1427284459719948223L;
 
+	@Column(columnDefinition = "VARCHAR(2000) DEFAULT ''")
 	private String token;
 
 	@Override
