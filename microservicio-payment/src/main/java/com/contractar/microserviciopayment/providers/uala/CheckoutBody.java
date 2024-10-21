@@ -1,19 +1,18 @@
 package com.contractar.microserviciopayment.providers.uala;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.contractar.microserviciopayment.serialization.UalaCheckoutBodySerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+@JsonSerialize(using = UalaCheckoutBodySerializer.class)
 public class CheckoutBody {
 	private int amount;
 	private String description;
 	private String userName;
 
-	@JsonProperty("callback_fail")
 	private String callbackFail;
 
-	@JsonProperty("callback_success")
 	private String callbackSuccess;
 
-	@JsonProperty("notification_url")
 	private String notificationUrl;
 
 	public int getAmount() {

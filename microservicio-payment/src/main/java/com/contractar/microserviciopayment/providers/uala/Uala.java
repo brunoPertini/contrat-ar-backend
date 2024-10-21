@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,7 +15,7 @@ import com.contractar.microserviciopayment.repository.UalaPaymentProviderReposit
 import com.contractar.microserviciopayment.services.PaymentService.PaymentUrls;
 
 @Component
-public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, UalaPaymentProvider> {
+public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, UalaPaymentProvider, UalaAuthResponse> {
 	private static final String keysPrefix = "provider.uala";
 
 	@Value("${" + keysPrefix + ".username}")
@@ -31,36 +32,41 @@ public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, Uala
 
 	@Value("${" + keysPrefix + ".checkoutUrl}")
 	private String checkoutUrl;
-	
+
 	private RestTemplate httpClient;
-	
+
 	private UalaPaymentProviderRepository ualaPaymentProviderRepository;
-	
-	public Uala(RestTemplate httpClient,  UalaPaymentProviderRepository ualaPaymentProviderRepository) {
+
+	public Uala(RestTemplate httpClient, UalaPaymentProviderRepository ualaPaymentProviderRepository) {
 		this.httpClient = httpClient;
 		this.ualaPaymentProviderRepository = ualaPaymentProviderRepository;
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	@Override
-	public String auth() {
+	public UalaAuthResponse auth() {
 		AuthBody authBody = new AuthBody(username, clientId, clientSecretId);
-		
-		Map<String, Object> ualaAuthResponse =  httpClient.postForObject(authUrl, authBody, Map.class);
-		
-		return (String) ualaAuthResponse.get("access_token");
+
+		return httpClient.postForObject(authUrl, authBody, UalaAuthResponse.class);
+
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public String createCheckout(int amount, String description, PaymentUrls urls, String authToken) {
 		CheckoutBody checkoutBody = this.createCheckoutBody(amount, description, urls.getFailUrl(),
 				urls.getSuccessUrl(), urls.getNotificationsUrl());
-		
+
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", authToken);
+		headers.set("Authorization", "Bearer " + authToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<?> entity = new HttpEntity<>(checkoutBody, headers);
-		
-		return httpClient.postForObject(checkoutUrl, entity, String.class);
+
+		Map<String, Object> response = httpClient.postForObject(checkoutUrl, entity, Map.class);
+		Map<String, String> links = (Map<String, String>) response.get("links");
+		return links.get("checkout_link");
+
 	}
 
 	@Override

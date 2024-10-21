@@ -2,8 +2,8 @@ package com.contractar.microserviciopayment.providers;
 
 import com.contractar.microserviciopayment.services.PaymentService.PaymentUrls;
 
-public interface OutsitePaymentProvider<T, E, M> {
-	public String auth();
+public interface OutsitePaymentProvider<T, E, M, R> {
+	public R auth();
 
 	public String createCheckout(int amount, String description, PaymentUrls urls, String authToken);
 	

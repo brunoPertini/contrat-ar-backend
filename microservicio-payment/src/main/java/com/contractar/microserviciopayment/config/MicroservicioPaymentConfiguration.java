@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.web.client.RestTemplate;
 
-import com.contractar.microserviciopayment.models.OutsitePaymentProvider;
 import com.contractar.microserviciopayment.models.PaymentProvider;
-import com.contractar.microserviciopayment.models.enums.IntegrationType;
 import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
 
 import jakarta.annotation.PostConstruct;
@@ -23,41 +21,32 @@ public class MicroservicioPaymentConfiguration {
 		this.paymentProviderRepository = paymentProviderRepository;
 	}
 
-	private OutsitePaymentProvider createOutsitePaymentProvider() {
+	private PaymentProvider createPaymentProvider() {
 		List<PaymentProvider> paymentProviders = paymentProviderRepository.findByIsActiveTrue();
 		if (paymentProviders.isEmpty()) {
 			throw new IllegalStateException("No active payment provider found");
 		}
 
-		PaymentProvider activePaymentProvider = paymentProviders.get(0);
+		return paymentProviders.get(0);
 
-		if (!activePaymentProvider.getIntegrationType().equals(IntegrationType.OUTSITE)) {
-			throw new IllegalStateException("Active payment provider is not of OUTSITE type");
-		}
-
-		if (activePaymentProvider instanceof OutsitePaymentProvider) {
-			return (OutsitePaymentProvider) activePaymentProvider;
-		} else {
-			throw new IllegalStateException("Active payment provider is not an OutsitePaymentProvider");
-		}
 	}
 
 	@Bean
 	RestTemplate httpClient() {
-		return new RestTemplate();
+		return  new RestTemplate();
 	}
 
 	@Bean
 	@Lazy
-	OutsitePaymentProvider activeOutsitePaymentProvider() {
+	PaymentProvider activeOutsitePaymentProvider() {
 
-		return createOutsitePaymentProvider();
+		return createPaymentProvider();
 
 	}
 
 	@PostConstruct
 	public void postInit() {
-		createOutsitePaymentProvider();
+		createPaymentProvider();
 	}
 
 }

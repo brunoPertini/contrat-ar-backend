@@ -9,15 +9,20 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciopayment.dtos.AuthResponse;
+import com.contractar.microserviciopayment.dtos.AuthTokenResponse;
 import com.contractar.microserviciopayment.models.OutsitePaymentProvider;
 import com.contractar.microserviciopayment.models.PaymentProvider;
 import com.contractar.microserviciopayment.providers.uala.Uala;
+import com.contractar.microserviciopayment.providers.uala.UalaAuthResponse;
 
 @Service
 public class PaymentService {
 
-	private OutsitePaymentProvider activePaymentProvider;
+	private PaymentProvider activePaymentProvider;
 
 	private Uala ualaPaymentProviderService;
 
@@ -28,8 +33,11 @@ public class PaymentService {
 	
 	@Value("${frontend.payment.signup.suscription}")
 	private String frontendReturnUrl;
+	
+	@Value("${microservicio-security.url}")
+	private String serviceSecurityUrl;
 
-	public PaymentService(OutsitePaymentProvider activePaymentProvider, Uala ualaPaymentProviderService,
+	public PaymentService(PaymentProvider activePaymentProvider, Uala ualaPaymentProviderService,
 			RestTemplate httpClient) {
 		this.activePaymentProvider = activePaymentProvider;
 		this.ualaPaymentProviderService = ualaPaymentProviderService;
@@ -48,6 +56,13 @@ public class PaymentService {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
 	}
+	
+	private boolean checkUserToken(String token) {
+		UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
+				.path(SecurityControllerUrls.TOKEN_BASE_PATH).queryParam("token", token);
+
+		return httpClient.getForObject(tokenCheckUrlBuilder.toUriString(), Boolean.class);
+	}
 
 	/**
 	 * 
@@ -57,7 +72,8 @@ public class PaymentService {
 	 *         the pay there
 	 */
 	public String payLastSuscriptionPeriod(Long suscriptionId, int amount) {
-		Optional<String> tokenOpt = Optional.ofNullable(activePaymentProvider.getToken());
+		OutsitePaymentProvider castedPaymentProvider = (OutsitePaymentProvider) activePaymentProvider;
+		Optional<String> tokenOpt = Optional.ofNullable(castedPaymentProvider.getToken());
 		
 		String authToken;
 		
@@ -65,17 +81,17 @@ public class PaymentService {
 				((PaymentProvider) activePaymentProvider).getId());
 
 		if (!tokenOpt.isPresent() || !StringUtils.hasLength(tokenOpt.get())) {
-			authToken = paymentProviderImpl.auth();
-			activePaymentProvider.setToken(authToken);
-			paymentProviderImpl.save(activePaymentProvider);
+			AuthResponse  authResponse = (AuthResponse) paymentProviderImpl.auth();
+			castedPaymentProvider.setToken(authResponse.getAccessToken());
+			paymentProviderImpl.save(castedPaymentProvider);
 		} else {
 			authToken = tokenOpt.get();
 		}
 		
 		
-		String successReturnUrl = frontendReturnUrl.replace("{paymentResult}", "success");
+		String successReturnUrl = frontendReturnUrl.replace("{paymentResult}", "success").replace("{paymentId}", "1");
 		
-		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error");
+		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", "1");
 		
 		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, null);
 		

@@ -91,7 +91,7 @@ public class SecurityController {
 
 	@GetMapping(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN)
 	public ResponseEntity<?> getTokenPayloadFromHeaders(HttpServletRequest request) throws JsonProcessingException {
-		return ResponseEntity.ok(jwtHelper.parsePayloadFromJwt(request.getHeader("authorization")));
+		return ResponseEntity.ok(jwtHelper.parsePayloadFromUnverifiedToken(request.getHeader("authorization")));
 
 	}
 
