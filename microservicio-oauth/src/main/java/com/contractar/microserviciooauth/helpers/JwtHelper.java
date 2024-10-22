@@ -16,6 +16,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -76,6 +77,12 @@ public class JwtHelper {
 		String decodedPayloadString = new String(decodedPayloadBytes);
 
 		return objectMapper.readValue(decodedPayloadString, Object.class);
+	}
+	
+	public Object parsePayloadFromUnverifiedToken(String jwtToken) throws JsonMappingException, JsonProcessingException {
+		 DecodedJWT decodedJWT = JWT.decode(jwtToken.replace("Bearer ", ""));
+	     String decodedPayload = new String(java.util.Base64.getUrlDecoder().decode(decodedJWT.getPayload()));
+	     return new ObjectMapper().readValue(decodedPayload, Object.class);
 	}
 
 	public boolean verifyToken(String token) {
