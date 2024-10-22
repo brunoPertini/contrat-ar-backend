@@ -4,9 +4,11 @@ import com.contractar.microserviciopayment.models.enums.IntegrationType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 @Entity
-public class UalaPaymentProvider extends PaymentProvider implements OutsitePaymentProvider {
+@Table(name = "outsite_payment_provider")
+public class OutsitePaymentProviderImpl extends PaymentProvider implements OutsitePaymentProvider {
 
 	private static final long serialVersionUID = -1427284459719948223L;
 
@@ -23,10 +25,10 @@ public class UalaPaymentProvider extends PaymentProvider implements OutsitePayme
 		this.token = token;
 	}
 
-	public UalaPaymentProvider() {
+	public OutsitePaymentProviderImpl() {
 	}
 
-	public UalaPaymentProvider(String name, IntegrationType integrationType, String token) {
+	public OutsitePaymentProviderImpl(String name, IntegrationType integrationType, String token) {
 		super(name, integrationType);
 		this.token = token;
 	}

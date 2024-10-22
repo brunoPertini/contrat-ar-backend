@@ -9,13 +9,13 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.contractar.microserviciopayment.models.UalaPaymentProvider;
+import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.providers.OutsitePaymentProvider;
-import com.contractar.microserviciopayment.repository.UalaPaymentProviderRepository;
+import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
 import com.contractar.microserviciopayment.services.PaymentService.PaymentUrls;
 
 @Component
-public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, UalaPaymentProvider, UalaAuthResponse> {
+public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, OutsitePaymentProviderImpl, UalaAuthResponse> {
 	private static final String keysPrefix = "provider.uala";
 
 	@Value("${" + keysPrefix + ".username}")
@@ -35,9 +35,9 @@ public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, Uala
 
 	private RestTemplate httpClient;
 
-	private UalaPaymentProviderRepository ualaPaymentProviderRepository;
+	private OutsitePaymentProviderRepository ualaPaymentProviderRepository;
 
-	public Uala(RestTemplate httpClient, UalaPaymentProviderRepository ualaPaymentProviderRepository) {
+	public Uala(RestTemplate httpClient, OutsitePaymentProviderRepository ualaPaymentProviderRepository) {
 		this.httpClient = httpClient;
 		this.ualaPaymentProviderRepository = ualaPaymentProviderRepository;
 	}
@@ -70,7 +70,7 @@ public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, Uala
 	}
 
 	@Override
-	public UalaPaymentProvider save(UalaPaymentProvider entity) {
+	public OutsitePaymentProviderImpl save(OutsitePaymentProviderImpl entity) {
 		return ualaPaymentProviderRepository.save(entity);
 	}
 

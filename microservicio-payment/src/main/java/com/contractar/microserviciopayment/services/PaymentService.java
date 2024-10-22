@@ -1,11 +1,17 @@
 package com.contractar.microserviciopayment.services;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -13,16 +19,19 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
-import com.contractar.microserviciopayment.dtos.AuthTokenResponse;
-import com.contractar.microserviciopayment.models.OutsitePaymentProvider;
+import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.PaymentProvider;
+import com.contractar.microserviciopayment.models.enums.IntegrationType;
 import com.contractar.microserviciopayment.providers.uala.Uala;
-import com.contractar.microserviciopayment.providers.uala.UalaAuthResponse;
+import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
+import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
 
 @Service
 public class PaymentService {
-
-	private PaymentProvider activePaymentProvider;
+	
+	private PaymentProviderRepository paymentProviderRepository;
+	
+	private OutsitePaymentProviderRepository outsitePaymentProviderRepository;
 
 	private Uala ualaPaymentProviderService;
 
@@ -30,20 +39,24 @@ public class PaymentService {
 
 	@Value("${microservicio-config.url}")
 	private String configServiceUrl;
-	
+
 	@Value("${frontend.payment.signup.suscription}")
 	private String frontendReturnUrl;
-	
+
 	@Value("${microservicio-security.url}")
 	private String serviceSecurityUrl;
 
-	public PaymentService(PaymentProvider activePaymentProvider, Uala ualaPaymentProviderService,
+	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository, 
+			PaymentProviderRepository paymentProviderRepository, 
+			Uala ualaPaymentProviderService,
 			RestTemplate httpClient) {
-		this.activePaymentProvider = activePaymentProvider;
 		this.ualaPaymentProviderService = ualaPaymentProviderService;
 		this.httpClient = httpClient;
+		this.paymentProviderRepository = paymentProviderRepository;
+		this.outsitePaymentProviderRepository = outsitePaymentProviderRepository;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private com.contractar.microserviciopayment.providers.OutsitePaymentProvider createOutsitePaymentProvider(
 			Long providerId) {
 		Map<Long, com.contractar.microserviciopayment.providers.OutsitePaymentProvider> creators = Map.of(1L,
@@ -56,12 +69,52 @@ public class PaymentService {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
 	}
-	
-	private boolean checkUserToken(String token) {
-		UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
-				.path(SecurityControllerUrls.TOKEN_BASE_PATH).queryParam("token", token);
 
-		return httpClient.getForObject(tokenCheckUrlBuilder.toUriString(), Boolean.class);
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private boolean checkUserToken(String token) {
+		 HttpHeaders headers = new HttpHeaders();
+	        headers.set("Authorization", "Bearer " + token); 
+	        
+		UriComponentsBuilder tokenCheckUrlBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
+				.path(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN);
+		
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+		
+		ResponseEntity<Map> response = httpClient.exchange(tokenCheckUrlBuilder.toUriString(),
+				HttpMethod.GET,
+				entity,
+				Map.class);
+
+		Map<String, Object> payload = response.getBody();
+
+		int expiresField = (int) payload.get("exp");
+
+		LocalDateTime dateTimeFromUnix = Instant.ofEpochSecond(expiresField).atZone(ZoneId.systemDefault())
+				.toLocalDateTime();
+
+		LocalDate today = LocalDate.now();
+
+		LocalDate dateFromUnix = dateTimeFromUnix.toLocalDate();
+
+		return !dateFromUnix.isBefore(today);
+
+	}
+	
+	private PaymentProvider getActivePaymentProvider() {
+		List<PaymentProvider> paymentProviders = paymentProviderRepository.findByIsActiveTrue();
+		if (paymentProviders.isEmpty()) {
+			return null;
+		}
+		
+		IntegrationType providerIntegration = paymentProviders.get(0).getIntegrationType();
+
+		if (providerIntegration.equals(IntegrationType.OUTSITE)) {
+			return outsitePaymentProviderRepository.findById(paymentProviders.get(0).getId())
+					.map(p -> p)
+					.orElse(null);
+		}
+		
+		return null;
 	}
 
 	/**
@@ -72,22 +125,17 @@ public class PaymentService {
 	 *         the pay there
 	 */
 	public String payLastSuscriptionPeriod(Long suscriptionId, int amount) {
-		OutsitePaymentProvider castedPaymentProvider = (OutsitePaymentProvider) activePaymentProvider;
-		Optional<String> tokenOpt = Optional.ofNullable(castedPaymentProvider.getToken());
+		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.getActivePaymentProvider();
+		String authToken = activePaymentProvider.getToken();
 		
-		String authToken;
-		
-		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = createOutsitePaymentProvider(
-				((PaymentProvider) activePaymentProvider).getId());
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = createOutsitePaymentProvider(activePaymentProvider.getId());
 
-		if (!tokenOpt.isPresent() || !StringUtils.hasLength(tokenOpt.get())) {
+		if (!StringUtils.hasLength(authToken) || !checkUserToken(authToken)) {
 			AuthResponse  authResponse = (AuthResponse) paymentProviderImpl.auth();
-			castedPaymentProvider.setToken(authResponse.getAccessToken());
-			paymentProviderImpl.save(castedPaymentProvider);
-		} else {
-			authToken = tokenOpt.get();
-		}
-		
+			authToken = authResponse.getAccessToken();
+			activePaymentProvider.setToken(authToken);
+			paymentProviderImpl.save(activePaymentProvider);
+		} 
 		
 		String successReturnUrl = frontendReturnUrl.replace("{paymentResult}", "success").replace("{paymentId}", "1");
 		
