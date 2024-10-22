@@ -15,7 +15,7 @@ import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepo
 import com.contractar.microserviciopayment.services.PaymentService.PaymentUrls;
 
 @Component
-public class Uala implements OutsitePaymentProvider<AuthBody, CheckoutBody, OutsitePaymentProviderImpl, UalaAuthResponse> {
+public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePaymentProviderImpl, UalaAuthResponse> {
 	private static final String keysPrefix = "provider.uala";
 
 	@Value("${" + keysPrefix + ".username}")

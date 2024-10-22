@@ -101,6 +101,8 @@ public class PaymentService {
 	}
 	
 	private PaymentProvider getActivePaymentProvider() {
+		// Only one payment provider can be active
+		// TODO: raise exceptions
 		List<PaymentProvider> paymentProviders = paymentProviderRepository.findByIsActiveTrue();
 		if (paymentProviders.isEmpty()) {
 			return null;
@@ -125,6 +127,8 @@ public class PaymentService {
 	 *         the pay there
 	 */
 	public String payLastSuscriptionPeriod(Long suscriptionId, int amount) {
+		// TODO: receive by param the integration type. Depending on that, fetch the proper payment provider configuration and use the required
+		// provider services/entities, etc.
 		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.getActivePaymentProvider();
 		String authToken = activePaymentProvider.getToken();
 		

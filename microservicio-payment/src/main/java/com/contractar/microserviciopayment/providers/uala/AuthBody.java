@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class AuthBody {
 
 	private String username;
-	
+
 	@JsonProperty("client_id")
 	private String clientId;
-	
+
 	@JsonProperty("client_secret_id")
 	private String clientSecretId;
 
@@ -49,6 +49,7 @@ public class AuthBody {
 		this.clientSecretId = clientSecretId;
 	}
 
-	public AuthBody() {}
+	public AuthBody() {
+	}
 
 }

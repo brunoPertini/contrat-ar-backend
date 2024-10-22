@@ -7,10 +7,9 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class MicroservicioPaymentConfiguration {
 
-
 	@Bean
 	RestTemplate httpClient() {
-		return  new RestTemplate();
+		return new RestTemplate();
 	}
 
 }
