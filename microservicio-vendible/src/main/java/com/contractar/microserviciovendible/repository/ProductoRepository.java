@@ -27,10 +27,10 @@ public interface ProductoRepository extends CrudRepository<Producto, Long>{
 			+ "INNER JOIN proveedor_vendible pv ON (v.vendible_id=pv.vendible_id)"
 			+ "INNER JOIN vendible_category vc ON (pv.category_id=vc.id)"
 			+ "WHERE ((v.vendible_type = 'producto') "
-			+ "AND (v.nombre LIKE %:nombre%)  "
+			+ "AND (v.nombre LIKE CONCAT('%', :searchAttribute, '%'))  "
 			+ "AND (vc.id=:categoryId) "
 			+ "AND (:userRole='ADMIN' OR pv.state = 'ACTIVE'))"
 			+ "ORDER BY v.nombre ASC", nativeQuery = true)
-	public List<Producto> findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(@Param("nombre") String nombre,
+	public List<Producto> findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(@Param("searchAttribute") String nombre,
 			@Param("categoryId") Long categoryId, @Param("userRole") String userRole);
 }
