@@ -39,6 +39,7 @@ public class UsuarioDTO {
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private RoleAccesor role;
 	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private String creationToken;
 
 	public UsuarioDTO() {
