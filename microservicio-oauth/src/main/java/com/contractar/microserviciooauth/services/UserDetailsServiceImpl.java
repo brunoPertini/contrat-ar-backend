@@ -12,8 +12,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.IndexPagesRoutes;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
@@ -36,19 +38,24 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String email) {		
-		Map<String, Object> parameters = Map.of("email", email, "checkIfInactive", "true");
+	public UserDetails loadUserByUsername(String email) {				
+		UriComponentsBuilder usersByEmailUrlBuilder = UriComponentsBuilder.fromHttpUrl(usersPath)
+				.queryParam("email", email)
+				.queryParam("checkIfInactive", "true");
 
-		UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
+		UsuarioOauthDTO user = httpClient.getForObject(usersByEmailUrlBuilder.toUriString(), UsuarioOauthDTO.class);
 
 		return user;
 
 	}
 	
-	public UserDetails loadUserByEmail(String email, boolean checkIfInactive) {		
-		Map<String, Object> parameters = Map.of("email", email, "checkIfInactive", String.valueOf(checkIfInactive));
+	public UserDetails loadUserByEmail(String email, boolean checkIfInactive) {				
+		UriComponentsBuilder usersByEmailUrlBuilder = UriComponentsBuilder.fromHttpUrl(usersPath)
+				.queryParam("email", email)
+				.queryParam("checkIfInactive", String.valueOf(checkIfInactive))
+				.encode();
 
-		UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
+		UsuarioOauthDTO user = httpClient.getForObject(usersByEmailUrlBuilder.toUriString(), UsuarioOauthDTO.class);
 
 		return user;
 
