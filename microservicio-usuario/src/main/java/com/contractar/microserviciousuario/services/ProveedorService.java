@@ -84,6 +84,8 @@ public class ProveedorService {
 
 		proveedor.setSuscripcion(suscripcion);
 		proveedorRepository.save(proveedor);
+		
+		// TODO: no setearla by default como activa. Si es un plan pago, setearla inactiva para que despues si se completa el primer pago se actualize como activa.
 
 		return new SuscripcionDTO(suscripcion.getId(), true, proveedorId, planId, suscripcion.getCreatedDate(), fetchDatePattern());
 
