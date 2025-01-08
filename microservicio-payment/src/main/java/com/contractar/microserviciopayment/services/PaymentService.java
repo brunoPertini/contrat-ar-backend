@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -19,12 +20,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
+import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
+import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
 import com.contractar.microserviciopayment.providers.uala.Uala;
 import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
+import com.contractar.microserviciopayment.repository.PaymentRepository;
 
 @Service
 public class PaymentService {
@@ -32,6 +36,8 @@ public class PaymentService {
 	private PaymentProviderRepository paymentProviderRepository;
 	
 	private OutsitePaymentProviderRepository outsitePaymentProviderRepository;
+	
+	private PaymentRepository paymentRepository;
 
 	private Uala ualaPaymentProviderService;
 
@@ -47,13 +53,15 @@ public class PaymentService {
 	private String serviceSecurityUrl;
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository, 
-			PaymentProviderRepository paymentProviderRepository, 
+			PaymentProviderRepository paymentProviderRepository,
+			PaymentRepository paymentRepository,
 			Uala ualaPaymentProviderService,
 			RestTemplate httpClient) {
 		this.ualaPaymentProviderService = ualaPaymentProviderService;
 		this.httpClient = httpClient;
 		this.paymentProviderRepository = paymentProviderRepository;
 		this.outsitePaymentProviderRepository = outsitePaymentProviderRepository;
+		this.paymentRepository = paymentRepository;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -117,6 +125,33 @@ public class PaymentService {
 		}
 		
 		return null;
+	}
+	
+	public Payment createPayment(PaymentCreateDTO dto) {
+	    Optional<PaymentProvider> optionalProvider = paymentProviderRepository.findById(dto.getProviderId());
+
+	    if (optionalProvider.isEmpty()) {
+	        throw new RuntimeException("Provider not found");
+	    }
+
+	    PaymentProvider provider = optionalProvider.get();
+	    if (!provider.getIntegrationType().equals(IntegrationType.OUTSITE)) {
+	        throw new RuntimeException("Invalid integration type");
+	    }
+
+	    com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = 
+	        this.createOutsitePaymentProvider(provider.getId());
+
+	    Payment newPayment = new Payment(dto.getExternalId(), 
+	            dto.getPaymentPeriod(), 
+	            LocalDate.now(),
+	            dto.getAmount(),
+	            dto.getCurrency(), 
+	            provider,
+	            null);
+
+	    paymentProviderImpl.setPaymentAsPending(newPayment);
+	    return paymentRepository.save(newPayment);
 	}
 
 	/**

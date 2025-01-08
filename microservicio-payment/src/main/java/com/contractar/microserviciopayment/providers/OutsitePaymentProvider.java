@@ -1,5 +1,6 @@
 package com.contractar.microserviciopayment.providers;
 
+import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.services.PaymentService.PaymentUrls;
 
 /**
@@ -18,4 +19,6 @@ public interface OutsitePaymentProvider<E, M, R> {
 			String notificationUrl);
 	
 	public  M save(M entity);
+	
+	public void setPaymentAsPending(Payment p);
 }

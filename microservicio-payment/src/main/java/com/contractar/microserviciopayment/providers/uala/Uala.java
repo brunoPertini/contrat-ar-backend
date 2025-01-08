@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
+import com.contractar.microserviciopayment.models.Payment;
+import com.contractar.microserviciopayment.models.UalaPaymentState;
+import com.contractar.microserviciopayment.models.enums.UalaPaymentStateValue;
 import com.contractar.microserviciopayment.providers.OutsitePaymentProvider;
 import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
+import com.contractar.microserviciopayment.repository.UalaPaymentStateRepository;
 import com.contractar.microserviciopayment.services.PaymentService.PaymentUrls;
 
 @Component
@@ -36,10 +40,13 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	private RestTemplate httpClient;
 
 	private OutsitePaymentProviderRepository ualaPaymentProviderRepository;
+	
+	private UalaPaymentStateRepository ualaPaymentStateRepository;
 
-	public Uala(RestTemplate httpClient, OutsitePaymentProviderRepository ualaPaymentProviderRepository) {
+	public Uala(RestTemplate httpClient, OutsitePaymentProviderRepository ualaPaymentProviderRepository, UalaPaymentStateRepository ualaPaymentStateRepository) {
 		this.httpClient = httpClient;
 		this.ualaPaymentProviderRepository = ualaPaymentProviderRepository;
+		this.ualaPaymentStateRepository = ualaPaymentStateRepository;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -78,6 +85,12 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	public CheckoutBody createCheckoutBody(int amount, String description, String callbackFail, String callbackSuccess,
 			String notificationUrl) {
 		return new CheckoutBody(amount, description, username, callbackFail, callbackSuccess, null);
+	}
+
+	@Override
+	public void setPaymentAsPending(Payment p) {
+		UalaPaymentState pendingState = ualaPaymentStateRepository.findByState(UalaPaymentStateValue.PENDING).get();
+		p.setState(pendingState);
 	}
 
 }

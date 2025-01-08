@@ -1,11 +1,13 @@
 package com.contractar.microserviciopayment.controllers;
 
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.dtos.PaymentDTO;
 import com.contractar.microserviciopayment.services.PaymentService;
 
@@ -24,6 +26,11 @@ public class PaymentController {
 	public ResponseEntity<?> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable("suscriptionId") Long suscriptionId) {
 		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, body.getAmount());
 		return ResponseEntity.ok(checkoutUrl);
+	}
+	
+	@PostMapping("/payment")
+	public ResponseEntity<?> createPayment(@RequestBody @Valid PaymentCreateDTO body) {
+		return new ResponseEntity<>(paymentService.createPayment(body), HttpStatusCode.valueOf(200));
 	}
 
 }

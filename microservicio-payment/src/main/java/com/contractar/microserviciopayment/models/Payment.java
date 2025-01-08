@@ -2,7 +2,13 @@ package com.contractar.microserviciopayment.models;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Currency;
+
+import com.contractar.microserviciocommons.serialization.YearMonthDeserializer;
+import com.contractar.microserviciocommons.serialization.YearMonthSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,7 +32,9 @@ public class Payment implements Serializable {
 	private Long externalId;
 
 	@NotNull
-	private LocalDate paymentPeriod;
+    @JsonDeserialize(using = YearMonthDeserializer.class)
+    @JsonSerialize(using = YearMonthSerializer.class)
+	private YearMonth paymentPeriod;
 
 	@NotNull
 	private LocalDate date;
@@ -48,7 +56,7 @@ public class Payment implements Serializable {
 	public Payment() {
 	}
 
-	public Payment(Long externalId, LocalDate paymentPeriod, LocalDate date, int amount, Currency currency,
+	public Payment(Long externalId, YearMonth paymentPeriod, LocalDate date, int amount, Currency currency,
 			PaymentProvider paymentProvider, PaymentState state) {
 		this.externalId = externalId;
 		this.paymentPeriod = paymentPeriod;
@@ -83,11 +91,11 @@ public class Payment implements Serializable {
 		this.externalId = externalId;
 	}
 
-	public LocalDate getPaymentPeriod() {
+	public YearMonth getPaymentPeriod() {
 		return paymentPeriod;
 	}
 
-	public void setPaymentPeriod(LocalDate paymentPeriod) {
+	public void setPaymentPeriod(YearMonth paymentPeriod) {
 		this.paymentPeriod = paymentPeriod;
 	}
 

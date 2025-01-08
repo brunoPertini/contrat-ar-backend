@@ -1,6 +1,7 @@
 package com.contractar.microserviciopayment.models;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Currency;
 
 import com.contractar.microserviciousuario.models.Suscripcion;
@@ -29,7 +30,7 @@ public class SuscriptionPayment extends Payment {
 	public SuscriptionPayment() {
 	}
 
-	public SuscriptionPayment(Long externalId, LocalDate paymentPeriod, LocalDate date, int amount, Currency currency,
+	public SuscriptionPayment(Long externalId, YearMonth paymentPeriod, LocalDate date, int amount, Currency currency,
 			PaymentProvider paymentProvider, PaymentState state) {
 		super(externalId, paymentPeriod, date, amount, currency, paymentProvider, state);
 	}
