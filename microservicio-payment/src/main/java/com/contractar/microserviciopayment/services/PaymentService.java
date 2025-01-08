@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -24,11 +25,13 @@ import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
+import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
 import com.contractar.microserviciopayment.providers.uala.Uala;
 import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentRepository;
+import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
 
 @Service
 public class PaymentService {
@@ -38,6 +41,8 @@ public class PaymentService {
 	private OutsitePaymentProviderRepository outsitePaymentProviderRepository;
 	
 	private PaymentRepository paymentRepository;
+	
+	private SuscriptionPaymentRepository suscriptionPaymentRepository;
 
 	private Uala ualaPaymentProviderService;
 
@@ -56,6 +61,7 @@ public class PaymentService {
 			PaymentProviderRepository paymentProviderRepository,
 			PaymentRepository paymentRepository,
 			Uala ualaPaymentProviderService,
+			SuscriptionPaymentRepository suscriptionPaymentRepository,
 			RestTemplate httpClient) {
 		this.ualaPaymentProviderService = ualaPaymentProviderService;
 		this.httpClient = httpClient;
@@ -127,6 +133,12 @@ public class PaymentService {
 		return null;
 	}
 	
+	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
+		 return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId)
+			        .map(payment -> payment)
+			        .orElseThrow(() -> new NoSuchElementException("No payment found for subscription ID: " + suscriptionId));
+	}
+	
 	public Payment createPayment(PaymentCreateDTO dto) {
 	    Optional<PaymentProvider> optionalProvider = paymentProviderRepository.findById(dto.getProviderId());
 
@@ -181,6 +193,10 @@ public class PaymentService {
 		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", "1");
 		
 		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, null);
+		
+		PaymentCreateDTO paymentCreateDTO = new PaymentCreateDTO(null, null, amount, null, suscriptionId)
+		
+		this.createPayment(null)
 		
 		return paymentProviderImpl.createCheckout(amount, getMessageTag("payment.suscription.description"), urls, authToken);
 

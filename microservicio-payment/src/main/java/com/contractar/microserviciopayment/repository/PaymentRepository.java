@@ -8,5 +8,5 @@ import com.contractar.microserviciopayment.models.Payment;
 @Repository
 public interface PaymentRepository extends CrudRepository<Payment, Long> {
 	@SuppressWarnings("unchecked")
-	public Payment save(Payment p);
+	public Payment save(Payment p);	
 }

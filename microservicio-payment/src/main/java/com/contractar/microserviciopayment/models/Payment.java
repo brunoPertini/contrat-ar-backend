@@ -7,9 +7,12 @@ import java.util.Currency;
 
 import com.contractar.microserviciocommons.serialization.YearMonthDeserializer;
 import com.contractar.microserviciocommons.serialization.YearMonthSerializer;
+import com.contractar.microserviciopayment.config.YearMonthDateAttributeConverter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,6 +37,8 @@ public class Payment implements Serializable {
 	@NotNull
     @JsonDeserialize(using = YearMonthDeserializer.class)
     @JsonSerialize(using = YearMonthSerializer.class)
+	@Convert(converter = YearMonthDateAttributeConverter.class)
+	@Column(nullable = false)
 	private YearMonth paymentPeriod;
 
 	@NotNull
