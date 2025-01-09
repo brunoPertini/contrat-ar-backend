@@ -26,6 +26,7 @@ import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
@@ -58,18 +59,31 @@ public class ProveedorControler {
 	public ResponseEntity<?> getAllPlans() {
 		return new ResponseEntity<>(proveedorService.findAll(), HttpStatus.OK);
 	}
+	
+	@GetMapping(ProveedorControllerUrls.GET_SUSCRIPCION)
+	public ResponseEntity<?> getSuscripcionById(@PathVariable Long suscriptionId) throws SuscriptionNotFound {
+		
+		Suscripcion suscripcion = this.proveedorService.findSuscripcionById(suscriptionId);
+		
+		return  new ResponseEntity<>(new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
+				suscripcion.getUsuario().getId(),
+				suscripcion.getPlan().getId(),
+				suscripcion.getCreatedDate(),
+				suscripcion.getPlan().getPrice()), HttpStatus.OK);
+	}
 
 	@GetMapping(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION)
-	public ResponseEntity<SuscripcionDTO> getSuscripcion(@PathVariable("proveedorId") Long proveedorId) throws UserNotFoundException {
+	public ResponseEntity<SuscripcionDTO> getSuscripcion(@PathVariable Long proveedorId) throws UserNotFoundException {
 		Suscripcion suscripcion = (Suscripcion) proveedorService.findById(proveedorId).getSuscripcion();
 
 		return  new ResponseEntity<>(new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
 				suscripcion.getUsuario().getId(),
-				suscripcion.getPlan().getId(), suscripcion.getCreatedDate()), HttpStatus.OK);
+				suscripcion.getPlan().getId(), suscripcion.getCreatedDate(),
+				suscripcion.getPlan().getPrice()), HttpStatus.OK);
 	}
 	
 	@PostMapping(ProveedorControllerUrls.POST_PROVEEDOR_SUSCRIPCION)
-	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable("proveedorId") Long proveedorId, @PathVariable("planId") Long planId) throws UserNotFoundException,
+	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable Long proveedorId, @PathVariable("planId") Long planId) throws UserNotFoundException,
 	CantCreateException {
 		return new ResponseEntity<SuscripcionDTO>(proveedorService.createSuscripcion(proveedorId, planId), HttpStatus.CREATED);
 	}

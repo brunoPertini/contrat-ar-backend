@@ -3,7 +3,9 @@ package com.contractar.microserviciopayment.services;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -16,10 +18,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
@@ -47,6 +53,8 @@ public class PaymentService {
 	private Uala ualaPaymentProviderService;
 
 	private RestTemplate httpClient;
+	
+	private final PaymentProvider currentProvider;
 
 	@Value("${microservicio-config.url}")
 	private String configServiceUrl;
@@ -56,6 +64,9 @@ public class PaymentService {
 
 	@Value("${microservicio-security.url}")
 	private String serviceSecurityUrl;
+	
+	@Value("${microservicio-usuario.url}")
+	private String microservicioUsuarioUrl;
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository, 
 			PaymentProviderRepository paymentProviderRepository,
@@ -67,7 +78,9 @@ public class PaymentService {
 		this.httpClient = httpClient;
 		this.paymentProviderRepository = paymentProviderRepository;
 		this.outsitePaymentProviderRepository = outsitePaymentProviderRepository;
+		this.suscriptionPaymentRepository = suscriptionPaymentRepository;
 		this.paymentRepository = paymentRepository;
+		this.currentProvider = this.getActivePaymentProvider();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -133,33 +146,35 @@ public class PaymentService {
 		return null;
 	}
 	
+	private SuscripcionDTO getSuscription(Long suscripcionId) throws SuscriptionNotFound {
+		String url = microservicioUsuarioUrl + ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
+		return httpClient.getForObject(url, SuscripcionDTO.class);
+	}
+	
 	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
 		 return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId)
 			        .map(payment -> payment)
-			        .orElseThrow(() -> new NoSuchElementException("No payment found for subscription ID: " + suscriptionId));
+			        .orElse(null);
 	}
 	
 	public Payment createPayment(PaymentCreateDTO dto) {
-	    Optional<PaymentProvider> optionalProvider = paymentProviderRepository.findById(dto.getProviderId());
-
-	    if (optionalProvider.isEmpty()) {
-	        throw new RuntimeException("Provider not found");
-	    }
-
-	    PaymentProvider provider = optionalProvider.get();
-	    if (!provider.getIntegrationType().equals(IntegrationType.OUTSITE)) {
+		if (this.currentProvider == null) {
+			throw new RuntimeException("Payment provider not set");
+		}
+		
+	    if (!currentProvider.getIntegrationType().equals(IntegrationType.OUTSITE)) {
 	        throw new RuntimeException("Invalid integration type");
 	    }
 
 	    com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = 
-	        this.createOutsitePaymentProvider(provider.getId());
+	        this.createOutsitePaymentProvider(currentProvider.getId());
 
 	    Payment newPayment = new Payment(dto.getExternalId(), 
 	            dto.getPaymentPeriod(), 
 	            LocalDate.now(),
 	            dto.getAmount(),
 	            dto.getCurrency(), 
-	            provider,
+	            currentProvider,
 	            null);
 
 	    paymentProviderImpl.setPaymentAsPending(newPayment);
@@ -172,11 +187,15 @@ public class PaymentService {
 	 * @param amount
 	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
+	 * @throws SuscriptionNotFound 
 	 */
-	public String payLastSuscriptionPeriod(Long suscriptionId, int amount) {
+	public String payLastSuscriptionPeriod(Long suscriptionId) throws SuscriptionNotFound {
+		SuscripcionDTO foundSuscription = Optional.ofNullable(this.getSuscription(suscriptionId)).map(s -> s)
+				.orElseThrow(() -> new SuscriptionNotFound(getMessageTag("exception.suscription.notFound")));
+
 		// TODO: receive by param the integration type. Depending on that, fetch the proper payment provider configuration and use the required
 		// provider services/entities, etc.
-		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.getActivePaymentProvider();
+		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.currentProvider;
 		String authToken = activePaymentProvider.getToken();
 		
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = createOutsitePaymentProvider(activePaymentProvider.getId());
@@ -188,17 +207,30 @@ public class PaymentService {
 			paymentProviderImpl.save(activePaymentProvider);
 		} 
 		
-		String successReturnUrl = frontendReturnUrl.replace("{paymentResult}", "success").replace("{paymentId}", "1");
 		
-		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", "1");
+		YearMonth lastPeriodPayment = Optional.ofNullable(this.findLastSuscriptionPayment(suscriptionId))
+				.map(payment -> payment.getPaymentPeriod())
+				.orElse(null);
+		
+		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
+		
+		PaymentCreateDTO paymentCreateDTO = new PaymentCreateDTO(null,
+				paymentPeriod,
+				foundSuscription.getPlanPrice(),
+				Currency.getInstance("ARS"),
+				suscriptionId);
+		
+		Payment createdPayment = this.createPayment(paymentCreateDTO);
+		
+		String  createdPaymentId = createdPayment.getId().toString();
+		
+		String successReturnUrl = frontendReturnUrl.replace("{paymentResult}", "success").replace("{paymentId}", createdPaymentId);
+		
+		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", createdPaymentId);
 		
 		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, null);
 		
-		PaymentCreateDTO paymentCreateDTO = new PaymentCreateDTO(null, null, amount, null, suscriptionId)
-		
-		this.createPayment(null)
-		
-		return paymentProviderImpl.createCheckout(amount, getMessageTag("payment.suscription.description"), urls, authToken);
+		return paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(), getMessageTag("payment.suscription.description"), urls, authToken);
 
 	}
 
