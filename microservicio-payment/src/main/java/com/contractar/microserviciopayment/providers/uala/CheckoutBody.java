@@ -14,6 +14,16 @@ public class CheckoutBody {
 	private String callbackSuccess;
 
 	private String notificationUrl;
+	
+	private String externalReference;
+
+	public String getExternalReference() {
+		return externalReference;
+	}
+
+	public void setExternalReference(String externalReference) {
+		this.externalReference = externalReference;
+	}
 
 	public int getAmount() {
 		return amount;
@@ -64,13 +74,14 @@ public class CheckoutBody {
 	}
 
 	public CheckoutBody(int amount, String description, String userName, String callbackFail, String callbackSuccess,
-			String notificationUrl) {
+			String notificationUrl, String externalReference) {
 		this.amount = amount;
 		this.description = description;
 		this.userName = userName;
 		this.callbackFail = callbackFail;
 		this.callbackSuccess = callbackSuccess;
 		this.notificationUrl = notificationUrl;
+		this.externalReference = externalReference;
 	}
 
 	public CheckoutBody() {

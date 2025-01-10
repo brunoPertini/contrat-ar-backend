@@ -33,7 +33,9 @@ import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
+import com.contractar.microserviciopayment.providers.PaymentUrls;
 import com.contractar.microserviciopayment.providers.uala.Uala;
+import com.contractar.microserviciopayment.providers.uala.WebhookBody;
 import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentRepository;
@@ -228,49 +230,20 @@ public class PaymentService {
 		
 		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", createdPaymentId);
 		
+		String notificationUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", createdPaymentId);
+		
 		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, null);
 		
-		return paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(), getMessageTag("payment.suscription.description"), urls, authToken);
+		return paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
+				getMessageTag("payment.suscription.description"),
+				createdPayment.getId(),
+				urls, authToken);
 
 	}
-
-	public class PaymentUrls {
-		private String successUrl;
-		private String failUrl;
-		private String notificationsUrl;
-
-		public PaymentUrls() {
-		}
-
-		public PaymentUrls(String successUrl, String failUrl, String notificationsUrl) {
-			this.successUrl = successUrl;
-			this.failUrl = failUrl;
-			this.notificationsUrl = notificationsUrl;
-		}
-
-		public String getSuccessUrl() {
-			return successUrl;
-		}
-
-		public void setSuccessUrl(String successUrl) {
-			this.successUrl = successUrl;
-		}
-
-		public String getFailUrl() {
-			return failUrl;
-		}
-
-		public void setFailUrl(String failUrl) {
-			this.failUrl = failUrl;
-		}
-
-		public String getNotificationsUrl() {
-			return notificationsUrl;
-		}
-
-		public void setNotificationsUrl(String notificationsUrl) {
-			this.notificationsUrl = notificationsUrl;
-		}
+	
+	public void handleWebhookNotification(WebhookBody body) {
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = createOutsitePaymentProvider(currentProvider.getId());
+		paymentProviderImpl.handleWebhookNotification(body);
 	}
 
 }

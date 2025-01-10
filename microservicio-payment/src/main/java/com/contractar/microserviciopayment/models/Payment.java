@@ -32,7 +32,7 @@ public class Payment implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private Long externalId;
+	private String externalId;
 
 	@NotNull
     @JsonDeserialize(using = YearMonthDeserializer.class)
@@ -61,7 +61,7 @@ public class Payment implements Serializable {
 	public Payment() {
 	}
 
-	public Payment(Long externalId, YearMonth paymentPeriod, LocalDate date, int amount, Currency currency,
+	public Payment(String externalId, YearMonth paymentPeriod, LocalDate date, int amount, Currency currency,
 			PaymentProvider paymentProvider, PaymentState state) {
 		this.externalId = externalId;
 		this.paymentPeriod = paymentPeriod;
@@ -88,11 +88,11 @@ public class Payment implements Serializable {
 		this.id = id;
 	}
 
-	public Long getExternalId() {
+	public String getExternalId() {
 		return externalId;
 	}
 
-	public void setExternalId(Long externalId) {
+	public void setExternalId(String externalId) {
 		this.externalId = externalId;
 	}
 

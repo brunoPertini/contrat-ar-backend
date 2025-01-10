@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.validation.constraints.NotNull;
 
 public class PaymentCreateDTO {
-	private Long externalId;
+	private String externalId;
 	
     @JsonDeserialize(using = YearMonthDeserializer.class)
     @JsonSerialize(using = YearMonthSerializer.class)
@@ -26,7 +26,7 @@ public class PaymentCreateDTO {
 	
 	public PaymentCreateDTO() {}
 
-	public PaymentCreateDTO(Long externalId, @NotNull YearMonth paymentPeriod, int amount, Currency currency,
+	public PaymentCreateDTO(String externalId, @NotNull YearMonth paymentPeriod, int amount, Currency currency,
 			Long providerId) {
 		this.externalId = externalId;
 		this.paymentPeriod = paymentPeriod;
@@ -35,11 +35,11 @@ public class PaymentCreateDTO {
 		this.providerId = providerId;
 	}
 
-	public Long getExternalId() {
+	public String getExternalId() {
 		return externalId;
 	}
 
-	public void setExternalId(Long externalId) {
+	public void setExternalId(String externalId) {
 		this.externalId = externalId;
 	}
 
