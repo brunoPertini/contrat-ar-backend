@@ -63,6 +63,9 @@ public class PaymentService {
 
 	@Value("${frontend.payment.signup.suscription}")
 	private String frontendReturnUrl;
+	
+	@Value("${provider.uala.webhookUrl}")
+	private String webhookUrl;
 
 	@Value("${microservicio-security.url}")
 	private String serviceSecurityUrl;
@@ -230,9 +233,9 @@ public class PaymentService {
 		
 		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", createdPaymentId);
 		
-		String notificationUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}", createdPaymentId);
+		String notificationUrl = webhookUrl.replace("{paymentResult}", "error").replace("{paymentId}", createdPaymentId);
 		
-		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, null);
+		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, notificationUrl);
 		
 		return paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
 				getMessageTag("payment.suscription.description"),

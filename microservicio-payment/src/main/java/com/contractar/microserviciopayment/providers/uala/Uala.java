@@ -24,7 +24,7 @@ import jakarta.transaction.Transactional;
 
 @Component
 public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePaymentProviderImpl, UalaAuthResponse, WebhookBody> {
-	private static final String keysPrefix = "provider.uala";
+	private static final String keysPrefix = "provider.uala.prod";
 
 	@Value("${" + keysPrefix + ".username}")
 	private String username;
@@ -86,7 +86,7 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	@Override
 	public String createCheckout(int amount, String description, Long externalReference, PaymentUrls urls, String authToken) {
 		CheckoutBody checkoutBody = this.createCheckoutBody(amount, description, urls.getFailUrl(),
-				urls.getSuccessUrl(), null, externalReference);
+				urls.getSuccessUrl(), urls.getNotificationUrl(), externalReference);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", "Bearer " + authToken);
