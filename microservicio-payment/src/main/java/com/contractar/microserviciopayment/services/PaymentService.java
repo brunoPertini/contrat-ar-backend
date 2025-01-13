@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -152,8 +153,16 @@ public class PaymentService {
 	}
 	
 	private SuscripcionDTO getSuscription(Long suscripcionId) throws SuscriptionNotFound {
-		String url = microservicioUsuarioUrl + ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
-		return httpClient.getForObject(url, SuscripcionDTO.class);
+		try {
+			String url = microservicioUsuarioUrl + ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
+			return httpClient.getForObject(url, SuscripcionDTO.class);
+		} catch (HttpClientErrorException e) {
+			 if (e.getStatusCode().equals(HttpStatusCode.valueOf(404))) {
+				 throw new SuscriptionNotFound(getMessageTag("exception.suscription.notFound"));
+			 }
+			 
+			 throw e;
+		}
 	}
 	
 	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
@@ -195,8 +204,7 @@ public class PaymentService {
 	 * @throws SuscriptionNotFound 
 	 */
 	public String payLastSuscriptionPeriod(Long suscriptionId) throws SuscriptionNotFound {
-		SuscripcionDTO foundSuscription = Optional.ofNullable(this.getSuscription(suscriptionId)).map(s -> s)
-				.orElseThrow(() -> new SuscriptionNotFound(getMessageTag("exception.suscription.notFound")));
+		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
 
 		// TODO: receive by param the integration type. Depending on that, fetch the proper payment provider configuration and use the required
 		// provider services/entities, etc.
