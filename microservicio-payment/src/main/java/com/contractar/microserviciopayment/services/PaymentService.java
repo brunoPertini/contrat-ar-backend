@@ -57,7 +57,7 @@ public class PaymentService {
 
 	private RestTemplate httpClient;
 	
-	private final PaymentProvider currentProvider;
+	protected final PaymentProvider currentProvider;
 
 	@Value("${microservicio-config.url}")
 	private String configServiceUrl;
@@ -90,7 +90,7 @@ public class PaymentService {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private com.contractar.microserviciopayment.providers.OutsitePaymentProvider createOutsitePaymentProvider(
+	protected com.contractar.microserviciopayment.providers.OutsitePaymentProvider createOutsitePaymentProvider(
 			Long providerId) {
 		Map<Long, com.contractar.microserviciopayment.providers.OutsitePaymentProvider> creators = Map.of(1L,
 				ualaPaymentProviderService);
@@ -133,7 +133,7 @@ public class PaymentService {
 
 	}
 	
-	private PaymentProvider getActivePaymentProvider() {
+	protected PaymentProvider getActivePaymentProvider() {
 		// Only one payment provider can be active
 		// TODO: raise exceptions
 		List<PaymentProvider> paymentProviders = paymentProviderRepository.findByIsActiveTrue();
@@ -211,6 +211,22 @@ public class PaymentService {
 		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.currentProvider;
 		String authToken = activePaymentProvider.getToken();
 		
+		SuscriptionPayment lastPayment = this.findLastSuscriptionPayment(suscriptionId);
+		
+		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment)
+				.map(payment -> payment.getPaymentPeriod())
+				.orElse(null);
+		
+		if (lastPeriodPayment != null && )
+		
+		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
+		
+		PaymentCreateDTO paymentCreateDTO = new PaymentCreateDTO(null,
+				paymentPeriod,
+				foundSuscription.getPlanPrice(),
+				Currency.getInstance("ARS"),
+				suscriptionId);
+		
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = createOutsitePaymentProvider(activePaymentProvider.getId());
 
 		if (!StringUtils.hasLength(authToken) || !checkUserToken(authToken)) {
@@ -220,18 +236,6 @@ public class PaymentService {
 			paymentProviderImpl.save(activePaymentProvider);
 		} 
 		
-		
-		YearMonth lastPeriodPayment = Optional.ofNullable(this.findLastSuscriptionPayment(suscriptionId))
-				.map(payment -> payment.getPaymentPeriod())
-				.orElse(null);
-		
-		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
-		
-		PaymentCreateDTO paymentCreateDTO = new PaymentCreateDTO(null,
-				paymentPeriod,
-				foundSuscription.getPlanPrice(),
-				Currency.getInstance("ARS"),
-				suscriptionId);
 		
 		Payment createdPayment = this.createPayment(paymentCreateDTO);
 		

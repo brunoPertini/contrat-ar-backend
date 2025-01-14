@@ -40,7 +40,7 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 
 	@Value("${" + keysPrefix + ".checkoutUrl}")
 	private String checkoutUrl;
-
+	
 	private RestTemplate httpClient;
 
 	private OutsitePaymentProviderRepository ualaPaymentProviderRepository;
@@ -115,6 +115,16 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	public void setPaymentAsPending(Payment p) {
 		UalaPaymentState pendingState = ualaPaymentStateRepository.findByState(UalaPaymentStateValue.PENDING).get();
 		p.setState(pendingState);
+	}
+
+	@Override
+	public boolean wasPaymentAccepted(Payment payment) {
+		return !((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.APPROVED);
+	}
+	
+	@Override
+	public boolean wasPaymentRejected(Payment payment) {
+		return !((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.REJECTED);
 	}
 
 }

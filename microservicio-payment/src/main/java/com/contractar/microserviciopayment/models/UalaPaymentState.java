@@ -32,4 +32,9 @@ public class UalaPaymentState extends PaymentState {
 		this.state = state;
 	}
 
+	@Override
+	public String toString() {
+		return this.state.toString();
+	}
+
 }

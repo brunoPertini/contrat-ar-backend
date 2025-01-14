@@ -32,7 +32,7 @@ public class SuscriptionPayment extends Payment {
 
 	public SuscriptionPayment(Long externalId, YearMonth paymentPeriod, LocalDate date, int amount, Currency currency,
 			PaymentProvider paymentProvider, PaymentState state) {
-		super(externalId, paymentPeriod, date, amount, currency, paymentProvider, state);
+		super(externalId.toString(), paymentPeriod, date, amount, currency, paymentProvider, state);
 	}
 
 }
