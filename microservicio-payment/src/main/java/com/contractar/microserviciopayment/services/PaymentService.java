@@ -34,6 +34,7 @@ import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
+import com.contractar.microserviciopayment.providers.OutsitePaymentProvider;
 import com.contractar.microserviciopayment.providers.PaymentUrls;
 import com.contractar.microserviciopayment.providers.uala.Uala;
 import com.contractar.microserviciopayment.providers.uala.WebhookBody;
@@ -54,6 +55,8 @@ public class PaymentService {
 	private SuscriptionPaymentRepository suscriptionPaymentRepository;
 
 	private Uala ualaPaymentProviderService;
+	
+	private SuscriptionPaymentService suscriptionPaymentService;
 
 	private RestTemplate httpClient;
 	
@@ -79,13 +82,15 @@ public class PaymentService {
 			PaymentRepository paymentRepository,
 			Uala ualaPaymentProviderService,
 			SuscriptionPaymentRepository suscriptionPaymentRepository,
-			RestTemplate httpClient) {
+			RestTemplate httpClient,
+			SuscriptionPaymentService suscriptionPaymentService) {
 		this.ualaPaymentProviderService = ualaPaymentProviderService;
 		this.httpClient = httpClient;
 		this.paymentProviderRepository = paymentProviderRepository;
 		this.outsitePaymentProviderRepository = outsitePaymentProviderRepository;
 		this.suscriptionPaymentRepository = suscriptionPaymentRepository;
 		this.paymentRepository = paymentRepository;
+		this.suscriptionPaymentService = suscriptionPaymentService;
 		this.currentProvider = this.getActivePaymentProvider();
 	}
 
@@ -205,20 +210,19 @@ public class PaymentService {
 	 */
 	public String payLastSuscriptionPeriod(Long suscriptionId) throws SuscriptionNotFound {
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
-
+		
 		// TODO: receive by param the integration type. Depending on that, fetch the proper payment provider configuration and use the required
-		// provider services/entities, etc.
-		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.currentProvider;
-		String authToken = activePaymentProvider.getToken();
+				// provider services/entities, etc.
+				OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.currentProvider;
+				String authToken = activePaymentProvider.getToken();
+				
 		
 		SuscriptionPayment lastPayment = this.findLastSuscriptionPayment(suscriptionId);
 		
 		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment)
 				.map(payment -> payment.getPaymentPeriod())
 				.orElse(null);
-		
-		if (lastPeriodPayment != null && )
-		
+				
 		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
 		
 		PaymentCreateDTO paymentCreateDTO = new PaymentCreateDTO(null,

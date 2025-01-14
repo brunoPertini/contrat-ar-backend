@@ -17,22 +17,16 @@ import com.contractar.microserviciopayment.repository.PaymentRepository;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
 
 @Service
-public class SuscriptionPaymentService extends PaymentService{
+public class SuscriptionPaymentService{
 	private SuscriptionPaymentRepository repository;
 	
-	public SuscriptionPaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository, 
-			PaymentProviderRepository paymentProviderRepository,
-			PaymentRepository paymentRepository,
-			Uala ualaPaymentProviderService,
-			SuscriptionPaymentRepository suscriptionPaymentRepository,
-			RestTemplate httpClient,
-			SuscriptionPaymentRepository repository) {
-		super(outsitePaymentProviderRepository, paymentProviderRepository, paymentRepository, ualaPaymentProviderService, suscriptionPaymentRepository, httpClient);
+	public SuscriptionPaymentService(SuscriptionPaymentRepository repository) {
 		this.repository = repository;
 	}
 	
 	
-	public boolean isSuscriptionValid(Long suscriptionId) {
+	public boolean isSuscriptionValid(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) {
+		// TODO: handle non OUTSITE providers	
 		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId);
 		
 		if (lastPaymentOpt.isEmpty()) {
@@ -50,14 +44,35 @@ public class SuscriptionPaymentService extends PaymentService{
 		Month currentMonth = YearMonth.now().getMonth();
 		
 		boolean wasPaymentDoneAtExpectedMonth = paymentMonth.equals(currentMonth) 
-				|| (paymentMonth.equals(currentMonth.minus(1)) && payment.getDate().plusMonths(1).isBefore(LocalDate.now()));
-		
-		// TODO: handle non OUTSITE providers
-		
-		OutsitePaymentProvider currentProviderImpl = this.createOutsitePaymentProvider(this.currentProvider.getId());
-		
+				|| (paymentMonth.equals(currentMonth.minus(1)) && payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
+			
 		return wasPaymentDoneAtExpectedYear && 
 				wasPaymentDoneAtExpectedMonth && 
 				currentProviderImpl.wasPaymentAccepted(payment);	
+	}
+	
+	public boolean canSuscriptionBePayed(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) {
+		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId);
+		
+		if (lastPaymentOpt.isEmpty()) {
+			return true;
+		}
+		
+		SuscriptionPayment lastPayment = lastPaymentOpt.get();
+		
+		LocalDate suscriptionExpirationDate = lastPayment.getDate().plusMonths(1);
+		
+		LocalDate minimalPayDate = suscriptionExpirationDate.minusDays(10);
+		
+		LocalDate today = LocalDate.now();
+		
+		boolean isInsideExpectedDates = today.isEqual(minimalPayDate) || (today.isAfter(minimalPayDate) && today.isBefore(suscriptionExpirationDate));
+		
+		if (isInsideExpectedDates) {
+			return true;
+		}
+		
+		
+		
 	}
 }
