@@ -119,12 +119,18 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 
 	@Override
 	public boolean wasPaymentAccepted(Payment payment) {
-		return !((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.APPROVED);
+		return ((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.APPROVED);
 	}
 	
 	@Override
 	public boolean wasPaymentRejected(Payment payment) {
-		return !((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.REJECTED);
+		return ((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.REJECTED);
+	}
+
+	@Override
+	public boolean isPaymentPending(Payment payment) {
+		UalaPaymentStateValue stateValue = ((UalaPaymentState) payment.getState()).getState();
+		return stateValue.equals(UalaPaymentStateValue.PENDING) || stateValue.equals(UalaPaymentStateValue.PROCESSED);
 	}
 
 }

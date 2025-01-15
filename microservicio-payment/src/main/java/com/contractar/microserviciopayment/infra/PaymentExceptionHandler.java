@@ -7,13 +7,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.contractar.microserviciocommons.exceptions.CustomException;
+import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 
 @ControllerAdvice
 public class PaymentExceptionHandler extends ResponseEntityExceptionHandler{
 	
-	@ExceptionHandler(value = {SuscriptionNotFound.class})
+	@ExceptionHandler(value = {SuscriptionNotFound.class, PaymentAlreadyDone.class})
 	public ResponseEntity<?> handlePayExcerptions(Exception ex) {
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),

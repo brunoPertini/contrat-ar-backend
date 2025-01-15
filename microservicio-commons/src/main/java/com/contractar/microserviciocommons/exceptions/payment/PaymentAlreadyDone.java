@@ -6,7 +6,7 @@ public class PaymentAlreadyDone extends CustomException{
 
 	private static final long serialVersionUID = -821549956538192772L;
 
-	protected PaymentAlreadyDone(String message) {
+	public PaymentAlreadyDone(String message) {
 		super(message);
 		this.STATUS_CODE = 409;
 	}

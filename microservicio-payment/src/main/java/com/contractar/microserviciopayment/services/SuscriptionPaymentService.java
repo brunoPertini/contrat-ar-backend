@@ -3,27 +3,87 @@ package com.contractar.microserviciopayment.services;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
+import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
+import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
+import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
+import com.contractar.microserviciopayment.models.PaymentProvider;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
+import com.contractar.microserviciopayment.models.enums.IntegrationType;
 import com.contractar.microserviciopayment.providers.OutsitePaymentProvider;
-import com.contractar.microserviciopayment.providers.uala.Uala;
-import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
-import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
-import com.contractar.microserviciopayment.repository.PaymentRepository;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
+import com.contractar.microserviciousuario.models.Suscripcion;
 
 @Service
 public class SuscriptionPaymentService{
 	private SuscriptionPaymentRepository repository;
 	
-	public SuscriptionPaymentService(SuscriptionPaymentRepository repository) {
+	@Value("${microservicio-config.url}")
+	private String configServiceUrl;
+	
+	@Value("${microservicio-usuario.url}")
+	private String microservicioUsuarioUrl;
+	
+	private RestTemplate httpClient;
+	
+	private ProviderServiceImplFactory providerServiceImplFactory;
+	
+	public SuscriptionPaymentService(SuscriptionPaymentRepository repository, ProviderServiceImplFactory providerServiceImplFactory, RestTemplate httpClient) {
 		this.repository = repository;
+		this.providerServiceImplFactory = providerServiceImplFactory;
+		this.httpClient = httpClient;
 	}
 	
+	private String getMessageTag(String tagId) {
+		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
+		return httpClient.getForObject(fullUrl, String.class);
+	}
+	
+	private Suscripcion getSuscription(Long suscripcionId) throws SuscriptionNotFound {
+		try {
+			String url = microservicioUsuarioUrl
+					+ ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
+			return httpClient.getForObject(url, Suscripcion.class, Map.of("getAsEntity", "true"));
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode().equals(HttpStatusCode.valueOf(404))) {
+				throw new SuscriptionNotFound(getMessageTag("exception.suscription.notFound"));
+			}
+
+			throw e;
+		}
+	}
+	
+	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId) throws SuscriptionNotFound {
+		if (currentProvider == null) {
+			throw new RuntimeException("Payment provider not set");
+		}
+
+		if (!currentProvider.getIntegrationType().equals(IntegrationType.OUTSITE)) {
+			throw new RuntimeException("Invalid integration type");
+		}
+		
+		Suscripcion suscription = this.getSuscription(suscripcionId);
+		
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl =  providerServiceImplFactory.getOutsitePaymentProvider();
+
+		SuscriptionPayment newPayment = new SuscriptionPayment(dto.getExternalId(), dto.getPaymentPeriod(), LocalDate.now(), dto.getAmount(),
+				dto.getCurrency(), currentProvider, null);
+		
+		newPayment.setSuscripcion(suscription);
+
+		paymentProviderImpl.setPaymentAsPending(newPayment);
+		return repository.save(newPayment);
+	}
 	
 	public boolean isSuscriptionValid(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) {
 		// TODO: handle non OUTSITE providers	
@@ -51,28 +111,37 @@ public class SuscriptionPaymentService{
 				currentProviderImpl.wasPaymentAccepted(payment);	
 	}
 	
-	public boolean canSuscriptionBePayed(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) {
+	public boolean canSuscriptionBePayed(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) throws PaymentAlreadyDone {
 		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId);
 		
+		// First pay to be made
 		if (lastPaymentOpt.isEmpty()) {
 			return true;
 		}
 		
 		SuscriptionPayment lastPayment = lastPaymentOpt.get();
 		
+		// Last pay was rejected, user should be able to try it again
+		if (currentProviderImpl.wasPaymentRejected(lastPayment)) {
+			return true;
+		}
+			
 		LocalDate suscriptionExpirationDate = lastPayment.getDate().plusMonths(1);
 		
 		LocalDate minimalPayDate = suscriptionExpirationDate.minusDays(10);
 		
 		LocalDate today = LocalDate.now();
 		
-		boolean isInsideExpectedDates = today.isEqual(minimalPayDate) || (today.isAfter(minimalPayDate) && today.isBefore(suscriptionExpirationDate));
+		boolean isInsideExpectedDates = (today.isEqual(minimalPayDate) || (today.isAfter(minimalPayDate) && today.isBefore(suscriptionExpirationDate)));
 		
-		if (isInsideExpectedDates) {
+		// I'm inside "payable" dates and last pay was successful
+		if (isInsideExpectedDates && currentProviderImpl.wasPaymentAccepted(lastPayment)) {
 			return true;
 		}
 		
+		String exceptionMessage = currentProviderImpl.isPaymentPending(lastPayment) ? getMessageTag("exception.payment.suscription.stillPending")
+				: getMessageTag("exception.payment.suscription.outOfDates"); 
 		
-		
+		throw new PaymentAlreadyDone(exceptionMessage);
 	}
 }

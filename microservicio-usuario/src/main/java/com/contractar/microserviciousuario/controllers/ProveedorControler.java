@@ -61,15 +61,18 @@ public class ProveedorControler {
 	}
 	
 	@GetMapping(ProveedorControllerUrls.GET_SUSCRIPCION)
-	public ResponseEntity<?> getSuscripcionById(@PathVariable Long suscriptionId) throws SuscriptionNotFound {
+	public ResponseEntity<?> getSuscripcionById(@PathVariable Long suscriptionId,
+			@RequestParam(defaultValue = "false") String getAsEntity) throws SuscriptionNotFound {
 		
 		Suscripcion suscripcion = this.proveedorService.findSuscripcionById(suscriptionId);
 		
-		return  new ResponseEntity<>(new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
+		boolean getAsEntityBool = Boolean.parseBoolean(getAsEntity);
+		
+		return  new ResponseEntity<>(!getAsEntityBool ? new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
 				suscripcion.getUsuario().getId(),
 				suscripcion.getPlan().getId(),
 				suscripcion.getCreatedDate(),
-				suscripcion.getPlan().getPrice()), HttpStatus.OK);
+				suscripcion.getPlan().getPrice()) : suscripcion, HttpStatus.OK);
 	}
 
 	@GetMapping(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION)

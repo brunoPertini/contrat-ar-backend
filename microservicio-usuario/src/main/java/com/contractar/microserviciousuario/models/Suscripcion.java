@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanAccesor;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -35,6 +37,7 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 	@JoinColumn(name = "plan")
 	private Plan plan;
 
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate createdDate;
 
 	public Suscripcion() {
