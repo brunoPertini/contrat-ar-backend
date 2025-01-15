@@ -58,8 +58,6 @@ public class PaymentService {
 
 	private RestTemplate httpClient;
 
-	private PaymentProvider currentProvider;
-	
 	private ProviderServiceImplFactory providerServiceImplFactory;
 
 	@Value("${microservicio-config.url}")
@@ -78,11 +76,9 @@ public class PaymentService {
 	private String microservicioUsuarioUrl;
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
-			PaymentProviderRepository paymentProviderRepository,
-			PaymentRepository paymentRepository,
+			PaymentProviderRepository paymentProviderRepository, PaymentRepository paymentRepository,
 			ProviderServiceImplFactory providerServiceImplFactory,
-			SuscriptionPaymentRepository suscriptionPaymentRepository,
-			RestTemplate httpClient,
+			SuscriptionPaymentRepository suscriptionPaymentRepository, RestTemplate httpClient,
 			SuscriptionPaymentService suscriptionPaymentService) {
 		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.httpClient = httpClient;
@@ -91,7 +87,6 @@ public class PaymentService {
 		this.suscriptionPaymentRepository = suscriptionPaymentRepository;
 		this.paymentRepository = paymentRepository;
 		this.suscriptionPaymentService = suscriptionPaymentService;
-		this.currentProvider = this.getActivePaymentProvider();
 	}
 
 	private String getMessageTag(String tagId) {
@@ -127,7 +122,7 @@ public class PaymentService {
 
 	}
 
-	protected PaymentProvider getActivePaymentProvider() {
+	public PaymentProvider getActivePaymentProvider() {
 		// Only one payment provider can be active
 		// TODO: raise exceptions
 		List<PaymentProvider> paymentProviders = paymentProviderRepository.findByIsActiveTrue();
@@ -164,7 +159,9 @@ public class PaymentService {
 	}
 
 	public Payment createPayment(PaymentCreateDTO dto) {
-		if (this.currentProvider == null) {
+		PaymentProvider currentProvider = this.getActivePaymentProvider();
+
+		if (currentProvider == null) {
 			throw new RuntimeException("Payment provider not set");
 		}
 
@@ -172,7 +169,8 @@ public class PaymentService {
 			throw new RuntimeException("Invalid integration type");
 		}
 
-		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl =  providerServiceImplFactory.getOutsitePaymentProvider();
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
 
 		Payment newPayment = new Payment(dto.getExternalId(), dto.getPaymentPeriod(), LocalDate.now(), dto.getAmount(),
 				dto.getCurrency(), currentProvider, null);
@@ -188,20 +186,23 @@ public class PaymentService {
 	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
 	 * @throws SuscriptionNotFound
-	 * @throws PaymentAlreadyDone 
+	 * @throws PaymentAlreadyDone
 	 */
 	@Transactional
 	public String payLastSuscriptionPeriod(Long suscriptionId) throws SuscriptionNotFound, PaymentAlreadyDone {
+		PaymentProvider currentProvider = this.getActivePaymentProvider();
+
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
 
 		// TODO: receive by param the integration type. Depending on that, fetch the
 		// proper payment provider configuration and use the required
 		// provider services/entities, etc.
-		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) this.currentProvider;
+		OutsitePaymentProviderImpl activePaymentProvider = (OutsitePaymentProviderImpl) currentProvider;
 		String authToken = activePaymentProvider.getToken();
-		
-		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl =  providerServiceImplFactory.getOutsitePaymentProvider();
-		
+
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+
 		if (!suscriptionPaymentService.canSuscriptionBePayed(suscriptionId, paymentProviderImpl)) {
 			return "";
 		}
@@ -213,10 +214,24 @@ public class PaymentService {
 
 		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
 
+		LocalDate today = LocalDate.now();
+
+		LocalDate paymentDate;
+
+		if (lastPayment == null) {
+			paymentDate = today;
+		} else {
+			LocalDate newProbablePaymentDate = lastPayment.getDate().plusMonths(1);
+
+			if (newProbablePaymentDate.isAfter(today)) {
+				paymentDate = newProbablePaymentDate;
+			} else {
+				paymentDate = today;
+			}
+		}
+
 		PaymentCreateDTO paymentCreateDTO = new PaymentCreateDTO(null, paymentPeriod, foundSuscription.getPlanPrice(),
-				Currency.getInstance("ARS"), suscriptionId);
-
-
+				Currency.getInstance("ARS"), suscriptionId, paymentDate);
 
 		if (!StringUtils.hasLength(authToken) || !checkUserToken(authToken)) {
 			AuthResponse authResponse = (AuthResponse) paymentProviderImpl.auth();
@@ -225,7 +240,8 @@ public class PaymentService {
 			paymentProviderImpl.save(activePaymentProvider);
 		}
 
-		SuscriptionPayment createdPayment = suscriptionPaymentService.createPayment(paymentCreateDTO, activePaymentProvider, suscriptionId);
+		SuscriptionPayment createdPayment = suscriptionPaymentService.createPayment(paymentCreateDTO,
+				activePaymentProvider, suscriptionId);
 
 		String createdPaymentId = createdPayment.getId().toString();
 
@@ -246,7 +262,8 @@ public class PaymentService {
 	}
 
 	public void handleWebhookNotification(WebhookBody body) {
-		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl =  providerServiceImplFactory.getOutsitePaymentProvider();
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
 		paymentProviderImpl.handleWebhookNotification(body);
 	}
 

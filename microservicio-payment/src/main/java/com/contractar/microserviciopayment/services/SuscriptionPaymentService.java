@@ -25,30 +25,31 @@ import com.contractar.microserviciopayment.repository.SuscriptionPaymentReposito
 import com.contractar.microserviciousuario.models.Suscripcion;
 
 @Service
-public class SuscriptionPaymentService{
+public class SuscriptionPaymentService {
 	private SuscriptionPaymentRepository repository;
-	
+
 	@Value("${microservicio-config.url}")
 	private String configServiceUrl;
-	
+
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
-	
+
 	private RestTemplate httpClient;
-	
+
 	private ProviderServiceImplFactory providerServiceImplFactory;
-	
-	public SuscriptionPaymentService(SuscriptionPaymentRepository repository, ProviderServiceImplFactory providerServiceImplFactory, RestTemplate httpClient) {
+
+	public SuscriptionPaymentService(SuscriptionPaymentRepository repository,
+			ProviderServiceImplFactory providerServiceImplFactory, RestTemplate httpClient) {
 		this.repository = repository;
 		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.httpClient = httpClient;
 	}
-	
+
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
 	}
-	
+
 	private Suscripcion getSuscription(Long suscripcionId) throws SuscriptionNotFound {
 		try {
 			String url = microservicioUsuarioUrl
@@ -62,7 +63,7 @@ public class SuscriptionPaymentService{
 			throw e;
 		}
 	}
-	
+
 	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId) throws SuscriptionNotFound {
 		if (currentProvider == null) {
 			throw new RuntimeException("Payment provider not set");
@@ -71,77 +72,83 @@ public class SuscriptionPaymentService{
 		if (!currentProvider.getIntegrationType().equals(IntegrationType.OUTSITE)) {
 			throw new RuntimeException("Invalid integration type");
 		}
-		
-		Suscripcion suscription = this.getSuscription(suscripcionId);
-		
-		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl =  providerServiceImplFactory.getOutsitePaymentProvider();
 
-		SuscriptionPayment newPayment = new SuscriptionPayment(dto.getExternalId(), dto.getPaymentPeriod(), LocalDate.now(), dto.getAmount(),
-				dto.getCurrency(), currentProvider, null);
-		
+		Suscripcion suscription = this.getSuscription(suscripcionId);
+
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+
+		LocalDate paymentDate;
+
+		SuscriptionPayment newPayment = new SuscriptionPayment(dto.getExternalId(), dto.getPaymentPeriod(),
+				LocalDate.now(), dto.getAmount(), dto.getCurrency(), currentProvider, null);
+
 		newPayment.setSuscripcion(suscription);
 
 		paymentProviderImpl.setPaymentAsPending(newPayment);
 		return repository.save(newPayment);
 	}
-	
+
 	public boolean isSuscriptionValid(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) {
-		// TODO: handle non OUTSITE providers	
+		// TODO: handle non OUTSITE providers
 		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId);
-		
+
 		if (lastPaymentOpt.isEmpty()) {
 			return false;
 		}
-		
+
 		SuscriptionPayment payment = lastPaymentOpt.get();
-		
+
 		YearMonth paymentPeriod = payment.getPaymentPeriod();
-		
+
 		boolean wasPaymentDoneAtExpectedYear = paymentPeriod.getYear() == YearMonth.now().getYear();
-		
+
 		Month paymentMonth = paymentPeriod.getMonth();
-		
+
 		Month currentMonth = YearMonth.now().getMonth();
-		
-		boolean wasPaymentDoneAtExpectedMonth = paymentMonth.equals(currentMonth) 
-				|| (paymentMonth.equals(currentMonth.minus(1)) && payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
-			
-		return wasPaymentDoneAtExpectedYear && 
-				wasPaymentDoneAtExpectedMonth && 
-				currentProviderImpl.wasPaymentAccepted(payment);	
+
+		boolean wasPaymentDoneAtExpectedMonth = paymentMonth.equals(currentMonth)
+				|| (paymentMonth.equals(currentMonth.minus(1))
+						&& payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
+
+		return wasPaymentDoneAtExpectedYear && wasPaymentDoneAtExpectedMonth
+				&& currentProviderImpl.wasPaymentAccepted(payment);
 	}
-	
-	public boolean canSuscriptionBePayed(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) throws PaymentAlreadyDone {
+
+	public boolean canSuscriptionBePayed(Long suscriptionId, OutsitePaymentProvider currentProviderImpl)
+			throws PaymentAlreadyDone {
 		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId);
-		
+
 		// First pay to be made
 		if (lastPaymentOpt.isEmpty()) {
 			return true;
 		}
-		
+
 		SuscriptionPayment lastPayment = lastPaymentOpt.get();
-		
+
 		// Last pay was rejected, user should be able to try it again
 		if (currentProviderImpl.wasPaymentRejected(lastPayment)) {
 			return true;
 		}
-			
+
 		LocalDate suscriptionExpirationDate = lastPayment.getDate().plusMonths(1);
-		
+
 		LocalDate minimalPayDate = suscriptionExpirationDate.minusDays(10);
-		
+
 		LocalDate today = LocalDate.now();
-		
-		boolean isInsideExpectedDates = (today.isEqual(minimalPayDate) || (today.isAfter(minimalPayDate) && today.isBefore(suscriptionExpirationDate)));
-		
+
+		boolean isInsideExpectedDates = (today.isEqual(minimalPayDate)
+				|| (today.isAfter(minimalPayDate) && today.isBefore(suscriptionExpirationDate)));
+
 		// I'm inside "payable" dates and last pay was successful
 		if (isInsideExpectedDates && currentProviderImpl.wasPaymentAccepted(lastPayment)) {
 			return true;
 		}
-		
-		String exceptionMessage = currentProviderImpl.isPaymentPending(lastPayment) ? getMessageTag("exception.payment.suscription.stillPending")
-				: getMessageTag("exception.payment.suscription.outOfDates"); 
-		
+
+		String exceptionMessage = currentProviderImpl.isPaymentPending(lastPayment)
+				? getMessageTag("exception.payment.suscription.stillPending")
+				: getMessageTag("exception.payment.suscription.outOfDates");
+
 		throw new PaymentAlreadyDone(exceptionMessage);
 	}
 }

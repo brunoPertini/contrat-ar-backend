@@ -1,5 +1,6 @@
 package com.contractar.microserviciopayment.dtos;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Currency;
 
@@ -12,27 +13,31 @@ import jakarta.validation.constraints.NotNull;
 
 public class PaymentCreateDTO {
 	private String externalId;
-	
-    @JsonDeserialize(using = YearMonthDeserializer.class)
-    @JsonSerialize(using = YearMonthSerializer.class)
+
+	@JsonDeserialize(using = YearMonthDeserializer.class)
+	@JsonSerialize(using = YearMonthSerializer.class)
 	@NotNull
 	private YearMonth paymentPeriod;
-	
+
 	private int amount;
 
 	private Currency currency;
-	
+
 	private Long providerId;
-	
-	public PaymentCreateDTO() {}
+
+	private LocalDate date;
+
+	public PaymentCreateDTO() {
+	}
 
 	public PaymentCreateDTO(String externalId, @NotNull YearMonth paymentPeriod, int amount, Currency currency,
-			Long providerId) {
+			Long providerId, LocalDate date) {
 		this.externalId = externalId;
 		this.paymentPeriod = paymentPeriod;
 		this.amount = amount;
 		this.currency = currency;
 		this.providerId = providerId;
+		this.date = date;
 	}
 
 	public String getExternalId() {
@@ -74,6 +79,13 @@ public class PaymentCreateDTO {
 	public void setProviderId(Long providerId) {
 		this.providerId = providerId;
 	}
-	
-	
+
+	public LocalDate getDate() {
+		return date;
+	}
+
+	public void setDate(LocalDate date) {
+		this.date = date;
+	}
+
 }
