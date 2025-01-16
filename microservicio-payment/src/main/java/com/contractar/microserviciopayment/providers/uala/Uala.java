@@ -1,7 +1,6 @@
 package com.contractar.microserviciopayment.providers.uala;
 
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -130,7 +129,13 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	@Override
 	public boolean isPaymentPending(Payment payment) {
 		UalaPaymentStateValue stateValue = ((UalaPaymentState) payment.getState()).getState();
-		return stateValue.equals(UalaPaymentStateValue.PENDING) || stateValue.equals(UalaPaymentStateValue.PROCESSED);
+		return stateValue.equals(UalaPaymentStateValue.PENDING);
+	}
+
+	@Override
+	public boolean isPaymentProcessed(Payment payment) {
+		UalaPaymentStateValue stateValue = ((UalaPaymentState) payment.getState()).getState();
+		return stateValue.equals(UalaPaymentStateValue.PROCESSED);
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.contractar.microserviciopayment.models;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Currency;
 
@@ -19,12 +20,33 @@ public class SuscriptionPayment extends Payment {
 	@NotNull
 	private Suscripcion suscripcion;
 
+	private LocalDateTime linkCreationTime;
+
+	// For outsite providers
+	private String paymentUrl;
+
+	public String getPaymentUrl() {
+		return paymentUrl;
+	}
+
+	public void setPaymentUrl(String paymentUrl) {
+		this.paymentUrl = paymentUrl;
+	}
+
 	public Suscripcion getSuscripcion() {
 		return suscripcion;
 	}
 
 	public void setSuscripcion(Suscripcion suscripcion) {
 		this.suscripcion = suscripcion;
+	}
+
+	public LocalDateTime getLinkCreationTime() {
+		return linkCreationTime;
+	}
+
+	public void setLinkCreationTime(LocalDateTime linkCreationTime) {
+		this.linkCreationTime = linkCreationTime;
 	}
 
 	public SuscriptionPayment() {

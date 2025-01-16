@@ -1,5 +1,6 @@
 package com.contractar.microserviciopayment.services;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -208,6 +209,13 @@ public class PaymentService {
 		}
 
 		SuscriptionPayment lastPayment = this.findLastSuscriptionPayment(suscriptionId);
+		
+		if (lastPayment != null && paymentProviderImpl.isPaymentPending(lastPayment)) {
+			boolean isLinkValid = Duration.between(lastPayment.getLinkCreationTime(), LocalDateTime.now()).toMinutes() <= 15;
+			if (isLinkValid) {
+				return lastPayment.getPaymentUrl();
+			}
+		}
 
 		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment).map(payment -> payment.getPaymentPeriod())
 				.orElse(null);
@@ -256,8 +264,14 @@ public class PaymentService {
 
 		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, notificationUrl);
 
-		return paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
+		String checkoutUrl = paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
 				getMessageTag("payment.suscription.description"), createdPayment.getId(), urls, authToken);
+		
+		createdPayment.setPaymentUrl(checkoutUrl);
+		
+		createdPayment.setLinkCreationTime(LocalDateTime.now());
+		
+		return checkoutUrl;
 
 	}
 

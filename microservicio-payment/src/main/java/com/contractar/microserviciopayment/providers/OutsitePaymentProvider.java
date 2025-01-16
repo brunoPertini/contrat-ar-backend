@@ -32,5 +32,7 @@ public interface OutsitePaymentProvider<E, M, R, D> {
 	public boolean wasPaymentAccepted(Payment payment);
 	
 	public boolean isPaymentPending(Payment payment);
+	
+	public boolean isPaymentProcessed(Payment payment);
 
 }

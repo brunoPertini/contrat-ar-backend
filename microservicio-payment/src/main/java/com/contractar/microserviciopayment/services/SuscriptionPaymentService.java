@@ -13,7 +13,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
-import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
@@ -125,10 +124,23 @@ public class SuscriptionPaymentService {
 		}
 
 		SuscriptionPayment lastPayment = lastPaymentOpt.get();
-
-		// Last pay was rejected, user should be able to try it again
-		if (currentProviderImpl.wasPaymentRejected(lastPayment)) {
+		
+		YearMonth paymentPeriod = lastPayment.getPaymentPeriod() != null ? lastPayment.getPaymentPeriod().plusMonths(1) : YearMonth.now();
+		
+		// User is paying some previous expired period
+		boolean isPayingPreviousPeriod = paymentPeriod.isBefore(YearMonth.now());
+		
+		if (isPayingPreviousPeriod) {
 			return true;
+		}
+		
+		if (currentProviderImpl.wasPaymentRejected(lastPayment) 
+				|| currentProviderImpl.isPaymentPending(lastPayment)) {
+			return true;
+		}
+		
+		if (currentProviderImpl.isPaymentProcessed(lastPayment)) {
+			throw new PaymentAlreadyDone(getMessageTag("exception.payment.suscription.stillPending"));
 		}
 
 		LocalDate suscriptionExpirationDate = lastPayment.getDate().plusMonths(1);
@@ -137,18 +149,13 @@ public class SuscriptionPaymentService {
 
 		LocalDate today = LocalDate.now();
 
-		boolean isInsideExpectedDates = (today.isEqual(minimalPayDate)
-				|| (today.isAfter(minimalPayDate) && today.isBefore(suscriptionExpirationDate)));
-
-		// I'm inside "payable" dates and last pay was successful
-		if (isInsideExpectedDates && currentProviderImpl.wasPaymentAccepted(lastPayment)) {
-			return true;
+		// If it may be missing days for minimalPayDate, subscription is not able to be payed
+		boolean isPreviousToMinimalDate = today.isBefore(minimalPayDate);
+		
+		if(isPreviousToMinimalDate) {
+			throw new PaymentAlreadyDone(getMessageTag("exception.payment.suscription.outOfDates"));
 		}
-
-		String exceptionMessage = currentProviderImpl.isPaymentPending(lastPayment)
-				? getMessageTag("exception.payment.suscription.stillPending")
-				: getMessageTag("exception.payment.suscription.outOfDates");
-
-		throw new PaymentAlreadyDone(exceptionMessage);
+		
+		return true;
 	}
 }
