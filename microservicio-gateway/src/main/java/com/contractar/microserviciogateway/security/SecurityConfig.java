@@ -60,6 +60,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] signupEmailUrls = {"/mail/signup/link", "/mail/signup/ok"};
 	
 	private final String[] publicPayUrls = {"/pay/**"};
+	
+	private final String webHookUrl = "/pay/notification";
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -121,7 +123,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
 		
 		http.csrf().disable();
-		http.authorizeRequests().antMatchers("/actuator/**", "/error", "/geo/**").permitAll()
+		http.authorizeRequests().antMatchers("/actuator/**", "/error", "/geo/**", webHookUrl).permitAll()
 				.antMatchers(HttpMethod.GET, "/plan").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", signupEmailUrls[0], signupEmailUrls[1])
 				.access("@securityUtils.hasValidClientId(request)")
