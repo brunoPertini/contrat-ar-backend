@@ -109,8 +109,8 @@ public class PaymentService {
 				Map.class);
 
 		Map<String, Object> payload = response.getBody();
-
-		int expiresField = (int) payload.get("exp");
+		
+		long expiresField = ((Number) payload.get("exp")).longValue();
 
 		LocalDateTime dateTimeFromUnix = Instant.ofEpochSecond(expiresField).atZone(ZoneId.systemDefault())
 				.toLocalDateTime();

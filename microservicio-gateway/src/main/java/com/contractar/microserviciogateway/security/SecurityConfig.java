@@ -58,6 +58,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] adminUrls = {"/admin/**", "/admin/change-requests", "/admin/usuarios/proveedor/**"};
 	
 	private final String[] signupEmailUrls = {"/mail/signup/link", "/mail/signup/ok"};
+	
+	private final String[] publicPayUrls = {"/pay/**"};
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -140,6 +142,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.POST, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, clientesUrls).access(clientesOperationsAccsesRule)
 				.antMatchers(proveedorUrls).access(vendiblesOperationsAccsesRule)
+				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
+				.antMatchers(publicPayUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
