@@ -75,6 +75,8 @@ public class PaymentService {
 
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
+	
+	private static int PAYMENT_URL_MINUTES_DURATION;
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
 			PaymentProviderRepository paymentProviderRepository, PaymentRepository paymentRepository,
@@ -211,7 +213,7 @@ public class PaymentService {
 		SuscriptionPayment lastPayment = this.findLastSuscriptionPayment(suscriptionId);
 		
 		if (lastPayment != null && paymentProviderImpl.isPaymentPending(lastPayment)) {
-			boolean isLinkValid = Duration.between(lastPayment.getLinkCreationTime(), LocalDateTime.now()).toMinutes() <= 15;
+			boolean isLinkValid = Duration.between(lastPayment.getLinkCreationTime(), LocalDateTime.now()).toMinutes() <= PAYMENT_URL_MINUTES_DURATION;
 			if (isLinkValid) {
 				return lastPayment.getPaymentUrl();
 			}

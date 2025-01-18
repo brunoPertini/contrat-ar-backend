@@ -2,9 +2,14 @@ package com.contractar.microserviciopayment.dtos;
 
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
 
+import jakarta.validation.constraints.NotNull;
+
 public class PaymentDTO {
 
+	@NotNull
 	private IntegrationType integrationType;
+	
+	// amout may be null for certain pay scenarios
 	private int amount;
 
 	public IntegrationType getIntegrationType() {

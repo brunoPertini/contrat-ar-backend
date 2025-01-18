@@ -19,14 +19,7 @@ public class UalaCheckoutBodySerializer extends JsonSerializer<CheckoutBody> {
 		gen.writeStringField("callback_fail", value.getCallbackFail());
 		gen.writeStringField("callback_success", value.getCallbackSuccess());
 		gen.writeStringField("external_reference", value.getExternalReference());
-		
-		Optional.ofNullable(value.getNotificationUrl()).ifPresent(notificationUrl -> {
-			try {
-				gen.writeStringField("notification_url", notificationUrl);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
+		gen.writeStringField("notification_url", value.getNotificationUrl());
 		
 		gen.writeEndObject();
 	}

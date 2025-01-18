@@ -35,8 +35,8 @@ public class Payment implements Serializable {
 	private String externalId;
 
 	@NotNull
-    @JsonDeserialize(using = YearMonthDeserializer.class)
-    @JsonSerialize(using = YearMonthSerializer.class)
+	@JsonDeserialize(using = YearMonthDeserializer.class)
+	@JsonSerialize(using = YearMonthSerializer.class)
 	@Convert(converter = YearMonthDateAttributeConverter.class)
 	@Column(nullable = false)
 	private YearMonth paymentPeriod;
@@ -44,8 +44,10 @@ public class Payment implements Serializable {
 	@NotNull
 	private LocalDate date;
 
+	@NotNull
 	private int amount;
 
+	@NotNull
 	private Currency currency;
 
 	@OneToOne

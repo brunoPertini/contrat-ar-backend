@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class PaymentProvider implements Serializable, PaymentProviderAccesor{
+public class PaymentProvider implements Serializable, PaymentProviderAccesor {
 	private static final long serialVersionUID = 748035295073393971L;
 
 	@jakarta.persistence.Id
@@ -28,7 +28,7 @@ public class PaymentProvider implements Serializable, PaymentProviderAccesor{
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private IntegrationType integrationType;
-	
+
 	private boolean isActive;
 
 	public boolean isActive() {

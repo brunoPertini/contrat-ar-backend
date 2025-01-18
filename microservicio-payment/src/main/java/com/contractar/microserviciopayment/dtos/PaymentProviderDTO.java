@@ -8,9 +8,10 @@ public class PaymentProviderDTO {
 	private String name;
 	private boolean isActive;
 	private IntegrationType integrationType;
-	
-	public PaymentProviderDTO() {}
-	
+
+	public PaymentProviderDTO() {
+	}
+
 	public PaymentProviderDTO(PaymentProvider p) {
 		this.id = p.getId();
 		this.name = p.getName();
@@ -49,9 +50,5 @@ public class PaymentProviderDTO {
 	public void setIntegrationType(IntegrationType integrationType) {
 		this.integrationType = integrationType;
 	}
-	
-	
-	
-	
-	
+
 }

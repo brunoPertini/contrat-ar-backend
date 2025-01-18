@@ -19,12 +19,16 @@ public class PaymentCreateDTO {
 	@NotNull
 	private YearMonth paymentPeriod;
 
+	@NotNull
 	private int amount;
 
+	@NotNull
 	private Currency currency;
 
+	@NotNull
 	private Long providerId;
 
+	@NotNull
 	private LocalDate date;
 
 	public PaymentCreateDTO() {
