@@ -261,10 +261,7 @@ public class PaymentService {
 		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}",
 				createdPaymentId);
 
-		String notificationUrl = webhookUrl.replace("{paymentResult}", "error").replace("{paymentId}",
-				createdPaymentId);
-
-		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, notificationUrl);
+		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
 
 		String checkoutUrl = paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
 				getMessageTag("payment.suscription.description"), createdPayment.getId(), urls, authToken);

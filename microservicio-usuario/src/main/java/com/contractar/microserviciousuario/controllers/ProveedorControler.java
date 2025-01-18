@@ -64,6 +64,7 @@ public class ProveedorControler {
 	public ResponseEntity<?> getSuscripcionById(@PathVariable Long suscriptionId,
 			@RequestParam(defaultValue = "false") String getAsEntity) throws SuscriptionNotFound {
 		
+		// TODO: add access control to ensure this endpoint can only be accesed by admin and by the proveedor that matches with subscription
 		Suscripcion suscripcion = this.proveedorService.findSuscripcionById(suscriptionId);
 		
 		boolean getAsEntityBool = Boolean.parseBoolean(getAsEntity);
