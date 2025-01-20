@@ -27,6 +27,7 @@ import com.contractar.microserviciocommons.constants.controllers.ProveedorContro
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
+import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
@@ -157,7 +158,7 @@ public class PaymentService {
 	}
 
 	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
-		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId).map(payment -> payment)
+		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId).map(payment -> payment)
 				.orElse(null);
 	}
 
@@ -190,12 +191,18 @@ public class PaymentService {
 	 *         the pay there
 	 * @throws SuscriptionNotFound
 	 * @throws PaymentAlreadyDone
+	 * @throws PaymentCantBeDone 
 	 */
 	@Transactional
-	public String payLastSuscriptionPeriod(Long suscriptionId) throws SuscriptionNotFound, PaymentAlreadyDone {
+	public String payLastSuscriptionPeriod(Long suscriptionId) throws SuscriptionNotFound, PaymentAlreadyDone, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
+		
+		// FREE plan cant be payed
+		if (foundSuscription.getPlanId() == 1) {
+			throw new PaymentCantBeDone(getMessageTag("exception.payment.cantBePayed"));
+		}
 
 		// TODO: receive by param the integration type. Depending on that, fetch the
 		// proper payment provider configuration and use the required

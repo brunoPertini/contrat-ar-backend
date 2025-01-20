@@ -90,7 +90,7 @@ public class SuscriptionPaymentService {
 
 	public boolean isSuscriptionValid(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) {
 		// TODO: handle non OUTSITE providers
-		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId);
+		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
 
 		if (lastPaymentOpt.isEmpty()) {
 			return false;
@@ -116,8 +116,8 @@ public class SuscriptionPaymentService {
 
 	public boolean canSuscriptionBePayed(Long suscriptionId, OutsitePaymentProvider currentProviderImpl)
 			throws PaymentAlreadyDone {
-		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByDateDesc(suscriptionId);
-
+		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
+		
 		// First pay to be made
 		if (lastPaymentOpt.isEmpty()) {
 			return true;

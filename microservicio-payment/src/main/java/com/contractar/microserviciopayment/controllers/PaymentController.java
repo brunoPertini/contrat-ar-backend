@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
+import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.dtos.PaymentDTO;
@@ -30,7 +31,8 @@ public class PaymentController {
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_SIGNUP_SUSCRIPTION)
-	public ResponseEntity<?> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound, PaymentAlreadyDone {
+	public ResponseEntity<?> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound,
+	PaymentAlreadyDone, PaymentCantBeDone {
 		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId);
 		return ResponseEntity.ok(checkoutUrl);
 	}

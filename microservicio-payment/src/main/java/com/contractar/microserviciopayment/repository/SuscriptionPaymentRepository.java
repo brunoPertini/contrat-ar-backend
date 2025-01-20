@@ -13,6 +13,6 @@ public interface SuscriptionPaymentRepository extends CrudRepository<Suscription
 	@SuppressWarnings("unchecked")
 	SuscriptionPayment save(SuscriptionPayment s);
 
-	Optional<SuscriptionPayment> findTopBySuscripcionIdOrderByDateDesc(Long suscripcionId);
+	Optional<SuscriptionPayment> findTopBySuscripcionIdOrderByPaymentPeriodDesc(Long suscripcionId);
 
 }
