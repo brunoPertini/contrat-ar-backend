@@ -2,8 +2,6 @@ package com.contractar.microserviciousuario.services;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +12,7 @@ import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.SubscriptionAlreadyExistsException;
 import com.contractar.microserviciousuario.models.Plan;
@@ -22,8 +21,6 @@ import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.repository.PlanRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.SuscripcionRepository;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class ProveedorService {
@@ -67,6 +64,12 @@ public class ProveedorService {
 	public List<Plan> findAll() {
 		return planRepository.findAll();
 	}
+	
+	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {
+		return this.suscripcionRepository.findById(id)
+				.map(s -> s)
+				.orElseThrow(() -> new SuscriptionNotFound(""));
+	}
 
 	public SuscripcionDTO createSuscripcion(Long proveedorId, Long planId)
 			throws UserNotFoundException, CantCreateException {
@@ -84,6 +87,8 @@ public class ProveedorService {
 
 		proveedor.setSuscripcion(suscripcion);
 		proveedorRepository.save(proveedor);
+		
+		// TODO: no setearla by default como activa. Si es un plan pago, setearla inactiva para que despues si se completa el primer pago se actualize como activa.
 
 		return new SuscripcionDTO(suscripcion.getId(), true, proveedorId, planId, suscripcion.getCreatedDate(), fetchDatePattern());
 

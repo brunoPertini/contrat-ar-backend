@@ -22,7 +22,7 @@ public class ProductoFetchingMethodResolver implements VendibleFetchingMethodRes
 	@Override
 	public Supplier<List<? extends Vendible>> getFindByNombreRepositoryMethod(String nombre, Long categoryId, String userRole) {
 		return () -> {
-			if(Optional.ofNullable(nombre).isEmpty()) {
+			if(Optional.ofNullable(nombre).isEmpty() && Optional.ofNullable(categoryId).isEmpty()) {
 				return this.productoRepository.findAllOnlyWithActivePosts(userRole);
 			}
 			

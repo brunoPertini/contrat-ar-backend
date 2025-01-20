@@ -20,6 +20,7 @@ import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.exceptions.vendibles.OperationNotAllowedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.SubscriptionAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
@@ -55,7 +56,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	@ExceptionHandler(value = { VendibleBindingException.class, VendibleAlreadyBindedException.class,
 			VendibleNotFoundException.class, VendibleAlreadyExistsException.class, VendibleUpdateException.class,
-			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class })
+			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class, SuscriptionNotFound.class })
 	public ResponseEntity<Object> handleCustomExceptions(Exception ex) throws JsonMappingException, JsonProcessingException {
 		if (ex instanceof RestClientException) {
 			RestClientResponseException castedRestException = (RestClientResponseException) ex; 
