@@ -88,3 +88,4 @@ microservicio-payment/target/classes/META-INF/maven/com.contractar/microservicio
 microservicio-payment/.classpath
 microservicio-payment/.factorypath
 microservicio-payment/target/classes/META-INF/maven/com.contractar/microservicio-payment/pom.xml
+/microservicio-payment/target

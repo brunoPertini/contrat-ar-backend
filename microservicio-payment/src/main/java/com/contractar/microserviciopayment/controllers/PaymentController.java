@@ -37,6 +37,12 @@ public class PaymentController {
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
+	@GetMapping(PaymentControllerUrls.PAYMENT_BY_ID)
+	public ResponseEntity<?> wasPaymentOk(@PathVariable Long id) {
+		boolean wasAcepted = paymentService.wasPaymentAccepted(id);
+		return (wasAcepted ? ResponseEntity.ok() : ResponseEntity.status(409)).build();
+ 	}
+	
 	@PostMapping(PaymentControllerUrls.PAYMENT_BASE_URL)
 	public ResponseEntity<?> createPayment(@RequestBody @Valid PaymentCreateDTO body) {
 		return new ResponseEntity<>(paymentService.createPayment(body), HttpStatusCode.valueOf(200));

@@ -286,5 +286,11 @@ public class PaymentService {
 				.getOutsitePaymentProvider();
 		paymentProviderImpl.handleWebhookNotification(body);
 	}
+	
+	public boolean wasPaymentAccepted(Long paymentId) {
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+		return paymentRepository.findById(paymentId).map(p -> paymentProviderImpl.wasPaymentAccepted(p)).orElse(false);
+	}
 
 }
