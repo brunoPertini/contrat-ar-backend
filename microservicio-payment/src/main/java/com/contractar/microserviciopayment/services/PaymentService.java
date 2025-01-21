@@ -31,6 +31,7 @@ import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
+import com.contractar.microserviciopayment.dtos.PaymentInfoDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
@@ -76,7 +77,7 @@ public class PaymentService {
 
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
-	
+
 	private static int PAYMENT_URL_MINUTES_DURATION;
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
@@ -112,7 +113,7 @@ public class PaymentService {
 				Map.class);
 
 		Map<String, Object> payload = response.getBody();
-		
+
 		long expiresField = ((Number) payload.get("exp")).longValue();
 
 		LocalDateTime dateTimeFromUnix = Instant.ofEpochSecond(expiresField).atZone(ZoneId.systemDefault())
@@ -124,6 +125,12 @@ public class PaymentService {
 
 		return !dateFromUnix.isBefore(today);
 
+	}
+
+	public PaymentInfoDTO getPaymentInfo(Long paymentId) {
+		return this.paymentRepository.findById(paymentId).map(
+				p -> new PaymentInfoDTO(p.getId(), p.getExternalId(), p.getAmount(), p.getCurrency(), p.getState().toString()))
+				.orElse(null);
 	}
 
 	public PaymentProvider getActivePaymentProvider() {
@@ -158,8 +165,8 @@ public class PaymentService {
 	}
 
 	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
-		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId).map(payment -> payment)
-				.orElse(null);
+		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
+				.map(payment -> payment).orElse(null);
 	}
 
 	public Payment createPayment(PaymentCreateDTO dto) {
@@ -191,14 +198,15 @@ public class PaymentService {
 	 *         the pay there
 	 * @throws SuscriptionNotFound
 	 * @throws PaymentAlreadyDone
-	 * @throws PaymentCantBeDone 
+	 * @throws PaymentCantBeDone
 	 */
 	@Transactional
-	public String payLastSuscriptionPeriod(Long suscriptionId) throws SuscriptionNotFound, PaymentAlreadyDone, PaymentCantBeDone {
+	public String payLastSuscriptionPeriod(Long suscriptionId)
+			throws SuscriptionNotFound, PaymentAlreadyDone, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
-		
+
 		// FREE plan cant be payed
 		if (foundSuscription.getPlanId() == 1) {
 			throw new PaymentCantBeDone(getMessageTag("exception.payment.cantBePayed"));
@@ -218,9 +226,10 @@ public class PaymentService {
 		}
 
 		SuscriptionPayment lastPayment = this.findLastSuscriptionPayment(suscriptionId);
-		
+
 		if (lastPayment != null && paymentProviderImpl.isPaymentPending(lastPayment)) {
-			boolean isLinkValid = Duration.between(lastPayment.getLinkCreationTime(), LocalDateTime.now()).toMinutes() <= PAYMENT_URL_MINUTES_DURATION;
+			boolean isLinkValid = Duration.between(lastPayment.getLinkCreationTime(), LocalDateTime.now())
+					.toMinutes() <= PAYMENT_URL_MINUTES_DURATION;
 			if (isLinkValid) {
 				return lastPayment.getPaymentUrl();
 			}
@@ -262,21 +271,21 @@ public class PaymentService {
 
 		String createdPaymentId = createdPayment.getId().toString();
 
-		String successReturnUrl = frontendReturnUrl.replace("{paymentResult}", "success").replace("{paymentId}",
+		String successReturnUrl = frontendReturnUrl.replace("{paymentStatus}", "success").replace("{paymentId}",
 				createdPaymentId);
 
-		String errorReturnUrl = frontendReturnUrl.replace("{paymentResult}", "error").replace("{paymentId}",
+		String errorReturnUrl = frontendReturnUrl.replace("{paymentStatus}", "error").replace("{paymentId}",
 				createdPaymentId);
 
 		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
 
 		String checkoutUrl = paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
 				getMessageTag("payment.suscription.description"), createdPayment.getId(), urls, authToken);
-		
+
 		createdPayment.setPaymentUrl(checkoutUrl);
-		
+
 		createdPayment.setLinkCreationTime(LocalDateTime.now());
-		
+
 		return checkoutUrl;
 
 	}
@@ -286,7 +295,7 @@ public class PaymentService {
 				.getOutsitePaymentProvider();
 		paymentProviderImpl.handleWebhookNotification(body);
 	}
-	
+
 	public boolean wasPaymentAccepted(Long paymentId) {
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();

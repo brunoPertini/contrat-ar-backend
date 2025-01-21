@@ -15,6 +15,7 @@ import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.dtos.PaymentDTO;
+import com.contractar.microserviciopayment.dtos.PaymentInfoDTO;
 import com.contractar.microserviciopayment.dtos.PaymentProviderDTO;
 import com.contractar.microserviciopayment.providers.uala.WebhookBody;
 import com.contractar.microserviciopayment.services.PaymentService;
@@ -38,9 +39,10 @@ public class PaymentController {
 	}
 	
 	@GetMapping(PaymentControllerUrls.PAYMENT_BY_ID)
-	public ResponseEntity<?> wasPaymentOk(@PathVariable Long id) {
-		boolean wasAcepted = paymentService.wasPaymentAccepted(id);
-		return (wasAcepted ? ResponseEntity.ok() : ResponseEntity.status(409)).build();
+	public ResponseEntity<?> getPaymentInfo(@PathVariable Long id) {
+		PaymentInfoDTO dto = paymentService.getPaymentInfo(id);
+		
+		return dto != null ? new ResponseEntity(dto, HttpStatus.OK) : new ResponseEntity(HttpStatusCode.valueOf(404));
  	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_BASE_URL)
