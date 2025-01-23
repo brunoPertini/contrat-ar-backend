@@ -128,9 +128,8 @@ public class PaymentService {
 	}
 
 	public PaymentInfoDTO getPaymentInfo(Long paymentId) {
-		return this.paymentRepository.findById(paymentId).map(
-				p -> new PaymentInfoDTO(p.getId(), p.getExternalId(), p.getAmount(), p.getCurrency(), p.getState().toString()))
-				.orElse(null);
+		return this.paymentRepository.findById(paymentId).map(p -> new PaymentInfoDTO(p.getId(), p.getExternalId(),
+				p.getAmount(), p.getCurrency(), p.getState().toString())).orElse(null);
 	}
 
 	public PaymentProvider getActivePaymentProvider() {
@@ -271,11 +270,12 @@ public class PaymentService {
 
 		String createdPaymentId = createdPayment.getId().toString();
 
-		String successReturnUrl = frontendReturnUrl.replace("{paymentStatus}", "success").replace("{paymentId}",
-				createdPaymentId);
+		String successReturnUrl = frontendReturnUrl
+				.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
+				.replace("{paymentId}", createdPaymentId);
 
-		String errorReturnUrl = frontendReturnUrl.replace("{paymentStatus}", "error").replace("{paymentId}",
-				createdPaymentId);
+		String errorReturnUrl = frontendReturnUrl.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
+				.replace("{paymentId}", createdPaymentId);
 
 		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
 

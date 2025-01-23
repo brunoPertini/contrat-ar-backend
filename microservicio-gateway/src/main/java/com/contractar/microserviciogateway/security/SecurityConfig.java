@@ -105,6 +105,13 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		http.cors().configurationSource(request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
             corsConfiguration.addAllowedOrigin(acceptedOrigins.get("dev"));
+            
+            // TODO: AGREGAR CHEQUEO DE AMBIENTE DEV
+            String origin = request.getHeader("Origin");
+            if (origin != null && origin.contains("ngrok-free.app")) {
+                corsConfiguration.addAllowedOrigin(origin);
+            }
+            
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
             corsConfiguration.setAllowCredentials(false);

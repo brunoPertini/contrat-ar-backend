@@ -64,7 +64,7 @@ public class MailingService {
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 			
 			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.success.title"), emailContent, true);
-		} catch(IOException | MessagingException e) {
+		} catch(Exception e) {
 			System.out.println(e.getMessage());
 		}
 	}

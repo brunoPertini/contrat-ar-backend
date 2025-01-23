@@ -138,4 +138,14 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 		return stateValue.equals(UalaPaymentStateValue.PROCESSED);
 	}
 
+	@Override
+	public String getSuccessStateValue() {
+		return UalaPaymentStateValue.APPROVED.toString();
+	}
+
+	@Override
+	public String getFailureStateValue() {
+		return UalaPaymentStateValue.REJECTED.toString();
+	}
+
 }

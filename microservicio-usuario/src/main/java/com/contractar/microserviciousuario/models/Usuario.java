@@ -50,7 +50,7 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	@NotBlank
 	private String email;
 
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT 0")
 	private boolean active;
 
 	@NotNull

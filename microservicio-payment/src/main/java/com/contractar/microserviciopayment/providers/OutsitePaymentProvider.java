@@ -34,5 +34,9 @@ public interface OutsitePaymentProvider<E, M, R, D> {
 	public boolean isPaymentPending(Payment payment);
 	
 	public boolean isPaymentProcessed(Payment payment);
+	
+	public String getSuccessStateValue();
+	
+	public String getFailureStateValue();
 
 }
