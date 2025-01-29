@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.DateControllerUrls;
 import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
@@ -80,8 +81,10 @@ public class ProveedorService {
 		if (suscripcionRepository.existsByUsuario_Id(proveedorId)) {
 			throw new SubscriptionAlreadyExistsException(usuarioService.getMessageTag("exceptions.subscription.alreadyCreated"));
 		}
+		
+		boolean isActive = plan.getType().equals(PlanType.FREE);
 
-		Suscripcion suscripcion = new Suscripcion(true, proveedor, plan, LocalDate.now());
+		Suscripcion suscripcion = new Suscripcion(isActive, proveedor, plan, LocalDate.now());
 
 		suscripcionRepository.save(suscripcion);
 
@@ -90,7 +93,7 @@ public class ProveedorService {
 		
 		// TODO: no setearla by default como activa. Si es un plan pago, setearla inactiva para que despues si se completa el primer pago se actualize como activa.
 
-		return new SuscripcionDTO(suscripcion.getId(), true, proveedorId, planId, suscripcion.getCreatedDate(), fetchDatePattern());
+		return new SuscripcionDTO(suscripcion.getId(), isActive, proveedorId, planId, suscripcion.getCreatedDate(), fetchDatePattern());
 
 	}
 }

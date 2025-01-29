@@ -78,7 +78,7 @@ public class PaymentService {
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
 
-	private static int PAYMENT_URL_MINUTES_DURATION;
+	private static int PAYMENT_URL_MINUTES_DURATION = 15;
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
 			PaymentProviderRepository paymentProviderRepository, PaymentRepository paymentRepository,
