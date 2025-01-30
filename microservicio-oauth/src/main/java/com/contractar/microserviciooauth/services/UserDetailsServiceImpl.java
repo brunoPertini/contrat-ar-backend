@@ -1,6 +1,5 @@
 package com.contractar.microserviciooauth.services;
 
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +12,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.IndexPagesRoutes;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
@@ -37,22 +38,31 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String email) {
-		try {
-			Map<String, String> parameters = Map.ofEntries(new AbstractMap.SimpleEntry<String, String>("email", email));
+	public UserDetails loadUserByUsername(String email) {				
+		UriComponentsBuilder usersByEmailUrlBuilder = UriComponentsBuilder.fromHttpUrl(usersPath)
+				.queryParam("email", email)
+				.queryParam("checkIfInactive", "true");
 
-			UsuarioOauthDTO user = httpClient.getForObject(usersPath, UsuarioOauthDTO.class, parameters);
+		UsuarioOauthDTO user = httpClient.getForObject(usersByEmailUrlBuilder.toUriString(), UsuarioOauthDTO.class);
 
-			return user;
+		return user;
 
-		} catch (Exception e) {
-			throw e;
-		}
+	}
+	
+	public UserDetails loadUserByEmail(String email, boolean checkIfInactive) {				
+		UriComponentsBuilder usersByEmailUrlBuilder = UriComponentsBuilder.fromHttpUrl(usersPath)
+				.queryParam("email", email)
+				.queryParam("checkIfInactive", String.valueOf(checkIfInactive))
+				.encode();
+
+		UsuarioOauthDTO user = httpClient.getForObject(usersByEmailUrlBuilder.toUriString(), UsuarioOauthDTO.class);
+
+		return user;
 
 	}
 
-	public String createJwtForUser(String email, String password, UsuarioOauthDTO userDetails, List<SimpleGrantedAuthority> authorities) 
-			throws UserNotFoundException {
+	public String createJwtForUser(String email, String password, UsuarioOauthDTO userDetails,
+			List<SimpleGrantedAuthority> authorities) throws UserNotFoundException {
 		if (passwordEncoder.matches(password, userDetails.getPassword())) {
 			Map<String, Object> claims = new HashMap<>();
 			String userRole = userDetails.getRole().getNombre();
@@ -64,7 +74,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			claims.put("surname", userDetails.getSurname());
 			claims.put("indexPage", indexPage);
 			claims.put("authorities", authorities);
-			return jwtHelper.createJwtForClaims(email, claims);
+			return jwtHelper.createJwtForClaims(email, claims, 40);
 		}
 
 		throw new UserNotFoundException();

@@ -40,7 +40,6 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 
 	@OneToOne
 	@JoinColumn(name = "suscripcion")
-	@NotNull
 	private Suscripcion suscripcion;
 
 	@Enumerated(EnumType.STRING)

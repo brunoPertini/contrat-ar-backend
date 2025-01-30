@@ -50,18 +50,21 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
 		this.dni = proveedor.getDni();
-		this.setSubscription(suscripcionAccesor, null);
+		Optional.ofNullable(proveedor.getSuscripcion()).ifPresent(subscription -> {
+			this.setSubscription(subscription, null);
+		});
 	}
 	
 	public ProveedorDTO(ProveedorAccessor proveedor, @Nullable String subscriptionDatePattern) {
 		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
-		SuscripcionAccesor suscripcionAccesor = proveedor.getSuscripcion();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
 		this.dni = proveedor.getDni();
-		this.setSubscription(suscripcionAccesor, subscriptionDatePattern);
+		Optional.ofNullable(proveedor.getSuscripcion()).ifPresent(subscription -> {
+			this.setSubscription(subscription, subscriptionDatePattern);
+		});
 	}
 	
 	private void setSubscription(SuscripcionAccesor suscripcionAccesor, @Nullable String subscriptionDatePattern) {

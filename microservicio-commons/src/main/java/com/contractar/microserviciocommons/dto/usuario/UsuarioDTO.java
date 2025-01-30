@@ -38,6 +38,9 @@ public class UsuarioDTO {
 	
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private RoleAccesor role;
+	
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	private String creationToken;
 
 	public UsuarioDTO() {
 	}
@@ -135,6 +138,14 @@ public class UsuarioDTO {
 
 	public void setRole(RoleAccesor role) {
 		this.role = role;
+	}
+	
+	public String getCreationToken() {
+		return creationToken;
+	}
+
+	public void setCreationToken(String creationToken) {
+		this.creationToken = creationToken;
 	}
 
 }

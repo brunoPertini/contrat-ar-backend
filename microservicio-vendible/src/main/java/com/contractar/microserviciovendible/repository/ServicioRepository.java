@@ -32,9 +32,9 @@ public interface ServicioRepository extends PagingAndSortingRepository<Servicio,
 			+ "INNER JOIN vendible_category vc ON (pv.category_id=vc.id)"
 			+ "WHERE ((v.vendible_type = 'servicio') "
 			+ "AND (:userRole = 'ADMIN' OR pv.state='ACTIVE') "
-			+ "AND (v.nombre LIKE %:nombre%)  "
+			+ "AND (:searchAttribute IS NULL OR (v.nombre LIKE CONCAT('%', :searchAttribute, '%')))  "
 			+ "AND (vc.id=:categoryId))"
 			+ "ORDER BY v.nombre ASC", nativeQuery = true)
-	public List<Servicio> findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(@Param("nombre") String nombre,
+	public List<Servicio> findByNombreAndCategoryContainingIgnoreCaseOrderByNombreAsc(@Param("searchAttribute") String nombre,
 			@Param("categoryId") Long categoryId, @Param("userRole") String userRole);
 }

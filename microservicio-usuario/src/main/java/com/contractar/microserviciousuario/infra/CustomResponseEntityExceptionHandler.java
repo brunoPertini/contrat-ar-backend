@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.infra;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -13,12 +14,15 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.exceptions.vendibles.OperationNotAllowedException;
+import com.contractar.microserviciocommons.exceptions.vendibles.SubscriptionAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyExistsException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
@@ -44,7 +48,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class, IllegalAccessException.class,
 			InvocationTargetException.class, UserInactiveException.class, OperationNotAllowedException.class,
-			VendibleUpdateRuntimeException.class})
+			VendibleUpdateRuntimeException.class, SubscriptionAlreadyExistsException.class})
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {
 		HttpStatus httpStatus = ex instanceof OperationNotAllowedException ? HttpStatus.FORBIDDEN : HttpStatus.CONFLICT;
 		return ResponseEntity.status(httpStatus).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
@@ -52,7 +56,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	@ExceptionHandler(value = { VendibleBindingException.class, VendibleAlreadyBindedException.class,
 			VendibleNotFoundException.class, VendibleAlreadyExistsException.class, VendibleUpdateException.class,
-			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class })
+			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class, SuscriptionNotFound.class })
 	public ResponseEntity<Object> handleCustomExceptions(Exception ex) throws JsonMappingException, JsonProcessingException {
 		if (ex instanceof RestClientException) {
 			RestClientResponseException castedRestException = (RestClientResponseException) ex; 
@@ -65,5 +69,11 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		CustomException castedException = (CustomException) ex;
 		return new ExceptionFactory().getResponseException(castedException.getMessage(),
 				HttpStatusCode.valueOf(castedException.getStatusCode()));
+	}
+	
+	@ExceptionHandler(value = { AccountVerificationException.class })
+	public ResponseEntity<Object> handleAccountVerificationExceptions(AccountVerificationException ex) {
+		return new ExceptionFactory().getResponseException(ex.getMessage(),
+				HttpStatusCode.valueOf(ex.getStatusCode()), Map.of("verificationCode", ex.getVerificationCode()));
 	}
 }
