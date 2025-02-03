@@ -174,6 +174,8 @@ public class AdminService {
 			attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
 			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false,
 					sourceTableIds.stream().map(Long::parseLong).collect(Collectors.toList()), List.of("id"));
+			
+			newRequest.setChangeDetailUrl(newInfo.getChangeDetailUrl(newInfo.getUserId()));
 			repository.save(newRequest);
 		}
 
