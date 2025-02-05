@@ -3,13 +3,13 @@ package com.contractar.microserviciocommons.dto.usuario.sensibleinfo;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 
 public class UsuarioAbstractDTO {
-	Long userId;
+	Long id; // User id
 	private Boolean active;
 	
 	public UsuarioAbstractDTO() {}
 	
 	public UsuarioAbstractDTO(Long userId, boolean isActive) {
-		this.userId = userId;
+		this.id = userId;
 		this.active = isActive;
 	}
 
@@ -26,11 +26,11 @@ public class UsuarioAbstractDTO {
 	}
 	
 	public Long getUserId() {
-		return userId;
+		return id;
 	}
 
 	public void setUserId(Long userId) {
-		this.userId = userId;
+		this.id = userId;
 	}
 	
 	public static String getChangeDetailUrl(Long userId) {
