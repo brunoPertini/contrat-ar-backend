@@ -43,13 +43,13 @@ public class AdminController {
 	};
 
 	@PatchMapping(AdminControllerUrls.CHANGE_REQUEST_BY_ID)
-	public ResponseEntity<?> confirmUserRequestChange(@PathVariable("id") Long id) throws ChangeConfirmException {
+	public ResponseEntity<?> confirmUserRequestChange(@PathVariable Long id) throws ChangeConfirmException {
 		adminService.confirmChangeRequest(id);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
 	@DeleteMapping(AdminControllerUrls.CHANGE_REQUEST_BY_ID)
-	public ResponseEntity<?> denyRequestChange(@PathVariable("id") Long id)
+	public ResponseEntity<?> denyRequestChange(@PathVariable Long id)
 			throws ChangeConfirmException, VendibleNotFoundException, ClassNotFoundException, IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException {
 		adminService.denyChangeRequest(id);
