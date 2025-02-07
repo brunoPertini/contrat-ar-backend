@@ -1,5 +1,7 @@
 package com.contractar.microserviciomailing.controllers;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciomailing.services.MailingService;
 
-import jakarta.servlet.http.HttpServlet;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
@@ -39,8 +41,9 @@ public class MailingController {
 	}
 	
 	@PostMapping(SecurityControllerUrls.SEND_2FA_MAIL)
-	ResponseEntity<Void> send2faMail(@RequestBody @Valid TwoFactorAuthMailInfo body) {
-		
+	ResponseEntity<Void> send2faMail(@RequestBody @Valid TwoFactorAuthMailInfo body) throws IOException, MessagingException {
+		service.sendTwoFactorAuthenticationEmail(body);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 }

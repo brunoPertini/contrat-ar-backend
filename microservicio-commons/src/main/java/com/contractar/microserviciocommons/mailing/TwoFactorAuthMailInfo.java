@@ -7,6 +7,9 @@ public class TwoFactorAuthMailInfo extends MailInfo {
 	private int code;
 	
 	@NotNull
+	private String fullUserName;
+	
+	@NotNull
 	private int expiresInMinutes;
 
 	public int getCode() {
@@ -25,12 +28,22 @@ public class TwoFactorAuthMailInfo extends MailInfo {
 		this.expiresInMinutes = expiresInMinutes;
 	}
 	
+	public String getFullUserName() {
+		return fullUserName;
+	}
+
+	public void setFullUserName(String fullUserName) {
+		this.fullUserName = fullUserName;
+	}
+
+	
 	public TwoFactorAuthMailInfo() {}
 
-	public TwoFactorAuthMailInfo(String toAddress, int code, int expiresInMinutes) {
+	public TwoFactorAuthMailInfo(String toAddress, int code, int expiresInMinutes, String fullUserName) {
 		super(toAddress);
 		this.code = code;
 		this.expiresInMinutes = expiresInMinutes;
+		this.fullUserName = fullUserName;
 	}
 
 }

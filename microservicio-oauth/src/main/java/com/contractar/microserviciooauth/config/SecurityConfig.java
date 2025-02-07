@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.RSAKey;
 
@@ -49,7 +50,8 @@ public class SecurityConfig {
 				"/oauth/login",
 				"/oauth/userId",
 				"/oauth/public_key",
-				"/oauth/token/**")
+				"/oauth/token/**",
+				SecurityControllerUrls.SEND_2FA_MAIL)
 				.anonymous().anyRequest().authenticated());
 
 		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));

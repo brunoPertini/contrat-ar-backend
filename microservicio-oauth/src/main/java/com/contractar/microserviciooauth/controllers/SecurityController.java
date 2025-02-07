@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -23,6 +24,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
+import com.contractar.microserviciooauth.services.TwoFactorAuthenticationService;
 import com.contractar.microserviciooauth.services.UserDetailsServiceImpl;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,6 +37,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityController {
 
 	private UserDetailsService userDetailsService;
+	
+	private TwoFactorAuthenticationService twoFactorAuthenticationService;
 
 	@Autowired
 	private RSAPublicKey storePublicKey;
@@ -42,8 +46,9 @@ public class SecurityController {
 	@Autowired
 	private JwtHelper jwtHelper;
 
-	public SecurityController(UserDetailsService userDetailsService) {
+	public SecurityController(UserDetailsService userDetailsService, TwoFactorAuthenticationService twoFactorAuthenticationService) {
 		this.userDetailsService = userDetailsService;
+		this.twoFactorAuthenticationService = twoFactorAuthenticationService;
 	}
 
 	@GetMapping("/oauth/login")
@@ -125,5 +130,10 @@ public class SecurityController {
 	public ResponseEntity<Boolean> verifyToken(@RequestParam(required = true) String token) {
 		boolean result = jwtHelper.verifyToken(token);
 		return new ResponseEntity<Boolean>(result, HttpStatus.OK);
+	}
+	
+	@PostMapping(SecurityControllerUrls.SEND_2FA_MAIL)
+	public ResponseEntity<?> requestTwoFactorAuthentication (HttpServletRequest request) throws JsonProcessingException {
+		 return new ResponseEntity<>(twoFactorAuthenticationService.saveRecordForUser(request.getHeader("Authorization")), HttpStatus.CREATED);
 	}
 }
