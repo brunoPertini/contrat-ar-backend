@@ -9,9 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciomailing.services.MailingService;
 
+import jakarta.servlet.http.HttpServlet;
+import jakarta.validation.Valid;
+
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
 
 @RestController
 public class MailingController {
@@ -31,6 +36,11 @@ public class MailingController {
 		service.sendWelcomeEmail(mailInfo);
 		return new ResponseEntity<>(HttpStatus.OK);
 
+	}
+	
+	@PostMapping(SecurityControllerUrls.SEND_2FA_MAIL)
+	ResponseEntity<Void> send2faMail(@RequestBody @Valid TwoFactorAuthMailInfo body) {
+		
 	}
 
 }
