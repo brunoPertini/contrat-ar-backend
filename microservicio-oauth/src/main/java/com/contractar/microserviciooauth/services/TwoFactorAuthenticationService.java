@@ -38,6 +38,9 @@ public class TwoFactorAuthenticationService {
 
 	@Value("${microservicio-mailing.url}")
 	private String malilingServiceUrl;
+	
+	@Value("${microservicio-config.url}")
+	private String configServiceUrl;
 
 	public TwoFactorAuthenticationService(RestTemplate httpClient, JwtHelper jwtHelper,
 			TwoFactorAuthenticationRepository repository) {
@@ -45,6 +48,11 @@ public class TwoFactorAuthenticationService {
 		this.jwtHelper = jwtHelper;
 		this.repository = repository;
 		this.secureRandom = new SecureRandom();
+	}
+	
+	private String getMessageTag(String tagId) {
+		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
+		return httpClient.getForObject(fullUrl, String.class);
 	}
 
 	private void send2FaEmaiil(TwoFactorAuthenticationRecord newRecord, String userEmail, String userFullName) {
@@ -102,7 +110,7 @@ public class TwoFactorAuthenticationService {
 			}
 
 			if (!codeIsExpired && !twoFaRecord.wasChecked()) {
-				throw new TwoFaCodeAlreadySendException("¡El código ya fue enviado! Podrás reenviarlo en unos minutos");
+				throw new TwoFaCodeAlreadySendException(getMessageTag("exceptions.2fa.alreadySend"));
 			}
 
 			return saveNewRecordForUser(userId, email, fullName);
@@ -121,13 +129,13 @@ public class TwoFactorAuthenticationService {
 				.findTopByUserIdOrderByCreationDateTimeDesc(userId);
 
 		if (recordOpt.isEmpty()) {
-			throw new CodeWasntRequestedException("¡No solicitaste ningún código!");
+			throw new CodeWasntRequestedException(getMessageTag("exceptions.2fa.noCodeRequested"));
 		}
 
 		TwoFactorAuthenticationRecord lastRecord = recordOpt.get();
 
 		if (lastRecord.wasChecked()) {
-			throw new CodeWasAlreadyApplied("¡El código ya fue aplicado!");
+			throw new CodeWasAlreadyApplied(getMessageTag("exceptions.2fa.codeAlreadyApplied"));
 		}
 
 		TwoFactorAuthResult newResult;

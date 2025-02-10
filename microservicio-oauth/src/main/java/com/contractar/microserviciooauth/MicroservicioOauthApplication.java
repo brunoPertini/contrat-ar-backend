@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication()
-@EnableJpaRepositories(basePackages = "com.contractar.microserviciooauth.repositories")
 public class MicroservicioOauthApplication {
 
 	public static void main(String[] args) {
