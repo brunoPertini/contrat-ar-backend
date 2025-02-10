@@ -15,22 +15,35 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 @Component
 public class JwtHelper {
 
 	private final RSAPrivateKey privateKey;
 	private final RSAPublicKey publicKey;
+	private RestTemplate httpClient;
+	
+	@Value("${microservicio-config.url}")
+	private String configServiceUrl;
 
-	public JwtHelper(RSAPrivateKey storePrivateKey, RSAPublicKey storePublicKey) {
+	public JwtHelper(RSAPrivateKey storePrivateKey, RSAPublicKey storePublicKey, RestTemplate httpClient) {
 		this.privateKey = storePrivateKey;
 		this.publicKey = storePublicKey;
+		this.httpClient = httpClient;
+	}
+	
+	private String getMessageTag(String tagId) {
+		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
+		return httpClient.getForObject(fullUrl, String.class);
 	}
 
 	public String createJwtForClaims(String subject, Map<String, Object> claims, int expiresInMinutes) {
@@ -63,20 +76,24 @@ public class JwtHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Object parsePayloadFromJwt(String jwtToken) throws JsonProcessingException {
+	public Object parsePayloadFromJwt(String jwtToken) throws JsonProcessingException, SessionExpiredException {
 		Algorithm algorithm = Algorithm.RSA256(publicKey);
 		JWTVerifier verifier = JWT.require(algorithm).build();
 
-		DecodedJWT decodedJWT = verifier.verify(jwtToken.replace("Bearer ", ""));
+		try {
+			DecodedJWT decodedJWT = verifier.verify(jwtToken.replace("Bearer ", ""));
 
-		String payload = decodedJWT.getPayload();
+			String payload = decodedJWT.getPayload();
 
-		ObjectMapper objectMapper = new ObjectMapper();
+			ObjectMapper objectMapper = new ObjectMapper();
 
-		byte[] decodedPayloadBytes = Base64.getDecoder().decode(payload);
-		String decodedPayloadString = new String(decodedPayloadBytes);
+			byte[] decodedPayloadBytes = Base64.getDecoder().decode(payload);
+			String decodedPayloadString = new String(decodedPayloadBytes);
 
-		return objectMapper.readValue(decodedPayloadString, Object.class);
+			return objectMapper.readValue(decodedPayloadString, Object.class);
+		} catch(JWTVerificationException ex) {
+			throw new SessionExpiredException(getMessageTag("exceptions.session.expried"));
+		}
 	}
 	
 	public Object parsePayloadFromUnverifiedToken(String jwtToken) throws JsonMappingException, JsonProcessingException {

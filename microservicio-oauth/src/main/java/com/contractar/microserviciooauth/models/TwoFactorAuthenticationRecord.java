@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.time.Instant;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,15 +22,17 @@ public class TwoFactorAuthenticationRecord implements Serializable{
 	private Long userId;
 	private int code;
 	private Instant creationDateTime;
-	private boolean wasChecked;
+	
+	@Enumerated(EnumType.STRING)
+	private TwoFactorAuthResult result;
 	
 	public TwoFactorAuthenticationRecord() {}
 	
-	public TwoFactorAuthenticationRecord(Long userId, int code, Instant creationDateTime, boolean wasChecked) {
+	public TwoFactorAuthenticationRecord(Long userId, int code, Instant creationDateTime, TwoFactorAuthResult result) {
 		this.userId = userId;
 		this.code = code;
 		this.creationDateTime = creationDateTime;
-		this.wasChecked = wasChecked;
+		this.result = result;
 	}
 	public Long getId() {
 		return id;
@@ -54,10 +58,13 @@ public class TwoFactorAuthenticationRecord implements Serializable{
 	public void setCreationDateTime(Instant creationDateTime) {
 		this.creationDateTime = creationDateTime;
 	}
-	public boolean isWasChecked() {
-		return wasChecked;
+	public TwoFactorAuthResult getResult() {
+		return result;
 	}
-	public void setWasChecked(boolean wasChecked) {
-		this.wasChecked = wasChecked;
+	public void setResult(TwoFactorAuthResult result) {
+		this.result = result;
+	}
+	public boolean wasChecked() {
+		return this.result.equals(TwoFactorAuthResult.PASSED) || this.result.equals(TwoFactorAuthResult.FAILED);
 	}
 }

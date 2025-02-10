@@ -51,7 +51,8 @@ public class SecurityConfig {
 				"/oauth/userId",
 				"/oauth/public_key",
 				"/oauth/token/**",
-				SecurityControllerUrls.SEND_2FA_MAIL)
+				SecurityControllerUrls.SEND_2FA_MAIL,
+				SecurityControllerUrls.SEND_2FA_MAIL_CONFIRM)
 				.anonymous().anyRequest().authenticated());
 
 		http.oauth2Client(oauth2 -> oauth2.clientRegistrationRepository(this.clientRepository()));

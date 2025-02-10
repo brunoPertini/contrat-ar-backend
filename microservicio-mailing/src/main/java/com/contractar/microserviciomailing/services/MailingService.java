@@ -87,7 +87,8 @@ public class MailingService {
 	
 	public void sendTwoFactorAuthenticationEmail(TwoFactorAuthMailInfo mailInfo) throws IOException, MessagingException {
 		String emailContent = new FileReader()
-				.readFile("/static/welcome-email-template.html")
+				.readFile("/static/two-factor-code-email.html")			
+				.replaceAll("\\$\\{code\\}", String.valueOf(mailInfo.getCode()))
 				.replaceAll("\\$\\{userName\\}", mailInfo.getFullUserName())
 				.replaceAll("\\$\\{expiresInMinutes\\}", String.valueOf(mailInfo.getExpiresInMinutes()))
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
