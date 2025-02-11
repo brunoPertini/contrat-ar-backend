@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -136,6 +137,11 @@ public class SecurityController {
 	public ResponseEntity<Boolean> verifyToken(@RequestParam(required = true) String token) {
 		boolean result = jwtHelper.verifyToken(token);
 		return new ResponseEntity<Boolean>(result, HttpStatus.OK);
+	}
+	
+	@GetMapping(SecurityControllerUrls.CHECK_USER_2FA)
+	public ResponseEntity<Boolean> checkUser2faRecord(@PathVariable(required = true) String jwt) throws JsonProcessingException, SessionExpiredException {
+		return new ResponseEntity<Boolean>(twoFactorAuthenticationService.isUser2faStillValid(jwt), HttpStatus.OK);
 	}
 	
 	@PostMapping(SecurityControllerUrls.SEND_2FA_MAIL)

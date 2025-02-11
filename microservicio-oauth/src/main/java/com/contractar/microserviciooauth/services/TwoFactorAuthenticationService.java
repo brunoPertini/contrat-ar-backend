@@ -34,7 +34,11 @@ public class TwoFactorAuthenticationService {
 
 	private final SecureRandom secureRandom;
 
+	// 2fa code ttl
 	private static final int EXPIRES_IN_MINUTES = 1;
+	
+	//2fa successful verification ttl in minutes
+	private static final int SUSSCESSFUL_CHECK_TTL = 5;
 
 	@Value("${microservicio-mailing.url}")
 	private String malilingServiceUrl;
@@ -53,6 +57,19 @@ public class TwoFactorAuthenticationService {
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
+	}
+	
+	public boolean isUser2faStillValid(String jwt) throws JsonProcessingException, SessionExpiredException {
+		Map<String, Object> tokenPayload = (Map<String, Object>) jwtHelper.parsePayloadFromJwt(jwt);
+
+		Long userId = Long.valueOf((String) tokenPayload.get("id"));
+
+		Optional<TwoFactorAuthenticationRecord> recordOpt = repository
+				.findTopByUserIdOrderByCreationDateTimeDesc(userId);
+		
+		return recordOpt.map((lastRecord) -> {
+			return !Instant.now().isAfter(lastRecord.getCreationDateTime().plus(SUSSCESSFUL_CHECK_TTL, ChronoUnit.MINUTES));
+		}).orElseGet(() -> false);
 	}
 
 	private void send2FaEmaiil(TwoFactorAuthenticationRecord newRecord, String userEmail, String userFullName) {

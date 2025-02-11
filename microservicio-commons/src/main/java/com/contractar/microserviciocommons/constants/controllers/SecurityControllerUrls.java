@@ -15,5 +15,7 @@ public final class SecurityControllerUrls {
 	public static final String SEND_2FA_MAIL = "/security/2fa";
 	
 	public static final String SEND_2FA_MAIL_CONFIRM = SEND_2FA_MAIL + "/{code}";
+	
+	public static final String CHECK_USER_2FA = SEND_2FA_MAIL + "/{jwt}";
 
 }

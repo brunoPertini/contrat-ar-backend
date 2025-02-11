@@ -272,6 +272,12 @@ public class UsuarioService {
 			throw new UserNotFoundException("Usuario no encontrado");
 		}
 	}
+	
+	public boolean isTwoFactorCodeValid(String jwt) {				
+		String url = serviceSecurityUrl + SecurityControllerUrls.CHECK_USER_2FA.replace("{jwt}", jwt);
+				
+		return httpClient.getForObject(url, Boolean.class);
+	}
 
 	public void addVendible(Long vendibleId, Long proveedorId, ProveedorVendible proveedorVendible)
 			throws VendibleBindingException, VendibleAlreadyBindedException {
