@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -109,11 +110,13 @@ public class TwoFactorAuthenticationService {
 	 */
 	public int saveRecordForUser(String jwt) throws JsonProcessingException, SessionExpiredException {
 		Map<String, Object> tokenPayload = (Map<String, Object>) jwtHelper.parsePayloadFromJwt(jwt);
+		
+		final Function<String, String> parseValueToString = (String key) -> (String) tokenPayload.get(key);
 
-		Long userId = Long.valueOf((String) tokenPayload.get("id"));
-		String email = (String) tokenPayload.get("sub");
-		String name = (String) tokenPayload.get("name");
-		String surname = (String) tokenPayload.get("surname");
+		Long userId = Long.valueOf(parseValueToString.apply("id"));
+		String email = parseValueToString.apply("sub");
+		String name = parseValueToString.apply("name");
+		String surname = parseValueToString.apply("surname");
 		String fullName = name + " " + surname;
 
 		Optional<TwoFactorAuthenticationRecord> recordOpt = repository
@@ -121,12 +124,12 @@ public class TwoFactorAuthenticationService {
 
 		return recordOpt.map(twoFaRecord -> {
 			boolean codeIsExpired = isCodeExpired(twoFaRecord);
-
-			if (codeIsExpired && !twoFaRecord.wasChecked()) {
-				return saveNewRecordForUser(userId, email, fullName);
-			}
-
-			if (!codeIsExpired && !twoFaRecord.wasChecked()) {
+			
+			if (!twoFaRecord.wasChecked()) {
+				if (codeIsExpired) {
+					return saveNewRecordForUser(userId, email, fullName);
+				}
+				
 				throw new TwoFaCodeAlreadySendException(getMessageTag("exceptions.2fa.alreadySend"));
 			}
 
