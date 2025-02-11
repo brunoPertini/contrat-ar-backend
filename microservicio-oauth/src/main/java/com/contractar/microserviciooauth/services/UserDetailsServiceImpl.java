@@ -15,7 +15,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.IndexPagesRoutes;
-import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;

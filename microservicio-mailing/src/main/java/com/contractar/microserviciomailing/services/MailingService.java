@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
 import com.contractar.microserviciomailing.utils.FileReader;
 
 import jakarta.mail.MessagingException;
@@ -82,6 +83,19 @@ public class MailingService {
 		} catch(IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	public void sendTwoFactorAuthenticationEmail(TwoFactorAuthMailInfo mailInfo) throws IOException, MessagingException {
+		String emailContent = new FileReader()
+				.readFile("/static/two-factor-code-email.html")			
+				.replaceAll("\\$\\{code\\}", String.valueOf(mailInfo.getCode()))
+				.replaceAll("\\$\\{userName\\}", mailInfo.getFullUserName())
+				.replaceAll("\\$\\{expiresInMinutes\\}", String.valueOf(mailInfo.getExpiresInMinutes()))
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{changePasswordLink\\}", env.getProperty("site.changePassword.url"))
+				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
+		
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.2fa.title"), emailContent, true);  
 	}
 
 }

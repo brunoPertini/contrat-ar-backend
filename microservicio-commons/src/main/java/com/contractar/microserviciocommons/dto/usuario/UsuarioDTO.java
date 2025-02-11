@@ -41,6 +41,8 @@ public class UsuarioDTO {
 	
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private String creationToken;
+	
+	private boolean is2FaValid;
 
 	public UsuarioDTO() {
 	}
@@ -147,5 +149,12 @@ public class UsuarioDTO {
 	public void setCreationToken(String creationToken) {
 		this.creationToken = creationToken;
 	}
+	
+	public boolean isIs2FaValid() {
+		return is2FaValid;
+	}
 
+	public void setIs2FaValid(boolean is2FaValid) {
+		this.is2FaValid = is2FaValid;
+	}
 }

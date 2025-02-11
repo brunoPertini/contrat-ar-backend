@@ -7,8 +7,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.contractar.microserviciocommons.exceptions.CustomException;
+import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
+import com.contractar.microserviciooauth.exceptions.CodeWasAlreadyApplied;
+import com.contractar.microserviciooauth.exceptions.CodeWasntRequestedException;
+import com.contractar.microserviciooauth.exceptions.TwoFaCodeAlreadySendException;
 
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
@@ -25,5 +30,21 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		return new ExceptionFactory().getResponseException(castedException.getResponseBodyAsString(),
 				castedException.getStatusCode());
 
+	}
+	
+	@ExceptionHandler(value = { SessionExpiredException.class,
+			CodeWasAlreadyApplied.class,
+			CodeWasntRequestedException.class,
+			TwoFaCodeAlreadySendException.class })
+	public ResponseEntity<Object> handle2FaExceptions(Exception ex) {
+		if (ex instanceof TwoFaCodeAlreadySendException) {
+			int statusCodeValue = ((TwoFaCodeAlreadySendException) ex).getStatusCode();
+			HttpStatusCode statusCode = HttpStatusCode.valueOf(statusCodeValue);
+			return new ExceptionFactory().getResponseException(ex.getMessage(), statusCode);
+		}
+		
+		CustomException castedEx = (CustomException) ex;
+		
+		return new ExceptionFactory().getResponseException(castedEx.getMessage(), HttpStatusCode.valueOf(castedEx.getStatusCode()));
 	}
 }

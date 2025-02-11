@@ -122,20 +122,25 @@ public class UsuarioController {
 	}
 
 	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
-	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable("userId") Long userId,
-			@RequestParam(name = "formatType", required = false) DateFormatType formatType)
+	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable Long userId,
+			@RequestParam(name = "formatType", required = false) DateFormatType formatType,
+			HttpServletRequest request)
 			throws UserNotFoundException {
 		Usuario user = this.usuarioService.findById(userId, false);
+		boolean is2FaValid = this.usuarioService.isTwoFactorCodeValid(request.getHeader("authorization"));
+		
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
 			ProveedorDTO proveedorDTO = dtoHelper.toProveedorDTO(proveedor, formatType);
 			proveedorDTO.setRole(proveedor.getRole());
+			proveedorDTO.setIs2FaValid(is2FaValid);
 			return new ResponseEntity<>(proveedorDTO, HttpStatus.OK);
 		}
 		;
 
 		UsuarioDTO usuarioDTO = DtoHelper.toUsuarioDTO(user);
 		usuarioDTO.setRole(user.getRole());
+		usuarioDTO.setIs2FaValid(is2FaValid);
 
 		return new ResponseEntity<>(usuarioDTO, HttpStatus.OK);
 	}

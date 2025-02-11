@@ -11,18 +11,26 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
+import com.contractar.microserviciooauth.exceptions.CodeWasAlreadyApplied;
+import com.contractar.microserviciooauth.exceptions.CodeWasntRequestedException;
 import com.contractar.microserviciooauth.helpers.JwtHelper;
+import com.contractar.microserviciooauth.services.TwoFactorAuthenticationService;
 import com.contractar.microserviciooauth.services.UserDetailsServiceImpl;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,11 +38,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 
 @RestController
 public class SecurityController {
 
 	private UserDetailsService userDetailsService;
+	
+	private TwoFactorAuthenticationService twoFactorAuthenticationService;
 
 	@Autowired
 	private RSAPublicKey storePublicKey;
@@ -42,8 +53,9 @@ public class SecurityController {
 	@Autowired
 	private JwtHelper jwtHelper;
 
-	public SecurityController(UserDetailsService userDetailsService) {
+	public SecurityController(UserDetailsService userDetailsService, TwoFactorAuthenticationService twoFactorAuthenticationService) {
 		this.userDetailsService = userDetailsService;
+		this.twoFactorAuthenticationService = twoFactorAuthenticationService;
 	}
 
 	@GetMapping("/oauth/login")
@@ -91,7 +103,7 @@ public class SecurityController {
 
 	@GetMapping(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN)
 	public ResponseEntity<?> getTokenPayloadFromHeaders(HttpServletRequest request, @RequestParam(name="verifyToken", required = false) boolean verifyToken)
-			throws JsonProcessingException {
+			throws JsonProcessingException, SessionExpiredException {
 		String token = request.getHeader("authorization");
 		return ResponseEntity.ok(!verifyToken ? 
 				jwtHelper.parsePayloadFromUnverifiedToken(token)
@@ -125,5 +137,21 @@ public class SecurityController {
 	public ResponseEntity<Boolean> verifyToken(@RequestParam(required = true) String token) {
 		boolean result = jwtHelper.verifyToken(token);
 		return new ResponseEntity<Boolean>(result, HttpStatus.OK);
+	}
+	
+	@GetMapping(SecurityControllerUrls.CHECK_USER_2FA)
+	public ResponseEntity<Boolean> checkUser2faRecord(@PathVariable(required = true) String jwt) throws JsonProcessingException, SessionExpiredException {
+		return new ResponseEntity<Boolean>(twoFactorAuthenticationService.isUser2faStillValid(jwt), HttpStatus.OK);
+	}
+	
+	@PostMapping(SecurityControllerUrls.SEND_2FA_MAIL)
+	public ResponseEntity<?> requestTwoFactorAuthentication (HttpServletRequest request) throws JsonProcessingException, SessionExpiredException {
+		 return new ResponseEntity<>(twoFactorAuthenticationService.saveRecordForUser(request.getHeader("Authorization")), HttpStatus.CREATED);
+	}
+	
+	@PatchMapping(SecurityControllerUrls.SEND_2FA_MAIL_CONFIRM)
+	public ResponseEntity<?> confirmTwoFactorAuthentication(@PathVariable @NotNull Integer code, HttpServletRequest request) throws JsonProcessingException,
+	CodeWasntRequestedException, CodeWasAlreadyApplied, SessionExpiredException {
+		return new ResponseEntity<>(twoFactorAuthenticationService.confirmTwoFactorAuthentication(request.getHeader("Authorization"), code), HttpStatus.OK);
 	}
 }
