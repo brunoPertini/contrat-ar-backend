@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
+import com.contractar.microserviciooauth.dtos.Create2FaRecordResponse;
 import com.contractar.microserviciooauth.exceptions.CodeWasAlreadyApplied;
 import com.contractar.microserviciooauth.exceptions.CodeWasntRequestedException;
 import com.contractar.microserviciooauth.exceptions.TwoFaCodeAlreadySendException;
@@ -69,7 +70,8 @@ public class TwoFactorAuthenticationService {
 				.findTopByUserIdOrderByCreationDateTimeDesc(userId);
 		
 		return recordOpt.map((lastRecord) -> {
-			return !Instant.now().isAfter(lastRecord.getCreationDateTime().plus(SUSSCESSFUL_CHECK_TTL, ChronoUnit.MINUTES));
+			return (!Instant.now().isAfter(lastRecord.getCreationDateTime().plus(SUSSCESSFUL_CHECK_TTL, ChronoUnit.MINUTES)) && 
+					(lastRecord.getResult().equals(TwoFactorAuthResult.PASSED)));
 		}).orElseGet(() -> false);
 	}
 
@@ -85,7 +87,7 @@ public class TwoFactorAuthenticationService {
 
 	}
 
-	private int saveNewRecordForUser(Long userId, String userEmail, String userFullName) {
+	private Create2FaRecordResponse saveNewRecordForUser(Long userId, String userEmail, String userFullName) {
 		int generatedCode = secureRandom.nextInt(1000) + 1;
 		TwoFactorAuthenticationRecord newRecord = new TwoFactorAuthenticationRecord(userId, generatedCode,
 				Instant.now(), TwoFactorAuthResult.PENDING);
@@ -93,7 +95,8 @@ public class TwoFactorAuthenticationService {
 		repository.save(newRecord);
 		send2FaEmaiil(newRecord, userEmail, userFullName);
 
-		return String.valueOf(generatedCode).length();
+		int codeLength = String.valueOf(generatedCode).length();
+		return new Create2FaRecordResponse(EXPIRES_IN_MINUTES, codeLength); 
 	}
 
 	private boolean isCodeExpired(TwoFactorAuthenticationRecord twoFaRecord) {
@@ -104,11 +107,11 @@ public class TwoFactorAuthenticationService {
 	/**
 	 * 
 	 * @param jwt
-	 * @return The created code length
+	 * @return The created code length and code's ttl
 	 * @throws JsonProcessingException
 	 * @throws SessionExpiredException
 	 */
-	public int saveRecordForUser(String jwt) throws JsonProcessingException, SessionExpiredException {
+	public Create2FaRecordResponse saveRecordForUser(String jwt) throws JsonProcessingException, SessionExpiredException {
 		Map<String, Object> tokenPayload = (Map<String, Object>) jwtHelper.parsePayloadFromJwt(jwt);
 		
 		final Function<String, String> parseValueToString = (String key) -> (String) tokenPayload.get(key);
