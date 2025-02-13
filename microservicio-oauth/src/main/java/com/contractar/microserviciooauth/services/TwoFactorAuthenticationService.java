@@ -165,9 +165,7 @@ public class TwoFactorAuthenticationService {
 
 		if (isCodeExpired(lastRecord)) {
 			newResult = TwoFactorAuthResult.EXPIRED;
-		}
-
-		if (lastRecord.getCode() == code) {
+		} else 	if (lastRecord.getCode() == code) {
 			newResult = TwoFactorAuthResult.PASSED;
 		} else {
 			newResult = TwoFactorAuthResult.FAILED;
