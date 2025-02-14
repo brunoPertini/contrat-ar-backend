@@ -4,12 +4,13 @@ import java.time.LocalDate;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-public class UsuarioPersonalDataUpdateDTO {
+public class UsuarioPersonalDataUpdateDTO extends UsuarioSensibleInfoDTO{
 	private String name;
 	private String surname;
 	private LocalDate birthDate;
@@ -19,19 +20,17 @@ public class UsuarioPersonalDataUpdateDTO {
 	@JsonDeserialize(using = UbicacionDeserializer.class)
 	private Point location;
 
-	private boolean active;
 
 	public UsuarioPersonalDataUpdateDTO() {
 	}
 
 	public UsuarioPersonalDataUpdateDTO(String name, String surname, LocalDate birthDate, String phone, Point location,
-			boolean active) {
+			Boolean active) {
 		this.name = name;
 		this.surname = surname;
 		this.birthDate = birthDate;
 		this.phone = phone;
 		this.location = location;
-		this.active = active;
 	}
 
 	public String getName() {
@@ -72,13 +71,5 @@ public class UsuarioPersonalDataUpdateDTO {
 
 	public void setLocation(Point location) {
 		this.location = location;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
 	}
 }

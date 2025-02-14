@@ -15,6 +15,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
@@ -35,8 +37,6 @@ import com.contractar.microserviciocommons.constants.controllers.ImagenesControl
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
-import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
-import com.contractar.microserviciocommons.dto.usuario.UsuarioCommonInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstractDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
@@ -172,21 +172,22 @@ public class UsuarioService {
 		return newCliente;
 	}
 
-	public Cliente updateCliente(Long clienteId, UsuarioCommonInfoUpdateDTO newInfo) throws Exception {
+	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo) throws Exception {
 		Optional<Cliente> clienteOpt = this.clienteRepository.findById(clienteId);
 
 		if (!clienteOpt.isPresent()) {
-			throw new UserNotFoundException("El usuario no existe");
+			throw new UserNotFoundException(getMessageTag("exceptions.user.notFound"));
 		}
 
 		Cliente cliente = clienteOpt.get();
 
-		String dtoFullClassName = UsuarioCommonInfoUpdateDTO.class.getPackage().getName()
-				+ ".UsuarioCommonInfoUpdateDTO";
+		String dtoFullClassName = UsuarioPersonalDataUpdateDTO.class.getPackage().getName()
+				+ ".UsuarioPersonalDataUpdateDTO";
 		String entityFullClassName = Cliente.class.getPackage().getName() + ".Cliente";
 
 		try {
 			ReflectionHelper.applySetterFromExistingFields(newInfo, cliente, dtoFullClassName, entityFullClassName);
+			cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
 			clienteRepository.save(cliente);
 			return cliente;
 
@@ -196,13 +197,13 @@ public class UsuarioService {
 		}
 	}
 
-	public Proveedor updateProveedor(Long proovedorId, ProveedorInfoUpdateDTO newInfo)
+	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo)
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException {
 		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
 
 		if (!proveedorOpt.isPresent()) {
-			throw new UserNotFoundException("El usuario no existe");
+			throw new UserNotFoundException(getMessageTag("exceptions.user.notFound"));
 		}
 
 		Proveedor proveedor = proveedorOpt.get();
@@ -224,6 +225,8 @@ public class UsuarioService {
 		String entityFullClassName = ReflectionHelper.getObjectClassFullName(proveedor);
 
 		ReflectionHelper.applySetterFromExistingFields(newInfo, proveedor, dtoFullClassName, entityFullClassName);
+		
+		proveedor.setPassword(passwordEncoder.encode(proveedor.getPassword()));
 
 		proveedorRepository.save(proveedor);
 

@@ -20,7 +20,6 @@ import com.contractar.microserviciocommons.constants.controllers.VendiblesContro
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
@@ -30,6 +29,7 @@ import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNot
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
@@ -122,8 +122,8 @@ public class ProveedorControler {
 	}
 
 	@PutMapping("/proveedor/{proveedorId}")
-	public ResponseEntity<?> updateProveedorInfo(@PathVariable("proveedorId") Long proveedorId,
-			@RequestBody @Valid ProveedorInfoUpdateDTO body) throws UserNotFoundException, ImageNotUploadedException,
+	public ResponseEntity<?> updateProveedorInfo(@PathVariable Long proveedorId,
+			@RequestBody @Valid ProveedorPersonalDataUpdateDTO body) throws UserNotFoundException, ImageNotUploadedException,
 			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Proveedor updated = usuarioService.updateProveedor(proveedorId, body);
 
