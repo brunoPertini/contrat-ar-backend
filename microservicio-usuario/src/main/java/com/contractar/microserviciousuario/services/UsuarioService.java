@@ -235,7 +235,6 @@ public class UsuarioService {
 
 	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo, String jwt)
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException, ChangeConfirmException {
 			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
 		
 		if (!this.isTwoFactorCodeValid(jwt)) {
