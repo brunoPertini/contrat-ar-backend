@@ -15,6 +15,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
+import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -56,7 +57,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	@ExceptionHandler(value = { VendibleBindingException.class, VendibleAlreadyBindedException.class,
 			VendibleNotFoundException.class, VendibleAlreadyExistsException.class, VendibleUpdateException.class,
-			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class, SuscriptionNotFound.class })
+			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class, SuscriptionNotFound.class,
+			CantUpdateUserException.class})
 	public ResponseEntity<Object> handleCustomExceptions(Exception ex) throws JsonMappingException, JsonProcessingException {
 		if (ex instanceof RestClientException) {
 			RestClientResponseException castedRestException = (RestClientResponseException) ex; 

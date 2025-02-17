@@ -42,6 +42,7 @@ import com.contractar.microserviciocommons.constants.controllers.VendiblesContro
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstractDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
+import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -192,7 +193,12 @@ public class UsuarioService {
 		return newCliente;
 	}
 
-	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo) throws Exception {
+	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo, String jwt) throws CantUpdateUserException,
+	UserNotFoundException,
+	ChangeConfirmException{
+		if (!this.isTwoFactorCodeValid(jwt)) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
 		Optional<Cliente> clienteOpt = this.clienteRepository.findById(clienteId);
 
 		if (!clienteOpt.isPresent()) {
@@ -223,13 +229,19 @@ public class UsuarioService {
 
 		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
 				| InvocationTargetException e) {
-			throw e;
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
 	}
 
-	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo)
+	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo, String jwt)
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException, ChangeConfirmException {
+			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
+		
+		if (!this.isTwoFactorCodeValid(jwt)) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
+		
 		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
 
 		if (!proveedorOpt.isPresent()) {

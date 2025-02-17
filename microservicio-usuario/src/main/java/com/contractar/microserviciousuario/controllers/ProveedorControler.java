@@ -23,6 +23,7 @@ import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
+import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
@@ -124,9 +125,9 @@ public class ProveedorControler {
 
 	@PutMapping("/proveedor/{proveedorId}")
 	public ResponseEntity<?> updateProveedorInfo(@PathVariable Long proveedorId,
-			@RequestBody @Valid ProveedorPersonalDataUpdateDTO body) throws UserNotFoundException, ImageNotUploadedException,
-			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ChangeConfirmException {
-		Proveedor updated = usuarioService.updateProveedor(proveedorId, body);
+			@RequestBody @Valid ProveedorPersonalDataUpdateDTO body, HttpServletRequest request) throws UserNotFoundException, ImageNotUploadedException,
+			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
+		Proveedor updated = usuarioService.updateProveedor(proveedorId, body, request.getHeader("Authorization"));
 
 		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
 	}
