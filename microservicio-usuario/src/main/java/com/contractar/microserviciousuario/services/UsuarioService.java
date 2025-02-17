@@ -17,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
@@ -31,6 +32,7 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
+import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
@@ -38,6 +40,7 @@ import com.contractar.microserviciocommons.constants.controllers.SecurityControl
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstractDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
@@ -114,9 +117,27 @@ public class UsuarioService {
 		String url = microservicioUsuarioUrl
 				+ AdminControllerUrls.ADMIN_USUARIOS_BY_ID.replace("{id}", userId.toString());
 		try {
-			httpClient.put(url, new UsuarioAbstractDTO(userId, true));
+			httpClient.put(url, new UsuarioActiveDTO(userId, true));
 		} catch (RestClientException e) {
 			throw new UserCreationException();
+		}
+	}
+
+	private void saveClienteUpdateChange(UsuarioPersonalDataUpdateDTO body) throws ChangeConfirmException {
+		String url = microservicioUsuarioUrl + AdminControllerUrls.ADMIN_USER;
+		try {
+			httpClient.put(url, body);
+		} catch (RestClientException e) {
+			throw new ChangeConfirmException(getMessageTag("exceptions.changeRequest.couldntSave"));
+		}
+	}
+
+	private void saveProveedorUpdateChange(ProveedorPersonalDataUpdateDTO body) throws ChangeConfirmException {
+		String url = microservicioUsuarioUrl + AdminControllerUrls.ADMIN_PROVEEDOR;
+		try {
+			httpClient.put(url, body);
+		} catch (RestClientException e) {
+			throw new ChangeConfirmException(getMessageTag("exceptions.changeRequest.couldntSave"));
 		}
 	}
 
@@ -131,11 +152,10 @@ public class UsuarioService {
 
 		return linkToken;
 	}
-	
+
 	public String getTokenForCreatedUser(String email, Long userId) {
 		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
-				.path(SecurityControllerUrls.GET_TOKEN_FOR_NEW_USER)
-				.queryParam("userId", userId)
+				.path(SecurityControllerUrls.GET_TOKEN_FOR_NEW_USER).queryParam("userId", userId)
 				.queryParam("email", email);
 
 		return httpClient.getForObject(uriBuilder.toUriString(), String.class);
@@ -187,8 +207,13 @@ public class UsuarioService {
 
 		try {
 			ReflectionHelper.applySetterFromExistingFields(newInfo, cliente, dtoFullClassName, entityFullClassName);
-			cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
+
+			Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
+				cliente.setPassword(passwordEncoder.encode(newPassword));
+			});
+
 			clienteRepository.save(cliente);
+			saveClienteUpdateChange(newInfo);
 			return cliente;
 
 		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
@@ -199,7 +224,7 @@ public class UsuarioService {
 
 	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo)
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException {
+			IllegalAccessException, InvocationTargetException, ChangeConfirmException {
 		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
 
 		if (!proveedorOpt.isPresent()) {
@@ -225,8 +250,12 @@ public class UsuarioService {
 		String entityFullClassName = ReflectionHelper.getObjectClassFullName(proveedor);
 
 		ReflectionHelper.applySetterFromExistingFields(newInfo, proveedor, dtoFullClassName, entityFullClassName);
-		
-		proveedor.setPassword(passwordEncoder.encode(proveedor.getPassword()));
+
+		Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
+			proveedor.setPassword(passwordEncoder.encode(newPassword));
+		});
+
+		saveProveedorUpdateChange(newInfo);
 
 		proveedorRepository.save(proveedor);
 
@@ -247,7 +276,8 @@ public class UsuarioService {
 		throw new UserNotFoundException();
 	}
 
-	public Usuario findByEmail(String email, boolean checkIfInactive) throws UserNotFoundException, UserInactiveException {
+	public Usuario findByEmail(String email, boolean checkIfInactive)
+			throws UserNotFoundException, UserInactiveException {
 
 		Usuario usuario = usuarioRepository.findByEmail(email);
 
@@ -256,7 +286,7 @@ public class UsuarioService {
 
 		if (checkIfInactive && !usuario.isActive())
 			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"));
-		
+
 		if (checkIfInactive && !usuario.isAccountVerified())
 			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"));
 
@@ -275,10 +305,10 @@ public class UsuarioService {
 			throw new UserNotFoundException("Usuario no encontrado");
 		}
 	}
-	
-	public boolean isTwoFactorCodeValid(String jwt) {				
+
+	public boolean isTwoFactorCodeValid(String jwt) {
 		String url = serviceSecurityUrl + SecurityControllerUrls.CHECK_USER_2FA.replace("{jwt}", jwt);
-				
+
 		return httpClient.getForObject(url, Boolean.class);
 	}
 

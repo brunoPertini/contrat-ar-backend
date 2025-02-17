@@ -9,4 +9,9 @@ public class ChangeConfirmException extends CustomException{
 		super("No se pudo confirmar el cambio solicitado");
 		this.STATUS_CODE = 409;
 	}
+	
+	public ChangeConfirmException(String message) {
+		super(message);
+		this.STATUS_CODE = 409;
+	}
 }

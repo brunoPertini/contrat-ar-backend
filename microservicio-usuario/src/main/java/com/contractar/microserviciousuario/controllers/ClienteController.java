@@ -22,7 +22,7 @@ public class ClienteController {
 	@Autowired private UsuarioService usuarioService;
 	
 	@PutMapping(ClienteControllerUrls.CLIENTE_BASE_URL)
-	public ResponseEntity<?> update(@RequestBody UsuarioPersonalDataUpdateDTO body, @PathVariable("id") Long id) {
+	public ResponseEntity<?> update(@RequestBody UsuarioPersonalDataUpdateDTO body, @PathVariable Long id) {
 		try {
 			Cliente updated = usuarioService.updateCliente(id, body);
 			return new ResponseEntity<>(new UsuarioDTO(

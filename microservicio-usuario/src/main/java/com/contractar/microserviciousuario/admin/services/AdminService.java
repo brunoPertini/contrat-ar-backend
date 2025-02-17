@@ -145,7 +145,7 @@ public class AdminService {
 		}
 	}
 
-	public void addChangeRequestEntry(UsuarioSensibleInfoDTO newInfo, List<String> sourceTableIds)
+	public void addChangeRequestEntry(UsuarioPersonalDataUpdateDTO newInfo, List<String> sourceTableIds)
 			throws IllegalAccessException, ChangeAlreadyRequestedException {
 		HashMap<String, Object> infoAsMap = (HashMap<String, Object>) ReflectionHelper.getObjectFields(newInfo);
 		String concatenatedIds = Helper.joinString.apply(sourceTableIds);
@@ -172,7 +172,7 @@ public class AdminService {
 
 		if (!attributesBuilder.isEmpty()) {
 			attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
-			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), false,
+			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), true,
 					sourceTableIds.stream().map(Long::parseLong).collect(Collectors.toList()), List.of("id"));
 			
 			newRequest.setChangeDetailUrl(newInfo.getChangeDetailUrl(newInfo.getUserId()));

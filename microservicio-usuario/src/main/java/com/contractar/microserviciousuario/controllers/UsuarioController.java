@@ -188,17 +188,18 @@ public class UsuarioController {
 		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
 	}
 
-	@PutMapping(UsersControllerUrls.USUARIO_BASE_URL)
-	public ResponseEntity<?> changeUserSensibleInfo(@PathVariable Long usuarioId,
-			@RequestBody UsuarioSensibleInfoDTO body) throws ChangeAlreadyRequestedException {
-		try {
-			adminService.addChangeRequestEntry(body, List.of(usuarioId.toString()));
-			return ResponseEntity.ok().build();
-		} catch (IllegalAccessException e) {
-			return new ExceptionFactory().getResponseException(
-					"Hay algún error con los campos que estas tratando de actualizar", HttpStatusCode.valueOf(409));
-		}
-	}
+	/*
+	 * @PutMapping(UsersControllerUrls.USUARIO_BASE_URL) public ResponseEntity<?>
+	 * changeUserSensibleInfo(@PathVariable Long usuarioId,
+	 * 
+	 * @RequestBody UsuarioSensibleInfoDTO body) throws
+	 * ChangeAlreadyRequestedException { try {
+	 * adminService.addChangeRequestEntry(body, List.of(usuarioId.toString()));
+	 * return ResponseEntity.ok().build(); } catch (IllegalAccessException e) {
+	 * return new ExceptionFactory().getResponseException(
+	 * "Hay algún error con los campos que estas tratando de actualizar",
+	 * HttpStatusCode.valueOf(409)); } }
+	 */
 
 	@GetMapping(GeoControllersUrls.TRANSLATE_COORDINATES)
 	public ResponseEntity<?> translateAddress(@RequestParam("latitude") double latitude,

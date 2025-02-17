@@ -30,6 +30,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateExcept
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
@@ -124,7 +125,7 @@ public class ProveedorControler {
 	@PutMapping("/proveedor/{proveedorId}")
 	public ResponseEntity<?> updateProveedorInfo(@PathVariable Long proveedorId,
 			@RequestBody @Valid ProveedorPersonalDataUpdateDTO body) throws UserNotFoundException, ImageNotUploadedException,
-			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ChangeConfirmException {
 		Proveedor updated = usuarioService.updateProveedor(proveedorId, body);
 
 		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
