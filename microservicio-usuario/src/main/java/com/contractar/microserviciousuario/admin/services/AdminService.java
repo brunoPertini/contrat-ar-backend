@@ -110,16 +110,21 @@ public class AdminService {
 		return repository.findAll();
 	}
 
+	public UsuarioSensibleInfoDTO findUserSensibleInfo(Long userId) throws UserNotFoundException {
+		Usuario usuario = usuarioRepository.findById(userId).map(u -> u).orElseThrow(UserNotFoundException::new);
+		return new UsuarioSensibleInfoDTO(usuario.getEmail(), usuario.getPassword());
+	}
+
 	public ProveedorVendible findPost(ProveedorVendibleId id) throws VendibleNotFoundException {
 		return this.proveedorVendibleService.findById(id);
 	}
 
 	public boolean requestExists(List<Long> sourceTableIds, List<String> attributes) {
-		String idsAsString = sourceTableIds.size() > 1 ? Helper.joinString.apply(sourceTableIds.stream().map(id -> id.toString())
-				.collect(Collectors.toList())) : sourceTableIds.get(0).toString();
+		String idsAsString = sourceTableIds.size() > 1
+				? Helper.joinString.apply(sourceTableIds.stream().map(id -> id.toString()).collect(Collectors.toList()))
+				: sourceTableIds.get(0).toString();
 
-		String attributesAsString = attributes.size() > 1
-				? Helper.joinString.apply(attributes)
+		String attributesAsString = attributes.size() > 1 ? Helper.joinString.apply(attributes)
 				: attributes.get(0).toString();
 
 		return !attributes.isEmpty() && repository.getMatchingChangeRequest(idsAsString, attributesAsString) != null;
@@ -174,8 +179,19 @@ public class AdminService {
 			attributesBuilder.deleteCharAt(attributesBuilder.length() - 1);
 			ChangeRequest newRequest = new ChangeRequest("usuario", attributesBuilder.toString(), true,
 					sourceTableIds.stream().map(Long::parseLong).collect(Collectors.toList()), List.of("id"));
-			
-			newRequest.setChangeDetailUrl(newInfo.getChangeDetailUrl(newInfo.getUserId()));
+
+			boolean isChangingPasswordOrEmail = Optional.ofNullable(newInfo.getPassword()).isPresent()
+					|| Optional.ofNullable(newInfo.getEmail()).isPresent();
+
+			if (!isChangingPasswordOrEmail) {
+				newRequest.setChangeDetailUrl(newInfo.getChangeDetailUrl(newInfo.getUserId()));
+			} else {
+				UsuarioSensibleInfoDTO sensibleInfoDTO = new UsuarioSensibleInfoDTO(newInfo.getEmail(),
+						newInfo.getPassword());
+				sensibleInfoDTO.setUserId(newInfo.getUserId());
+				newRequest.setChangeDetailUrl(sensibleInfoDTO.getChangeDetailUrl(sensibleInfoDTO.getUserId()));
+			}
+
 			repository.save(newRequest);
 		}
 
@@ -285,9 +301,9 @@ public class AdminService {
 		Optional.ofNullable(ChangeRequestDenyFactoryStrategy.create(request)).ifPresent(denyStrategy -> {
 			denyStrategy.run(request, this);
 		});
-		
+
 		this.deleteChangeRequest(request.getId());
-		
+
 	}
 
 	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters,
@@ -349,8 +365,9 @@ public class AdminService {
 			proveedorRepository.deleteById(userId);
 		}
 	}
-	
+
 	private final class Helper {
-		static Function<List<String>, String> joinString = (inputList) -> inputList.stream().reduce("", (acum, attribute) -> acum + "," + attribute);
+		static Function<List<String>, String> joinString = (inputList) -> inputList.stream().reduce("",
+				(acum, attribute) -> acum + "," + attribute);
 	}
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.ChangeRequestSearchDTO;
@@ -98,6 +99,11 @@ public class AdminController {
 			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		adminService.updateProveedorPersonalData(userId, body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
+	
+	@GetMapping(AdminControllerUrls.ADMIN_USUARIOS_SENSIBLE_INFO)
+	public ResponseEntity<UsuarioSensibleInfoDTO> getAdminUserSensibleInfo(@PathVariable Long id) throws UserNotFoundException {
+		return new ResponseEntity<UsuarioSensibleInfoDTO>(adminService.findUserSensibleInfo(id), HttpStatusCode.valueOf(200));
 	}
 
 	@PatchMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)

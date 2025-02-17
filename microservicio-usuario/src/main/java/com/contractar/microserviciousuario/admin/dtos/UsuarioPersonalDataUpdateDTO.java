@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.locationtech.jts.geom.Point;
 
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.usuarios.UbicacionDeserializer;
 import com.contractar.microserviciocommons.usuarios.UbicacionSerializer;
@@ -71,5 +72,10 @@ public class UsuarioPersonalDataUpdateDTO extends UsuarioSensibleInfoDTO{
 
 	public void setLocation(Point location) {
 		this.location = location;
+	}
+	
+	@Override
+	public String getChangeDetailUrl(Long userId) {
+		return UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", userId.toString());
 	}
 }

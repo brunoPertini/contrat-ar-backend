@@ -210,7 +210,12 @@ public class UsuarioService {
 
 			Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
 				cliente.setPassword(passwordEncoder.encode(newPassword));
+				newInfo.setPassword(passwordEncoder.encode(newPassword));
 			});
+			
+			if (Optional.ofNullable(newInfo.getEmail()).isPresent()) {
+				cliente.setAccountVerified(false);
+			}
 
 			clienteRepository.save(cliente);
 			saveClienteUpdateChange(newInfo);
@@ -253,7 +258,12 @@ public class UsuarioService {
 
 		Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
 			proveedor.setPassword(passwordEncoder.encode(newPassword));
+			newInfo.setPassword(passwordEncoder.encode(newPassword));
 		});
+		
+		if (Optional.ofNullable(newInfo.getEmail()).isPresent()) {
+			proveedor.setAccountVerified(false);
+		}
 
 		saveProveedorUpdateChange(newInfo);
 

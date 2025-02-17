@@ -1,5 +1,6 @@
 package com.contractar.microserviciocommons.dto.usuario.sensibleinfo;
 
+import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 
 /**
  * Info that requires ADMIN approval to be inserted or modified as it is sensible
@@ -30,5 +31,10 @@ public class UsuarioSensibleInfoDTO extends UsuarioAbstractDTO{
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	@Override
+	public String getChangeDetailUrl(Long userId) {
+		return AdminControllerUrls.ADMIN_USUARIOS_SENSIBLE_INFO.replace("{id}", userId.toString());
 	}
 }

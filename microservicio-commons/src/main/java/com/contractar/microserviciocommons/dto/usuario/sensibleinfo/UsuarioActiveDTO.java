@@ -1,5 +1,7 @@
 package com.contractar.microserviciocommons.dto.usuario.sensibleinfo;
 
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
+
 public class UsuarioActiveDTO extends UsuarioAbstractDTO {
 	private boolean active;
 
@@ -18,6 +20,11 @@ public class UsuarioActiveDTO extends UsuarioAbstractDTO {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	@Override
+	public String getChangeDetailUrl(Long userId) {
+		return UsersControllerUrls.GET_USUARIO_INFO.replace("{userId}", userId.toString());
 	}
 
 }
