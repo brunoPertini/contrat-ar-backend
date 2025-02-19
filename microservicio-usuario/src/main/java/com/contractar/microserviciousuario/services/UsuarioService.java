@@ -32,14 +32,12 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
-import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
-import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioAbstractDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
@@ -193,9 +191,8 @@ public class UsuarioService {
 		return newCliente;
 	}
 
-	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo, String jwt) throws CantUpdateUserException,
-	UserNotFoundException,
-	ChangeConfirmException{
+	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo, String jwt)
+			throws CantUpdateUserException, UserNotFoundException, ChangeConfirmException {
 		if (!this.isTwoFactorCodeValid(jwt)) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
@@ -218,7 +215,7 @@ public class UsuarioService {
 				cliente.setPassword(passwordEncoder.encode(newPassword));
 				newInfo.setPassword(passwordEncoder.encode(newPassword));
 			});
-			
+
 			if (Optional.ofNullable(newInfo.getEmail()).isPresent()) {
 				cliente.setAccountVerified(false);
 			}
@@ -236,11 +233,11 @@ public class UsuarioService {
 	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo, String jwt)
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
-		
+
 		if (!this.isTwoFactorCodeValid(jwt)) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
-		
+
 		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
 
 		if (!proveedorOpt.isPresent()) {
@@ -271,7 +268,7 @@ public class UsuarioService {
 			proveedor.setPassword(passwordEncoder.encode(newPassword));
 			newInfo.setPassword(passwordEncoder.encode(newPassword));
 		});
-		
+
 		if (Optional.ofNullable(newInfo.getEmail()).isPresent()) {
 			proveedor.setAccountVerified(false);
 		}
