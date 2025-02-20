@@ -115,6 +115,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
             corsConfiguration.setAllowCredentials(false);
+            corsConfiguration.addExposedHeader("Account-Status");
             return corsConfiguration;
         });
 		
