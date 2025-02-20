@@ -48,7 +48,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class, IllegalAccessException.class,
-			InvocationTargetException.class, UserInactiveException.class, OperationNotAllowedException.class,
+			InvocationTargetException.class, OperationNotAllowedException.class,
 			VendibleUpdateRuntimeException.class, SubscriptionAlreadyExistsException.class})
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {
 		HttpStatus httpStatus = ex instanceof OperationNotAllowedException ? HttpStatus.FORBIDDEN : HttpStatus.CONFLICT;
@@ -77,5 +77,12 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public ResponseEntity<Object> handleAccountVerificationExceptions(AccountVerificationException ex) {
 		return new ExceptionFactory().getResponseException(ex.getMessage(),
 				HttpStatusCode.valueOf(ex.getStatusCode()), Map.of("verificationCode", ex.getVerificationCode()));
+	}
+	
+	@ExceptionHandler(UserInactiveException.class)
+	public ResponseEntity<Object> handleUserInactiveExceptions(UserInactiveException ex) {
+		return ResponseEntity.status(HttpStatusCode.valueOf(ex.getStatusCode()))
+				.header("Account-Status", ex.getAccountStatus().toString())
+				.body(ex.getMessage());
 	}
 }

@@ -45,6 +45,7 @@ import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
+import com.contractar.microserviciocommons.exceptions.UserInactiveException.ACCOUNT_STATUS;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
@@ -303,10 +304,10 @@ public class UsuarioService {
 			throw new UserNotFoundException();
 
 		if (checkIfInactive && !usuario.isActive())
-			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"));
+			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"), ACCOUNT_STATUS.disabled );
 
 		if (checkIfInactive && !usuario.isAccountVerified())
-			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"));
+			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"),  ACCOUNT_STATUS.unverified);
 
 		return usuario;
 	}
