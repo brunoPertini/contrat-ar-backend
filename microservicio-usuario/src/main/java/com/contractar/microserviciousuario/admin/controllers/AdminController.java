@@ -62,12 +62,24 @@ public class AdminController {
 		return requestExists ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
-	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
-	public ResponseEntity<Void> updateUserCommonInfo(@RequestBody @Valid UsuarioSensibleInfoDTO body,
-			@PathVariable("id") Long id) throws ChangeAlreadyRequestedException {
+	@PutMapping(AdminControllerUrls.ADMIN_USER)
+	public ResponseEntity<Void> updateUserInfo(@RequestBody @Valid UsuarioPersonalDataUpdateDTO body) 
+		throws ChangeAlreadyRequestedException,	UserNotFoundException {
 
 		try {
-			adminService.addChangeRequestEntry(body, List.of(id.toString()));
+			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
+			return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+		} catch (IllegalAccessException e) {
+			return new ResponseEntity<>(HttpStatusCode.valueOf(409));
+		}
+	}
+	
+	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR)
+	public ResponseEntity<Void> updateProveedorInfo(@RequestBody @Valid ProveedorPersonalDataUpdateDTO body)
+			throws ChangeAlreadyRequestedException, UserNotFoundException {
+
+		try {
+			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
 			return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 		} catch (IllegalAccessException e) {
 			return new ResponseEntity<>(HttpStatusCode.valueOf(409));
@@ -88,9 +100,14 @@ public class AdminController {
 		adminService.updateProveedorPersonalData(userId, body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
+	
+	@GetMapping(AdminControllerUrls.ADMIN_USUARIOS_SENSIBLE_INFO)
+	public ResponseEntity<UsuarioSensibleInfoDTO> getAdminUserSensibleInfo(@PathVariable Long id) throws UserNotFoundException {
+		return new ResponseEntity<UsuarioSensibleInfoDTO>(adminService.findUserSensibleInfo(id), HttpStatusCode.valueOf(200));
+	}
 
 	@PatchMapping(AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
-	public ResponseEntity<Void> updateProveedor(@PathVariable("id") Long userId,
+	public ResponseEntity<Void> updateCliente(@PathVariable("id") Long userId,
 			@RequestBody @Valid UsuarioPersonalDataUpdateDTO body)
 			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		adminService.updateClientePersonalData(userId, body);

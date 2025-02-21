@@ -20,16 +20,18 @@ import com.contractar.microserviciocommons.constants.controllers.VendiblesContro
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
-import com.contractar.microserviciocommons.dto.usuario.ProveedorInfoUpdateDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
+import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
+import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
+import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
@@ -122,10 +124,10 @@ public class ProveedorControler {
 	}
 
 	@PutMapping("/proveedor/{proveedorId}")
-	public ResponseEntity<?> updateProveedorInfo(@PathVariable("proveedorId") Long proveedorId,
-			@RequestBody @Valid ProveedorInfoUpdateDTO body) throws UserNotFoundException, ImageNotUploadedException,
-			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		Proveedor updated = usuarioService.updateProveedor(proveedorId, body);
+	public ResponseEntity<?> updateProveedorInfo(@PathVariable Long proveedorId,
+			@RequestBody @Valid ProveedorPersonalDataUpdateDTO body, HttpServletRequest request) throws UserNotFoundException, ImageNotUploadedException,
+			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
+		Proveedor updated = usuarioService.updateProveedor(proveedorId, body, request.getHeader("Authorization"));
 
 		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
 	}

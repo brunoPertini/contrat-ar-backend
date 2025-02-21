@@ -24,7 +24,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.web.cors.CorsConfiguration;
 
 import com.contractar.microserviciogateway.constants.RolesNames.RolesValues;
-
+import com.contractar.microserviciocommons.constants.CustomHeaders;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 
@@ -115,6 +115,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
             corsConfiguration.setAllowCredentials(false);
+            corsConfiguration.addExposedHeader(CustomHeaders.ACCOUNT_STATUS);
             return corsConfiguration;
         });
 		

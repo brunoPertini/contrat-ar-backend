@@ -14,7 +14,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.contractar.microserviciocommons.constants.CustomHeaders;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
+import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -47,7 +49,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	@ExceptionHandler(value = { ImageNotUploadedException.class, UserCreationException.class,
 			ClassNotFoundException.class, IllegalArgumentException.class, IllegalAccessException.class,
-			InvocationTargetException.class, UserInactiveException.class, OperationNotAllowedException.class,
+			InvocationTargetException.class, OperationNotAllowedException.class,
 			VendibleUpdateRuntimeException.class, SubscriptionAlreadyExistsException.class})
 	public ResponseEntity<Object> handleUsersUpdateExceptions(Exception ex) {
 		HttpStatus httpStatus = ex instanceof OperationNotAllowedException ? HttpStatus.FORBIDDEN : HttpStatus.CONFLICT;
@@ -56,7 +58,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	@ExceptionHandler(value = { VendibleBindingException.class, VendibleAlreadyBindedException.class,
 			VendibleNotFoundException.class, VendibleAlreadyExistsException.class, VendibleUpdateException.class,
-			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class, SuscriptionNotFound.class })
+			ChangeAlreadyRequestedException.class, ChangeConfirmException.class, RestClientException.class, SuscriptionNotFound.class,
+			CantUpdateUserException.class})
 	public ResponseEntity<Object> handleCustomExceptions(Exception ex) throws JsonMappingException, JsonProcessingException {
 		if (ex instanceof RestClientException) {
 			RestClientResponseException castedRestException = (RestClientResponseException) ex; 
@@ -75,5 +78,12 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public ResponseEntity<Object> handleAccountVerificationExceptions(AccountVerificationException ex) {
 		return new ExceptionFactory().getResponseException(ex.getMessage(),
 				HttpStatusCode.valueOf(ex.getStatusCode()), Map.of("verificationCode", ex.getVerificationCode()));
+	}
+	
+	@ExceptionHandler(UserInactiveException.class)
+	public ResponseEntity<Object> handleUserInactiveExceptions(UserInactiveException ex) {
+		return ResponseEntity.status(HttpStatusCode.valueOf(ex.getStatusCode()))
+				.header(CustomHeaders.ACCOUNT_STATUS, ex.getAccountStatus().toString())
+				.body(ex.getMessage());
 	}
 }
