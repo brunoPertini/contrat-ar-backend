@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.contractar.microserviciocommons.constants.CustomHeaders;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
@@ -82,7 +83,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	@ExceptionHandler(UserInactiveException.class)
 	public ResponseEntity<Object> handleUserInactiveExceptions(UserInactiveException ex) {
 		return ResponseEntity.status(HttpStatusCode.valueOf(ex.getStatusCode()))
-				.header("Account-Status", ex.getAccountStatus().toString())
+				.header(CustomHeaders.ACCOUNT_STATUS, ex.getAccountStatus().toString())
 				.body(ex.getMessage());
 	}
 }

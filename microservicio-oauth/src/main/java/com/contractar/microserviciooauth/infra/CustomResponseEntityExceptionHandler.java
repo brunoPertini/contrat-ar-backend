@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.contractar.microserviciocommons.constants.CustomHeaders;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -29,14 +30,13 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	@ExceptionHandler(value = { HttpClientErrorException.class })
 	public ResponseEntity<Object> handleHttpClientErrorException(Exception ex) {
 		HttpClientErrorException castedException = (HttpClientErrorException) ex;
-		final String accountStatusHeaderName = "Account-Status";
 		boolean isForbiddenException = castedException.getStatusCode().equals(HttpStatusCode.valueOf(403));
 		boolean hasAccountStatusHeader = Optional.ofNullable(castedException.getResponseHeaders())
-				.map(headers -> Optional.ofNullable(headers.get(accountStatusHeaderName))).isPresent();
+				.map(headers -> Optional.ofNullable(headers.get(CustomHeaders.ACCOUNT_STATUS))).isPresent();
 		
 		if (isForbiddenException && hasAccountStatusHeader) {
 			return ResponseEntity.status(403)
-					.header(accountStatusHeaderName, castedException.getResponseHeaders().get(accountStatusHeaderName).get(0))
+					.header(CustomHeaders.ACCOUNT_STATUS, castedException.getResponseHeaders().get(CustomHeaders.ACCOUNT_STATUS).get(0))
 					.body(castedException.getResponseBodyAsString());
 
 		}
