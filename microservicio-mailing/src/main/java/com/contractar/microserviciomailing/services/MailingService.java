@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
-import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
+import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
 import com.contractar.microserviciomailing.utils.FileReader;
 
@@ -28,6 +29,9 @@ public class MailingService {
 	
 	@Value("${configServiceUrl}")
 	private String configServiceUrl;
+	
+	@Value("${site.changePassword.url}")
+	private String resetPasswordLink;
 	
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
@@ -55,7 +59,7 @@ public class MailingService {
 		mailSender.send(message);
 	}
 
-	public void sendRegistrationLinkEmail(RegistrationLinkMailInfo mailInfo) {
+	public void sendRegistrationLinkEmail(LinkMailInfo mailInfo) {
 		try {
 			String accountConfirmationUrl = env.getProperty("signup.verificationLink.url")+"?token="+mailInfo.getToken()+"&email="+mailInfo.getToAddress();
 			
@@ -96,6 +100,18 @@ public class MailingService {
 				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
 		
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.2fa.title"), emailContent, true);  
+	}
+	
+	public void sendForgotPasswordEmail(ForgotPasswordMailInfo mailInfo) throws IOException, MessagingException {
+		String resetPasswordFinalLink = resetPasswordLink.replaceAll("\\{token\\}", mailInfo.getToken());
+		String emailContent = new FileReader()
+				.readFile("/static/forgot-password-template.html")
+				.replaceAll("\\$\\{link\\}", resetPasswordFinalLink)
+				.replaceAll("\\$\\{userName\\}", String.valueOf(mailInfo.getFullUserName()))
+				.replaceAll("\\$\\{expiresInMinutes\\}", String.valueOf(mailInfo.getExpiresInMinutes()))
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
+		
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
 	}
 
 }

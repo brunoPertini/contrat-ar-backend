@@ -59,6 +59,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	private final String[] signupEmailUrls = {"/mail/signup/link", "/mail/signup/ok"};
 	
+	private final String[] passwordEmailUrls = {"/mail/password/forgot"};
+	
 	private final String[] publicPayUrls = {"/pay/**"};
 	
 	private final String webHookUrl = "/pay/notification";
@@ -136,6 +138,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", signupEmailUrls[0], signupEmailUrls[1])
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**", ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL) // Registro de usuarios
+				.access("@securityUtils.hasValidClientId(request)")
+				.antMatchers(HttpMethod.POST, passwordEmailUrls[0])
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, adminUrls[1]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, adminUrls[2]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)

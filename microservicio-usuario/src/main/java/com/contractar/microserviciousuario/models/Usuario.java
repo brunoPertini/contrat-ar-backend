@@ -75,6 +75,9 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 	@Column(columnDefinition = "VARCHAR(2000) DEFAULT ''")
 	private String accountVerificationToken;
 
+	@Column(columnDefinition = "VARCHAR(2000) DEFAULT ''")
+	private String resetPasswordToken;
+
 	public Usuario() {
 		super("fake", "", new ArrayList<SimpleGrantedAuthority>());
 		this.accountVerified = false;
@@ -216,6 +219,14 @@ public class Usuario extends User implements Serializable, UsuarioAccesor {
 
 	public void setAccountVerificationToken(String accountVerificationToken) {
 		this.accountVerificationToken = accountVerificationToken;
+	}
+
+	public String getResetPasswordToken() {
+		return resetPasswordToken;
+	}
+
+	public void setResetPasswordToken(String resetPasswordToken) {
+		this.resetPasswordToken = resetPasswordToken;
 	}
 
 }

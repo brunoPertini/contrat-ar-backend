@@ -7,6 +7,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -38,11 +40,14 @@ import com.contractar.microserviciocommons.constants.controllers.ImagenesControl
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.TokenInfoPayload;
+import com.contractar.microserviciocommons.dto.TokenType;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
+import com.contractar.microserviciocommons.exceptions.ResetPasswordAlreadyRequested;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException.ACCOUNT_STATUS;
@@ -51,7 +56,8 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.mailing.MailInfo;
-import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
+import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
@@ -100,6 +106,9 @@ public class UsuarioService {
 
 	@Value("${microservicio-mailing.url}")
 	private String mailingServiceUrl;
+
+	// In minutes
+	private static final int FORGOT_PASSWORD_TOKEN_DURATION = 5;
 
 	public String getMessageTag(String tagId) {
 		final String fullUrl = serviceConfigUrl + "/i18n/" + tagId;
@@ -304,10 +313,11 @@ public class UsuarioService {
 			throw new UserNotFoundException();
 
 		if (checkIfInactive && !usuario.isActive())
-			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"), ACCOUNT_STATUS.disabled );
+			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"), ACCOUNT_STATUS.disabled);
 
 		if (checkIfInactive && !usuario.isAccountVerified())
-			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"),  ACCOUNT_STATUS.unverified);
+			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"),
+					ACCOUNT_STATUS.unverified);
 
 		return usuario;
 	}
@@ -424,7 +434,7 @@ public class UsuarioService {
 
 		ResponseEntity response = httpClient.postForEntity(
 				mailingServiceUrl + UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL,
-				new RegistrationLinkMailInfo(email, linkToken), Void.class);
+				new LinkMailInfo(email, linkToken), Void.class);
 
 		if (response.getStatusCodeValue() != 200) {
 			throw new AccountVerificationException(getMessageTag("exceptions.account.couldntSendEmail"));
@@ -455,5 +465,34 @@ public class UsuarioService {
 		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.SIGNUP_OK_EMAIL, new MailInfo(email),
 				Void.class);
 
+	}
+
+	@Transactional
+	public void sendForgotPasswordLink(String email)
+			throws UserNotFoundException, UserInactiveException, ResetPasswordAlreadyRequested {
+		Usuario foundUser = this.findByEmail(email, false);
+
+		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getResetPasswordToken());
+
+		boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
+
+		if (!isTokenEmpty && checkUserToken(storedTokenOpt.get())) {
+			throw new ResetPasswordAlreadyRequested(getMessageTag("exceptions.passwordChange.alreadyRequested"));
+		}
+
+		TokenInfoPayload body = new TokenInfoPayload(email, TokenType.reset_password);
+
+		HttpEntity<TokenInfoPayload> entity = new HttpEntity<TokenInfoPayload>(body);
+
+		ResponseEntity<String> createdTokenResponse = httpClient.exchange(
+				serviceSecurityUrl + SecurityControllerUrls.TOKEN_BASE_PATH, HttpMethod.POST, entity, String.class);
+
+		String newToken = createdTokenResponse.getBody();
+		foundUser.setResetPasswordToken(newToken);
+		usuarioRepository.save(foundUser);
+
+		ForgotPasswordMailInfo mailInfo = new ForgotPasswordMailInfo(email, newToken, foundUser.getName(),
+				FORGOT_PASSWORD_TOKEN_DURATION);
+		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.FORGOT_PASSWORD_EMAIL, mailInfo, Void.class);
 	}
 }

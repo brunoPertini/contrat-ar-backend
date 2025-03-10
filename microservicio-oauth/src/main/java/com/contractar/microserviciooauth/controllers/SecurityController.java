@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.dto.TokenInfoPayload;
 import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciooauth.exceptions.CodeWasAlreadyApplied;
@@ -37,6 +39,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
@@ -136,6 +139,12 @@ public class SecurityController {
 	public ResponseEntity<Boolean> verifyToken(@RequestParam(required = true) String token) {
 		boolean result = jwtHelper.verifyToken(token);
 		return new ResponseEntity<Boolean>(result, HttpStatus.OK);
+	}
+	
+	@PostMapping(SecurityControllerUrls.TOKEN_BASE_PATH)
+	public ResponseEntity<String> createToken(@RequestBody @Valid TokenInfoPayload payload) {
+		return ResponseEntity
+				.ok(jwtHelper.createJwtForClaims(payload.getSub(), Map.of("type", payload.getType()), 5));
 	}
 	
 	@GetMapping(SecurityControllerUrls.CHECK_USER_2FA)

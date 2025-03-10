@@ -17,7 +17,8 @@ import jakarta.validation.Valid;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.mailing.MailInfo;
-import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
+import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
 
 @RestController
@@ -27,7 +28,7 @@ public class MailingController {
 	private MailingService service;
 
 	@PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL)
-	ResponseEntity<Void> sendRegistrationLinkEmail(@RequestBody RegistrationLinkMailInfo mailInfo) {
+	ResponseEntity<Void> sendRegistrationLinkEmail(@RequestBody LinkMailInfo mailInfo) {
 		service.sendRegistrationLinkEmail(mailInfo);
 		return new ResponseEntity<>(HttpStatus.OK);
 
@@ -45,5 +46,11 @@ public class MailingController {
 		service.sendTwoFactorAuthenticationEmail(body);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-
+	
+	@PostMapping(UsersControllerUrls.FORGOT_PASSWORD_EMAIL)
+	ResponseEntity<Void> sendForgotPasswordEmail(@RequestBody @Valid ForgotPasswordMailInfo body) throws IOException, MessagingException{
+		service.sendForgotPasswordEmail(body);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
 }
