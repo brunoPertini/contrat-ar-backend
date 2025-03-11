@@ -59,7 +59,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	private final String[] signupEmailUrls = {"/mail/signup/link", "/mail/signup/ok"};
 	
-	private final String[] passwordEmailUrls = {"/mail/password/forgot"};
+	private final String[] passwordEmailUrls = {"/mail/password/forgot", "/security/token"};
 	
 	private final String[] publicPayUrls = {"/pay/**"};
 	
@@ -158,6 +158,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(proveedorUrls).access(vendiblesOperationsAccsesRule)
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
 				.antMatchers(publicPayUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
+				.antMatchers(HttpMethod.GET, passwordEmailUrls[1]).access("@securityUtils.isTokenOfType(request) and @securityUtils.hasValidClientId(request)")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 

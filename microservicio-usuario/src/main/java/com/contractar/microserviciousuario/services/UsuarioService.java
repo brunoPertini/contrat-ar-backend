@@ -468,7 +468,7 @@ public class UsuarioService {
 	}
 
 	@Transactional
-	public void sendForgotPasswordLink(String email)
+	public int sendForgotPasswordLink(String email)
 			throws UserNotFoundException, UserInactiveException, ResetPasswordAlreadyRequested {
 		Usuario foundUser = this.findByEmail(email, false);
 
@@ -494,5 +494,7 @@ public class UsuarioService {
 		ForgotPasswordMailInfo mailInfo = new ForgotPasswordMailInfo(email, newToken, foundUser.getName(),
 				FORGOT_PASSWORD_TOKEN_DURATION);
 		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.FORGOT_PASSWORD_EMAIL, mailInfo, Void.class);
+		
+		return FORGOT_PASSWORD_TOKEN_DURATION;
 	}
 }

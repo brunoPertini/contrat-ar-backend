@@ -3,6 +3,8 @@ package com.contractar.microserviciocommons.constants.controllers;
 public final class SecurityControllerUrls {
 
 	public static final String TOKEN_BASE_PATH = "/oauth/token";
+	
+	public static final String TOKEN_BASE_PATH_V2 = "/v2/oauth/token";
 
 	public static final String GET_USER_PAYLOAD_FROM_TOKEN = TOKEN_BASE_PATH + "/payload";
 

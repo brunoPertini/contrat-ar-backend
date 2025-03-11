@@ -15,6 +15,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import com.contractar.microserviciocommons.dto.TokenType;
 import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -31,7 +32,7 @@ public class JwtHelper {
 	private final RSAPrivateKey privateKey;
 	private final RSAPublicKey publicKey;
 	private RestTemplate httpClient;
-	
+
 	@Value("${microservicio-config.url}")
 	private String configServiceUrl;
 
@@ -40,7 +41,7 @@ public class JwtHelper {
 		this.publicKey = storePublicKey;
 		this.httpClient = httpClient;
 	}
-	
+
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
@@ -91,15 +92,16 @@ public class JwtHelper {
 			String decodedPayloadString = new String(decodedPayloadBytes);
 
 			return objectMapper.readValue(decodedPayloadString, Object.class);
-		} catch(JWTVerificationException ex) {
+		} catch (JWTVerificationException ex) {
 			throw new SessionExpiredException(getMessageTag("exceptions.session.expried"));
 		}
 	}
-	
-	public Object parsePayloadFromUnverifiedToken(String jwtToken) throws JsonMappingException, JsonProcessingException {
-		 DecodedJWT decodedJWT = JWT.decode(jwtToken.replace("Bearer ", ""));
-	     String decodedPayload = new String(java.util.Base64.getUrlDecoder().decode(decodedJWT.getPayload()));
-	     return new ObjectMapper().readValue(decodedPayload, Object.class);
+
+	public Object parsePayloadFromUnverifiedToken(String jwtToken)
+			throws JsonMappingException, JsonProcessingException {
+		DecodedJWT decodedJWT = JWT.decode(jwtToken.replace("Bearer ", ""));
+		String decodedPayload = new String(java.util.Base64.getUrlDecoder().decode(decodedJWT.getPayload()));
+		return new ObjectMapper().readValue(decodedPayload, Object.class);
 	}
 
 	public boolean verifyToken(String token) {
@@ -109,10 +111,30 @@ public class JwtHelper {
 		try {
 			verifier.verify(token);
 			return true;
-			
+
 		} catch (JWTVerificationException e) {
 			return false;
 		}
-		
+
+	}
+
+	public boolean verifyTokenV2(String token, TokenType expectedType) {
+		Algorithm algorithm = Algorithm.RSA256(publicKey);
+		JWTVerifier verifier = JWT.require(algorithm).build();
+
+		try {
+			DecodedJWT decodedJWT = verifier.verify(token);
+
+			String tokenTypeClaim = decodedJWT.getClaim("type").asString();
+
+			if (tokenTypeClaim == null || !expectedType.name().equals(tokenTypeClaim)) {
+				return false;
+			}
+
+			return true;
+
+		} catch (JWTVerificationException e) {
+			return false;
+		}
 	}
 }

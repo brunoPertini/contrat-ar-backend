@@ -54,7 +54,8 @@ public class SecurityConfig {
 				"/oauth/token/**",
 				SecurityControllerUrls.SEND_2FA_MAIL,
 				SecurityControllerUrls.SEND_2FA_MAIL_CONFIRM,
-				SecurityControllerUrls.CHECK_USER_2FA)
+				SecurityControllerUrls.CHECK_USER_2FA,
+				SecurityControllerUrls.TOKEN_BASE_PATH_V2)
 				.anonymous()
 				.requestMatchers(HttpMethod.POST, SecurityControllerUrls.TOKEN_BASE_PATH)
 				.anonymous()

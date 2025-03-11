@@ -2,8 +2,6 @@ package com.contractar.microserviciousuario.controllers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -24,7 +22,6 @@ import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
-import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.ResetPasswordAlreadyRequested;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
@@ -34,12 +31,9 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
-import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciousuario.admin.services.AdminService;
-import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Cliente;
@@ -59,9 +53,6 @@ public class UsuarioController {
 
 	@Autowired
 	private ProveedorVendibleService proveedorVendibleService;
-
-	@Autowired
-	private AdminService adminService;
 
 	@Autowired
 	private DtoHelper dtoHelper;
@@ -214,9 +205,9 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.FORGOT_PASSWORD_EMAIL)
-	public ResponseEntity<?> sendForgotPasswordEmail(@RequestBody MailInfo body) throws UserNotFoundException, UserInactiveException, ResetPasswordAlreadyRequested {
-		this.usuarioService.sendForgotPasswordLink(body.getToAddress());
-		return new ResponseEntity<>(HttpStatus.OK);
+	public ResponseEntity<Integer> sendForgotPasswordEmail(@RequestBody MailInfo body) throws UserNotFoundException, UserInactiveException, ResetPasswordAlreadyRequested {
+		int expiresInMinutes = this.usuarioService.sendForgotPasswordLink(body.getToAddress());
+		return new ResponseEntity<Integer>(expiresInMinutes, HttpStatus.OK);
 	}
 
 }
