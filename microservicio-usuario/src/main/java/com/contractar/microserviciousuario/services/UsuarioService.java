@@ -2,12 +2,15 @@ package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +59,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
@@ -161,6 +165,30 @@ public class UsuarioService {
 
 		return linkToken;
 	}
+	
+	private void sendUserDataChangedEmail(String toAddress, List<String> fields) {
+		String url = mailingServiceUrl + UsersControllerUrls.USER_FIELD_CHANGE_SUCCESS;
+		
+		UserDataChangedMailInfo body = new UserDataChangedMailInfo(toAddress, fields);
+		
+		HttpEntity<UserDataChangedMailInfo> entity = new HttpEntity<UserDataChangedMailInfo>(body); 
+		
+		httpClient.exchange(url, HttpMethod.POST, entity, Void.class);
+	}
+
+	public HashMap<String, Object> getUserPayloadFromToken(String jwt) {
+		String getPayloadUrl = serviceSecurityUrl + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", jwt);
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<Object> getPayloadResponse = httpClient.exchange(getPayloadUrl, HttpMethod.GET, entity,
+				Object.class);
+
+		return (HashMap<String, Object>) getPayloadResponse.getBody();
+	}
 
 	public String getTokenForCreatedUser(String email, Long userId) {
 		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
@@ -203,9 +231,14 @@ public class UsuarioService {
 
 	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo, String jwt)
 			throws CantUpdateUserException, UserNotFoundException, ChangeConfirmException {
-		if (!this.isTwoFactorCodeValid(jwt)) {
+
+		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
+
+		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
+
 		Optional<Cliente> clienteOpt = this.clienteRepository.findById(clienteId);
 
 		if (!clienteOpt.isPresent()) {
@@ -242,9 +275,12 @@ public class UsuarioService {
 
 	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo, String jwt)
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
+			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {		
 
-		if (!this.isTwoFactorCodeValid(jwt)) {
+		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
+
+		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
 
@@ -286,6 +322,12 @@ public class UsuarioService {
 		saveProveedorUpdateChange(newInfo);
 
 		proveedorRepository.save(proveedor);
+		
+		//TODO: refactor this, apply it to the other fields
+		Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
+			this.sendUserDataChangedEmail(proveedor.getEmail(), List.of("password"));
+		});
+		
 
 		return proveedor;
 
@@ -468,33 +510,41 @@ public class UsuarioService {
 	}
 
 	@Transactional
-	public int sendForgotPasswordLink(String email)
-			throws UserNotFoundException, UserInactiveException, ResetPasswordAlreadyRequested {
-		Usuario foundUser = this.findByEmail(email, false);
+	public int sendForgotPasswordLink(String email) throws ResetPasswordAlreadyRequested {
 
-		Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getResetPasswordToken());
+		try {
+			Usuario foundUser = this.findByEmail(email, false);
+			Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getResetPasswordToken());
 
-		boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
+			boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
 
-		if (!isTokenEmpty && checkUserToken(storedTokenOpt.get())) {
-			throw new ResetPasswordAlreadyRequested(getMessageTag("exceptions.passwordChange.alreadyRequested"));
+			if (!isTokenEmpty && checkUserToken(storedTokenOpt.get())) {
+				throw new ResetPasswordAlreadyRequested(getMessageTag("exceptions.passwordChange.alreadyRequested"));
+			}
+
+			TokenInfoPayload body = new TokenInfoPayload(email, TokenType.reset_password, foundUser.getId(),
+					foundUser.getRole().getNombre());
+
+			HttpEntity<TokenInfoPayload> entity = new HttpEntity<TokenInfoPayload>(body);
+
+			ResponseEntity<String> createdTokenResponse = httpClient.exchange(
+					serviceSecurityUrl + SecurityControllerUrls.TOKEN_BASE_PATH, HttpMethod.POST, entity, String.class);
+
+			String newToken = createdTokenResponse.getBody();
+			foundUser.setResetPasswordToken(newToken);
+			usuarioRepository.save(foundUser);
+
+			ForgotPasswordMailInfo mailInfo = new ForgotPasswordMailInfo(email, newToken, foundUser.getName(),
+					FORGOT_PASSWORD_TOKEN_DURATION);
+
+			httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.FORGOT_PASSWORD_EMAIL, mailInfo,
+					Void.class);
+
+		} catch (UserNotFoundException | UserInactiveException e) {
+			return FORGOT_PASSWORD_TOKEN_DURATION;
 		}
 
-		TokenInfoPayload body = new TokenInfoPayload(email, TokenType.reset_password);
-
-		HttpEntity<TokenInfoPayload> entity = new HttpEntity<TokenInfoPayload>(body);
-
-		ResponseEntity<String> createdTokenResponse = httpClient.exchange(
-				serviceSecurityUrl + SecurityControllerUrls.TOKEN_BASE_PATH, HttpMethod.POST, entity, String.class);
-
-		String newToken = createdTokenResponse.getBody();
-		foundUser.setResetPasswordToken(newToken);
-		usuarioRepository.save(foundUser);
-
-		ForgotPasswordMailInfo mailInfo = new ForgotPasswordMailInfo(email, newToken, foundUser.getName(),
-				FORGOT_PASSWORD_TOKEN_DURATION);
-		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.FORGOT_PASSWORD_EMAIL, mailInfo, Void.class);
-		
 		return FORGOT_PASSWORD_TOKEN_DURATION;
+
 	}
 }

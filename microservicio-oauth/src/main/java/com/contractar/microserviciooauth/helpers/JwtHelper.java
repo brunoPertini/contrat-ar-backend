@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import com.contractar.microserviciocommons.dto.TokenInfoPayload;
 import com.contractar.microserviciocommons.dto.TokenType;
 import com.contractar.microserviciocommons.exceptions.SessionExpiredException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,8 +31,12 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class JwtHelper {
 
+	// Duration in minutes
+	private static int FORGOT_PASSWORD_TOKEN_DURATION = 5;
+
 	private final RSAPrivateKey privateKey;
 	private final RSAPublicKey publicKey;
+
 	private RestTemplate httpClient;
 
 	@Value("${microservicio-config.url}")
@@ -47,6 +53,17 @@ public class JwtHelper {
 		return httpClient.getForObject(fullUrl, String.class);
 	}
 
+	public String createJwtForClaims(TokenInfoPayload payload) {
+		Map<String, Object> parsedClaims = new HashMap<>();
+		parsedClaims.put("type", payload.getType());
+		parsedClaims.put("id", payload.getUserId());
+		parsedClaims.put("role", payload.getRoleName());
+		parsedClaims.put("authorities", List.of(new SimpleGrantedAuthority(payload.getRoleName())));
+
+		return this.createJwtForClaims(payload.getSub(), parsedClaims, FORGOT_PASSWORD_TOKEN_DURATION);
+
+	}
+
 	public String createJwtForClaims(String subject, Map<String, Object> claims, int expiresInMinutes) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(Instant.now().toEpochMilli());
@@ -54,7 +71,6 @@ public class JwtHelper {
 
 		JWTCreator.Builder jwtBuilder = JWT.create().withSubject(subject);
 
-		// Add claims
 		claims.forEach((key, value) -> {
 			if (value instanceof String) {
 				jwtBuilder.withClaim(key, (String) value);

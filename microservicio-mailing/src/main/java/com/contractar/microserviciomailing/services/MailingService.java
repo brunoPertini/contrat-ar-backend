@@ -1,7 +1,6 @@
 package com.contractar.microserviciomailing.services;
 
 import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,6 +12,7 @@ import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
+import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
 import com.contractar.microserviciomailing.utils.FileReader;
 
 import jakarta.mail.MessagingException;
@@ -113,5 +113,19 @@ public class MailingService {
 		
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
 	}
-
+	
+	public void sendUserDataChangeSuccessEmail(UserDataChangedMailInfo mailInfo) throws IOException, MessagingException {
+		String parsedAttributesList = mailInfo.getFieldsList().size() == 1 ? mailInfo.getFieldsList().get(0)
+				: mailInfo.getFieldsList().stream().reduce("", (acum, attribute) -> acum + "y" + attribute);
+		
+		String emailContent = new FileReader()
+				.readFile("/static/two-factor-code-email.html")
+				.replaceAll("\\$\\{attributesListTemplate\\}", parsedAttributesList)
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{changePasswordLink\\}", env.getProperty("site.changePassword.url"))
+				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
+		
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
+	}
+	
 }

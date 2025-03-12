@@ -20,6 +20,7 @@ import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
+import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
 
 @RestController
 public class MailingController {
@@ -50,6 +51,12 @@ public class MailingController {
 	@PostMapping(UsersControllerUrls.FORGOT_PASSWORD_EMAIL)
 	ResponseEntity<Void> sendForgotPasswordEmail(@RequestBody @Valid ForgotPasswordMailInfo body) throws IOException, MessagingException{
 		service.sendForgotPasswordEmail(body);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(UsersControllerUrls.USER_FIELD_CHANGE_SUCCESS)
+	ResponseEntity<Void> sendUserDataChangeSuccessfulEmail(@RequestBody @Valid UserDataChangedMailInfo body) throws IOException, MessagingException {
+		service.sendUserDataChangeSuccessEmail(body);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	

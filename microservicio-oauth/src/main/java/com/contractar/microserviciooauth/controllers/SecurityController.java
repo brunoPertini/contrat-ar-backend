@@ -107,7 +107,7 @@ public class SecurityController {
 
 	@GetMapping(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN)
 	public ResponseEntity<?> getTokenPayloadFromHeaders(HttpServletRequest request,
-			@RequestParam(name = "verifyToken", required = false) boolean verifyToken)
+			@RequestParam(required = false) boolean verifyToken)
 			throws JsonProcessingException, SessionExpiredException {
 		String token = request.getHeader("authorization");
 		return ResponseEntity.ok(
@@ -152,7 +152,7 @@ public class SecurityController {
 
 	@PostMapping(SecurityControllerUrls.TOKEN_BASE_PATH)
 	public ResponseEntity<String> createToken(@RequestBody @Valid TokenInfoPayload payload) {
-		return ResponseEntity.ok(jwtHelper.createJwtForClaims(payload.getSub(), Map.of("type", payload.getType()), 5));
+		return ResponseEntity.ok(jwtHelper.createJwtForClaims(payload));
 	}
 
 	@GetMapping(SecurityControllerUrls.CHECK_USER_2FA)
