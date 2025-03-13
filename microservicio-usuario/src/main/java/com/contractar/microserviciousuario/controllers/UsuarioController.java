@@ -205,7 +205,7 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.FORGOT_PASSWORD_EMAIL)
-	public ResponseEntity<Integer> sendForgotPasswordEmail(@RequestBody MailInfo body) throws UserNotFoundException, UserInactiveException, ResetPasswordAlreadyRequested {
+	public ResponseEntity<Integer> sendForgotPasswordEmail(@RequestBody MailInfo body) throws ResetPasswordAlreadyRequested {
 		int expiresInMinutes = this.usuarioService.sendForgotPasswordLink(body.getToAddress());
 		return new ResponseEntity<Integer>(expiresInMinutes, HttpStatus.OK);
 	}

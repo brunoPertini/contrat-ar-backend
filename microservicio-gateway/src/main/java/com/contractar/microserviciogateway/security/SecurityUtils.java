@@ -91,7 +91,7 @@ public class SecurityUtils {
 
 	}
 
-	public boolean isTokenOfType(HttpServletRequest request) {
+	public boolean tokenContainsType(HttpServletRequest request) {
 		HashMap<String, Object> tokenPayload = this.getJwtPayload(request);
 		
 		return tokenPayload.containsKey("type") 

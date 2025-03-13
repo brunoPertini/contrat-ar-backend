@@ -271,10 +271,6 @@ public class UsuarioService {
 				cliente.setAccountVerified(false);
 			}
 
-			if (isResetPasswordToken) {
-				cliente.setResetPasswordToken("");
-			}
-
 			saveClienteUpdateChange(newInfo);
 
 			// TODO: refactor this, apply it to the other fields
