@@ -127,7 +127,8 @@ public class ProveedorControler {
 	public ResponseEntity<?> updateProveedorInfo(@PathVariable Long proveedorId,
 			@RequestBody @Valid ProveedorPersonalDataUpdateDTO body, HttpServletRequest request) throws UserNotFoundException, ImageNotUploadedException,
 			ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
-		Proveedor updated = usuarioService.updateProveedor(proveedorId, body, request.getHeader("Authorization"));
+		String parsedJwt = request.getHeader("Authorization").replace("Bearer ", "");
+		Proveedor updated = usuarioService.updateProveedor(proveedorId, body, parsedJwt);
 
 		return new ResponseEntity<>(new ProveedorDTO(updated), HttpStatus.CREATED);
 	}

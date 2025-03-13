@@ -55,9 +55,8 @@ public class MailingController {
 	}
 	
 	@PostMapping(UsersControllerUrls.USER_FIELD_CHANGE_SUCCESS)
-	ResponseEntity<Void> sendUserDataChangeSuccessfulEmail(@RequestBody @Valid UserDataChangedMailInfo body) throws IOException, MessagingException {
-		service.sendUserDataChangeSuccessEmail(body);
-		return new ResponseEntity<>(HttpStatus.OK);
+	ResponseEntity<String> sendUserDataChangeSuccessfulEmail(@RequestBody @Valid UserDataChangedMailInfo body) throws IOException, MessagingException {
+		return new ResponseEntity<>(service.sendUserDataChangeSuccessEmail(body), HttpStatus.OK);
 	}
 	
 }

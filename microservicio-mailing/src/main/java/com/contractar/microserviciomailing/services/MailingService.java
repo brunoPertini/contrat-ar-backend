@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.dto.TokenInfoPayload;
+import com.contractar.microserviciocommons.dto.TokenType;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
@@ -29,6 +32,9 @@ public class MailingService {
 	
 	@Value("${configServiceUrl}")
 	private String configServiceUrl;
+	
+	@Value("${securityServiceUrl}")
+	private String securityServiceUrl;
 	
 	@Value("${site.changePassword.url}")
 	private String resetPasswordLink;
@@ -57,6 +63,14 @@ public class MailingService {
 		helper.setText(bodyMessage, isMultiPart);
 
 		mailSender.send(message);
+	}
+	
+	private String requestBackupPasswordToken(UserDataChangedMailInfo mailInfo) {
+		final String url = securityServiceUrl + SecurityControllerUrls.TOKEN_BASE_PATH;
+		
+		TokenInfoPayload body = new TokenInfoPayload(mailInfo.getToAddress(), TokenType.reset_password, mailInfo.getUserId(), mailInfo.getRoleName());
+		
+		return httpClient.postForObject(url, body, String.class);
 	}
 
 	public void sendRegistrationLinkEmail(LinkMailInfo mailInfo) {
@@ -114,18 +128,25 @@ public class MailingService {
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
 	}
 	
-	public void sendUserDataChangeSuccessEmail(UserDataChangedMailInfo mailInfo) throws IOException, MessagingException {
-		String parsedAttributesList = mailInfo.getFieldsList().size() == 1 ? mailInfo.getFieldsList().get(0)
-				: mailInfo.getFieldsList().stream().reduce("", (acum, attribute) -> acum + "y" + attribute);
+	public String sendUserDataChangeSuccessEmail(UserDataChangedMailInfo mailInfo) throws IOException, MessagingException {
+		String parsedAttributesList = mailInfo.getFieldsList().size() == 1 ? getMessageTag("fields.usuario."+mailInfo.getFieldsList().get(0))
+				: mailInfo.getFieldsList().stream().reduce("", (acum, attribute) -> acum + "y" + getMessageTag("fields.usuario."+attribute));
+		
+		String backupToken = this.requestBackupPasswordToken(mailInfo);
+		
+		String parsedChangePasswordUrl = env.getProperty("site.changePassword.url").replaceAll("\\{token\\}", backupToken);
 		
 		String emailContent = new FileReader()
-				.readFile("/static/two-factor-code-email.html")
+				.readFile("/static/user-data-change-success.html")
+				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName())
 				.replaceAll("\\$\\{attributesListTemplate\\}", parsedAttributesList)
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
-				.replaceAll("\\$\\{changePasswordLink\\}", env.getProperty("site.changePassword.url"))
+				.replaceAll("\\$\\{changePasswordLink\\}", parsedChangePasswordUrl)
 				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
 		
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
+		
+		return backupToken;
 	}
 	
 }

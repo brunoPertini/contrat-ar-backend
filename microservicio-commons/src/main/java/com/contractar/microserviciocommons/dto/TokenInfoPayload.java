@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 public class TokenInfoPayload {
 	@NotNull
 	private String sub;
+	
+	@NotNull
 	private TokenType type;
 	
 	@NotNull

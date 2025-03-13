@@ -29,7 +29,8 @@ public class ClienteController {
 			throws CantUpdateUserException,
 					UserNotFoundException,
 					ChangeConfirmException {
-		Cliente updated = usuarioService.updateCliente(id, body, request.getHeader("Authorization"));
+		String parsedJwt = request.getHeader("Authorization").replace("Bearer ", "");
+		Cliente updated = usuarioService.updateCliente(id, body, parsedJwt);
 		return new ResponseEntity<>(new UsuarioDTO(
 				updated.getId(),
 				updated.getName(),

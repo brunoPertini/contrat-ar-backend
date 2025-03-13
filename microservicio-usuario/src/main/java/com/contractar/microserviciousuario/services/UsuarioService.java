@@ -37,6 +37,7 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
+import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
@@ -165,15 +166,14 @@ public class UsuarioService {
 
 		return linkToken;
 	}
-	
-	private void sendUserDataChangedEmail(String toAddress, List<String> fields) {
+
+	private String sendUserDataChangedEmail(String toAddress, String userName, Long userId, String roleName,
+			List<String> fields) {
 		String url = mailingServiceUrl + UsersControllerUrls.USER_FIELD_CHANGE_SUCCESS;
-		
-		UserDataChangedMailInfo body = new UserDataChangedMailInfo(toAddress, fields);
-		
-		HttpEntity<UserDataChangedMailInfo> entity = new HttpEntity<UserDataChangedMailInfo>(body); 
-		
-		httpClient.exchange(url, HttpMethod.POST, entity, Void.class);
+
+		UserDataChangedMailInfo body = new UserDataChangedMailInfo(toAddress, fields, userName, userId, roleName);
+
+		return httpClient.postForObject(url, body, String.class);
 	}
 
 	public HashMap<String, Object> getUserPayloadFromToken(String jwt) {
@@ -232,13 +232,6 @@ public class UsuarioService {
 	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo, String jwt)
 			throws CantUpdateUserException, UserNotFoundException, ChangeConfirmException {
 
-		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
-				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
-
-		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
-			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
-		}
-
 		Optional<Cliente> clienteOpt = this.clienteRepository.findById(clienteId);
 
 		if (!clienteOpt.isPresent()) {
@@ -246,6 +239,21 @@ public class UsuarioService {
 		}
 
 		Cliente cliente = clienteOpt.get();
+
+		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
+
+		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
+
+		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(cliente.getResetPasswordToken());
+
+		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
+
+		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
 
 		String dtoFullClassName = UsuarioPersonalDataUpdateDTO.class.getPackage().getName()
 				+ ".UsuarioPersonalDataUpdateDTO";
@@ -263,8 +271,21 @@ public class UsuarioService {
 				cliente.setAccountVerified(false);
 			}
 
-			clienteRepository.save(cliente);
+			if (isResetPasswordToken) {
+				cliente.setResetPasswordToken("");
+			}
+
 			saveClienteUpdateChange(newInfo);
+
+			// TODO: refactor this, apply it to the other fields
+			Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
+				String backupToken = this.sendUserDataChangedEmail(cliente.getEmail(), cliente.getName(),
+						cliente.getId(), cliente.getRole().getNombre(), List.of("password"));
+
+				cliente.setResetPasswordToken(backupToken);
+			});
+
+			clienteRepository.save(cliente);
 			return cliente;
 
 		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
@@ -275,14 +296,7 @@ public class UsuarioService {
 
 	public Proveedor updateProveedor(Long proovedorId, ProveedorPersonalDataUpdateDTO newInfo, String jwt)
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {		
-
-		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
-				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
-
-		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
-			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
-		}
+			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
 
 		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
 
@@ -291,6 +305,17 @@ public class UsuarioService {
 		}
 
 		Proveedor proveedor = proveedorOpt.get();
+
+		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
+
+		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
+
+		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(proveedor.getResetPasswordToken());
+
+		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
 
 		if (Optional.ofNullable(newInfo.getFotoPerfilUrl()).isPresent()) {
 			UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -321,14 +346,16 @@ public class UsuarioService {
 
 		saveProveedorUpdateChange(newInfo);
 
-		proveedorRepository.save(proveedor);
-		
-		//TODO: refactor this, apply it to the other fields
-		Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
-			this.sendUserDataChangedEmail(proveedor.getEmail(), List.of("password"));
-		});
-		
 
+		// TODO: refactor this, apply it to the other fields
+		Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
+			String backupToken = this.sendUserDataChangedEmail(proveedor.getEmail(), proveedor.getName(),
+					proveedor.getId(), proveedor.getRole().getNombre(), List.of("password"));
+
+			proveedor.setResetPasswordToken(backupToken);
+		});
+
+		proveedorRepository.save(proveedor);
 		return proveedor;
 
 	}
