@@ -28,6 +28,7 @@ import com.contractar.microserviciocommons.constants.controllers.SecurityControl
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
+import com.contractar.microserviciocommons.exceptions.payment.PaymentNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
@@ -163,9 +164,9 @@ public class PaymentService {
 		}
 	}
 
-	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
+	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) throws PaymentNotFoundException {
 		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
-				.map(payment -> payment).orElse(null);
+				.map(payment -> payment).orElseThrow(() -> new PaymentNotFoundException(getMessageTag("exception.payment.notFound")));
 	}
 
 	public Payment createPayment(PaymentCreateDTO dto) {
@@ -198,10 +199,11 @@ public class PaymentService {
 	 * @throws SuscriptionNotFound
 	 * @throws PaymentAlreadyDone
 	 * @throws PaymentCantBeDone
+	 * @throws PaymentNotFoundException 
 	 */
 	@Transactional
 	public String payLastSuscriptionPeriod(Long suscriptionId)
-			throws SuscriptionNotFound, PaymentAlreadyDone, PaymentCantBeDone {
+			throws SuscriptionNotFound, PaymentAlreadyDone, PaymentCantBeDone, PaymentNotFoundException {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);

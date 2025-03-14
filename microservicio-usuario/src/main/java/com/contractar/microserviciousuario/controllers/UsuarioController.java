@@ -120,7 +120,7 @@ public class UsuarioController {
 
 	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
 	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable Long userId,
-			@RequestParam(name = "formatType", required = false) DateFormatType formatType, HttpServletRequest request)
+			@RequestParam(required = false) DateFormatType formatType, HttpServletRequest request)
 			throws UserNotFoundException {
 		Usuario user = this.usuarioService.findById(userId, false);
 		boolean is2FaValid = this.usuarioService.isTwoFactorCodeValid(request.getHeader("authorization"));

@@ -13,6 +13,8 @@ public class SuscripcionDTO extends WithDatePatternDTO {
 	private Long usuarioId;
 	private Long planId;
 	private int planPrice;
+	
+	private SuscriptionValidityDTO validity;
 
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate createdDate;
@@ -96,4 +98,13 @@ public class SuscripcionDTO extends WithDatePatternDTO {
 	public void setPlanPrice(int planPrice) {
 		this.planPrice = planPrice;
 	}
+	
+	public SuscriptionValidityDTO getValidity() {
+		return validity;
+	}
+
+	public void setValidity(SuscriptionValidityDTO validity) {
+		this.validity = validity;
+	}
+
 }

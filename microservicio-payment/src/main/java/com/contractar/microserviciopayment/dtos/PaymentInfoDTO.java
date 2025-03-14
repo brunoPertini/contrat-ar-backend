@@ -19,6 +19,7 @@ public class PaymentInfoDTO {
 		this.currency = currency;
 		this.state = state;
 	}
+
 	public Long getId() {
 		return id;
 	}
