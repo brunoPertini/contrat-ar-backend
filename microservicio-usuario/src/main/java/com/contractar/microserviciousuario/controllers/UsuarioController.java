@@ -2,8 +2,6 @@ package com.contractar.microserviciousuario.controllers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -24,8 +22,8 @@ import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.usuario.UsuarioDTO;
-import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
+import com.contractar.microserviciocommons.exceptions.ResetPasswordAlreadyRequested;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
@@ -33,11 +31,9 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
-import com.contractar.microserviciocommons.infra.ExceptionFactory;
-import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
-import com.contractar.microserviciousuario.admin.services.AdminService;
-import com.contractar.microserviciousuario.admin.services.ChangeAlreadyRequestedException;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Cliente;
@@ -59,9 +55,6 @@ public class UsuarioController {
 	private ProveedorVendibleService proveedorVendibleService;
 
 	@Autowired
-	private AdminService adminService;
-
-	@Autowired
 	private DtoHelper dtoHelper;
 
 	@PostMapping("/usuarios")
@@ -74,10 +67,11 @@ public class UsuarioController {
 	public ResponseEntity<?> crearProveedor(@RequestBody @Valid Proveedor usuario) throws UserCreationException {
 		try {
 			Proveedor createdUsuario = usuarioService.createProveedor(usuario);
-			
-			String createdUserToken = usuarioService.getTokenForCreatedUser(createdUsuario.getEmail(), createdUsuario.getId());
+
+			String createdUserToken = usuarioService.getTokenForCreatedUser(createdUsuario.getEmail(),
+					createdUsuario.getId());
 			ProveedorDTO responseBody = DtoHelper.toProveedorDTO(createdUsuario);
-			responseBody.setCreationToken(createdUserToken);		
+			responseBody.setCreationToken(createdUserToken);
 
 			return new ResponseEntity<>(responseBody, HttpStatus.CREATED);
 		} catch (Exception e) {
@@ -89,11 +83,12 @@ public class UsuarioController {
 	public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody @Valid Cliente usuario) throws UserCreationException {
 		try {
 			Cliente createdUsuario = usuarioService.createCliente(usuario);
-			
-			String createdUserToken = usuarioService.getTokenForCreatedUser(createdUsuario.getEmail(), createdUsuario.getId());
+
+			String createdUserToken = usuarioService.getTokenForCreatedUser(createdUsuario.getEmail(),
+					createdUsuario.getId());
 			UsuarioDTO responseBody = DtoHelper.toUsuarioDTO(createdUsuario);
-			responseBody.setCreationToken(createdUserToken);		
-			
+			responseBody.setCreationToken(createdUserToken);
+
 			return new ResponseEntity<>(responseBody, HttpStatus.CREATED);
 		} catch (Exception e) {
 			throw new UserCreationException();
@@ -112,9 +107,11 @@ public class UsuarioController {
 	@GetMapping(UsersControllerUrls.GET_USUARIOS)
 	public ResponseEntity<UsuarioOauthDTO> findByParam(@RequestParam(required = false) String email,
 			@RequestParam(required = false) Long id,
-			@RequestParam(required = false, defaultValue = "true") String checkIfInactive) throws UserNotFoundException, UserInactiveException {
-		Usuario usuario = email != null ? usuarioService.findByEmail(email, Boolean.parseBoolean(checkIfInactive)) : usuarioService.findById(id, true);
-		
+			@RequestParam(required = false, defaultValue = "true") String checkIfInactive)
+			throws UserNotFoundException, UserInactiveException {
+		Usuario usuario = email != null ? usuarioService.findByEmail(email, Boolean.parseBoolean(checkIfInactive))
+				: usuarioService.findById(id, true);
+
 		UsuarioOauthDTO usuarioOauthDTO = new UsuarioOauthDTO(usuario.getId(), usuario.getName(), usuario.getSurname(),
 				usuario.getEmail(), usuario.isActive(), usuario.getPassword(), new ArrayList<SimpleGrantedAuthority>(),
 				usuario.getRole());
@@ -123,12 +120,11 @@ public class UsuarioController {
 
 	@GetMapping(UsersControllerUrls.GET_USUARIO_INFO)
 	public ResponseEntity<? extends UsuarioDTO> findUserInfo(@PathVariable Long userId,
-			@RequestParam(name = "formatType", required = false) DateFormatType formatType,
-			HttpServletRequest request)
+			@RequestParam(name = "formatType", required = false) DateFormatType formatType, HttpServletRequest request)
 			throws UserNotFoundException {
 		Usuario user = this.usuarioService.findById(userId, false);
 		boolean is2FaValid = this.usuarioService.isTwoFactorCodeValid(request.getHeader("authorization"));
-		
+
 		if (user.getRole().getNombre().startsWith("PROVEEDOR_")) {
 			Proveedor proveedor = ((Proveedor) user);
 			ProveedorDTO proveedorDTO = dtoHelper.toProveedorDTO(proveedor, formatType);
@@ -200,12 +196,18 @@ public class UsuarioController {
 		this.usuarioService.sendRegistrationLinkEmail(email);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
 	@PostMapping(UsersControllerUrls.SIGNUP_OK_EMAIL)
-	public ResponseEntity<?> confirmUserAccount(@RequestBody RegistrationLinkMailInfo body)
+	public ResponseEntity<?> confirmUserAccount(@RequestBody LinkMailInfo body)
 			throws UserNotFoundException, UserInactiveException, AccountVerificationException {
 		this.usuarioService.acceptUserAccountActivation(body.getToAddress(), body.getToken());
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
+	@PostMapping(UsersControllerUrls.FORGOT_PASSWORD_EMAIL)
+	public ResponseEntity<Integer> sendForgotPasswordEmail(@RequestBody MailInfo body) throws ResetPasswordAlreadyRequested {
+		int expiresInMinutes = this.usuarioService.sendForgotPasswordLink(body.getToAddress());
+		return new ResponseEntity<Integer>(expiresInMinutes, HttpStatus.OK);
+	}
+
 }

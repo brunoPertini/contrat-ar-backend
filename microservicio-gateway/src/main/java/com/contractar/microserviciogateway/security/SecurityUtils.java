@@ -1,5 +1,6 @@
 package com.contractar.microserviciogateway.security;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
@@ -48,12 +49,7 @@ public class SecurityUtils {
 
 	}
 
-
-	/**
-	 * Checks if the userId in the request's jwt matches with the userId that comes after 
-	 * the passed path variable section
-	 */
-	public boolean userIdsMatch(HttpServletRequest request, String pathSection) {
+	private HashMap<String, Object> getJwtPayload(HttpServletRequest request) {
 		String getPayloadUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
 
 		HttpHeaders headers = new HttpHeaders();
@@ -61,10 +57,20 @@ public class SecurityUtils {
 
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 
-		ResponseEntity<LinkedHashMap> getClientIdResponse = restTemplate.exchange(getPayloadUrl, HttpMethod.GET, entity,
+		ResponseEntity<LinkedHashMap> response = restTemplate.exchange(getPayloadUrl, HttpMethod.GET, entity,
 				LinkedHashMap.class);
 
-		Long idFromToken = Long.parseLong((String)getClientIdResponse.getBody().get("id"));
+		return response.getBody();
+
+	}
+
+	/**
+	 * Checks if the userId in the request's jwt matches with the userId that comes
+	 * after the passed path variable section
+	 */
+	public boolean userIdsMatch(HttpServletRequest request, String pathSection) {
+
+		Long idFromToken = Long.parseLong((String) getJwtPayload(request).get("id"));
 
 		String pathInfo = request.getServletPath();
 
@@ -84,4 +90,12 @@ public class SecurityUtils {
 		return idFromRequest != null && idFromToken.equals(idFromRequest);
 
 	}
+
+	public boolean tokenContainsType(HttpServletRequest request) {
+		HashMap<String, Object> tokenPayload = this.getJwtPayload(request);
+		
+		return tokenPayload.containsKey("type") 
+				&& Optional.ofNullable(tokenPayload.get("type")).isPresent();
+	}
+
 }

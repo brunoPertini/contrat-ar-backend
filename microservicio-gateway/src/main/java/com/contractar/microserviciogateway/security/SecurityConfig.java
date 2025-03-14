@@ -59,6 +59,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	private final String[] signupEmailUrls = {"/mail/signup/link", "/mail/signup/ok"};
 	
+	private final String[] passwordEmailUrls = {"/mail/password/forgot", "/security/token"};
+	
 	private final String[] publicPayUrls = {"/pay/**"};
 	
 	private final String webHookUrl = "/pay/notification";
@@ -137,6 +139,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**", ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL) // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
+				.antMatchers(HttpMethod.POST, passwordEmailUrls[0])
+				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, adminUrls[1]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PUT, adminUrls[2]).hasAnyAuthority(proveedorServicioRole, proveedorProductoRole, adminRole)
 				.antMatchers(HttpMethod.PATCH, adminUrls[0]).hasAuthority(adminRole)
@@ -154,6 +158,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(proveedorUrls).access(vendiblesOperationsAccsesRule)
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
 				.antMatchers(publicPayUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
+				.antMatchers(HttpMethod.GET, passwordEmailUrls[1]).access("@securityUtils.tokenContainsType(request) and @securityUtils.hasValidClientId(request)")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 

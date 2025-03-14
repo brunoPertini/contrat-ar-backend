@@ -1,7 +1,6 @@
 package com.contractar.microserviciomailing.services;
 
 import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -10,8 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
-import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.dto.TokenInfoPayload;
+import com.contractar.microserviciocommons.dto.TokenType;
+import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
+import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
+import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
 import com.contractar.microserviciomailing.utils.FileReader;
 
 import jakarta.mail.MessagingException;
@@ -28,6 +32,12 @@ public class MailingService {
 	
 	@Value("${configServiceUrl}")
 	private String configServiceUrl;
+	
+	@Value("${securityServiceUrl}")
+	private String securityServiceUrl;
+	
+	@Value("${site.changePassword.url}")
+	private String resetPasswordLink;
 	
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
@@ -54,8 +64,16 @@ public class MailingService {
 
 		mailSender.send(message);
 	}
+	
+	private String requestBackupPasswordToken(UserDataChangedMailInfo mailInfo) {
+		final String url = securityServiceUrl + SecurityControllerUrls.TOKEN_BASE_PATH;
+		
+		TokenInfoPayload body = new TokenInfoPayload(mailInfo.getToAddress(), TokenType.reset_password, mailInfo.getUserId(), mailInfo.getRoleName());
+		
+		return httpClient.postForObject(url, body, String.class);
+	}
 
-	public void sendRegistrationLinkEmail(RegistrationLinkMailInfo mailInfo) {
+	public void sendRegistrationLinkEmail(LinkMailInfo mailInfo) {
 		try {
 			String accountConfirmationUrl = env.getProperty("signup.verificationLink.url")+"?token="+mailInfo.getToken()+"&email="+mailInfo.getToAddress();
 			
@@ -97,5 +115,38 @@ public class MailingService {
 		
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.2fa.title"), emailContent, true);  
 	}
-
+	
+	public void sendForgotPasswordEmail(ForgotPasswordMailInfo mailInfo) throws IOException, MessagingException {
+		String resetPasswordFinalLink = resetPasswordLink.replaceAll("\\{token\\}", mailInfo.getToken());
+		String emailContent = new FileReader()
+				.readFile("/static/forgot-password-template.html")
+				.replaceAll("\\$\\{link\\}", resetPasswordFinalLink)
+				.replaceAll("\\$\\{userName\\}", String.valueOf(mailInfo.getFullUserName()))
+				.replaceAll("\\$\\{expiresInMinutes\\}", String.valueOf(mailInfo.getExpiresInMinutes()))
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
+		
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
+	}
+	
+	public String sendUserDataChangeSuccessEmail(UserDataChangedMailInfo mailInfo) throws IOException, MessagingException {
+		String parsedAttributesList = mailInfo.getFieldsList().size() == 1 ? getMessageTag("fields.usuario."+mailInfo.getFieldsList().get(0))
+				: mailInfo.getFieldsList().stream().reduce("", (acum, attribute) -> acum + "y" + getMessageTag("fields.usuario."+attribute));
+		
+		String backupToken = this.requestBackupPasswordToken(mailInfo);
+		
+		String parsedChangePasswordUrl = env.getProperty("site.changePassword.url").replaceAll("\\{token\\}", backupToken);
+		
+		String emailContent = new FileReader()
+				.readFile("/static/user-data-change-success.html")
+				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName())
+				.replaceAll("\\$\\{attributesListTemplate\\}", parsedAttributesList)
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{changePasswordLink\\}", parsedChangePasswordUrl)
+				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
+		
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
+		
+		return backupToken;
+	}
+	
 }

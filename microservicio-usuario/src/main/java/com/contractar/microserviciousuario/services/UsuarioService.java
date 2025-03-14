@@ -2,11 +2,16 @@ package com.contractar.microserviciousuario.services;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,17 +37,21 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
+import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
+import com.contractar.microserviciocommons.dto.TokenInfoPayload;
+import com.contractar.microserviciocommons.dto.TokenType;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
 import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
+import com.contractar.microserviciocommons.exceptions.ResetPasswordAlreadyRequested;
 import com.contractar.microserviciocommons.exceptions.UserCreationException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException;
 import com.contractar.microserviciocommons.exceptions.UserInactiveException.ACCOUNT_STATUS;
@@ -51,7 +60,9 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
 import com.contractar.microserviciocommons.mailing.MailInfo;
-import com.contractar.microserviciocommons.mailing.RegistrationLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
+import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
+import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleType;
@@ -100,6 +111,9 @@ public class UsuarioService {
 
 	@Value("${microservicio-mailing.url}")
 	private String mailingServiceUrl;
+
+	// In minutes
+	private static final int FORGOT_PASSWORD_TOKEN_DURATION = 5;
 
 	public String getMessageTag(String tagId) {
 		final String fullUrl = serviceConfigUrl + "/i18n/" + tagId;
@@ -153,6 +167,29 @@ public class UsuarioService {
 		return linkToken;
 	}
 
+	private String sendUserDataChangedEmail(String toAddress, String userName, Long userId, String roleName,
+			List<String> fields) {
+		String url = mailingServiceUrl + UsersControllerUrls.USER_FIELD_CHANGE_SUCCESS;
+
+		UserDataChangedMailInfo body = new UserDataChangedMailInfo(toAddress, fields, userName, userId, roleName);
+
+		return httpClient.postForObject(url, body, String.class);
+	}
+
+	public HashMap<String, Object> getUserPayloadFromToken(String jwt) {
+		String getPayloadUrl = serviceSecurityUrl + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", jwt);
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<Object> getPayloadResponse = httpClient.exchange(getPayloadUrl, HttpMethod.GET, entity,
+				Object.class);
+
+		return (HashMap<String, Object>) getPayloadResponse.getBody();
+	}
+
 	public String getTokenForCreatedUser(String email, Long userId) {
 		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(serviceSecurityUrl)
 				.path(SecurityControllerUrls.GET_TOKEN_FOR_NEW_USER).queryParam("userId", userId)
@@ -194,9 +231,7 @@ public class UsuarioService {
 
 	public Cliente updateCliente(Long clienteId, UsuarioPersonalDataUpdateDTO newInfo, String jwt)
 			throws CantUpdateUserException, UserNotFoundException, ChangeConfirmException {
-		if (!this.isTwoFactorCodeValid(jwt)) {
-			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
-		}
+
 		Optional<Cliente> clienteOpt = this.clienteRepository.findById(clienteId);
 
 		if (!clienteOpt.isPresent()) {
@@ -204,6 +239,21 @@ public class UsuarioService {
 		}
 
 		Cliente cliente = clienteOpt.get();
+
+		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
+
+		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
+
+		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(cliente.getResetPasswordToken());
+
+		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
+
+		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
 
 		String dtoFullClassName = UsuarioPersonalDataUpdateDTO.class.getPackage().getName()
 				+ ".UsuarioPersonalDataUpdateDTO";
@@ -221,8 +271,17 @@ public class UsuarioService {
 				cliente.setAccountVerified(false);
 			}
 
-			clienteRepository.save(cliente);
 			saveClienteUpdateChange(newInfo);
+
+			// TODO: refactor this, apply it to the other fields
+			Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
+				String backupToken = this.sendUserDataChangedEmail(cliente.getEmail(), cliente.getName(),
+						cliente.getId(), cliente.getRole().getNombre(), List.of("password"));
+
+				cliente.setResetPasswordToken(backupToken);
+			});
+
+			clienteRepository.save(cliente);
 			return cliente;
 
 		} catch (ClassNotFoundException | IllegalArgumentException | IllegalAccessException
@@ -235,10 +294,6 @@ public class UsuarioService {
 			throws UserNotFoundException, ImageNotUploadedException, ClassNotFoundException, IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException, ChangeConfirmException, CantUpdateUserException {
 
-		if (!this.isTwoFactorCodeValid(jwt)) {
-			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
-		}
-
 		Optional<Proveedor> proveedorOpt = this.proveedorRepository.findById(proovedorId);
 
 		if (!proveedorOpt.isPresent()) {
@@ -246,6 +301,17 @@ public class UsuarioService {
 		}
 
 		Proveedor proveedor = proveedorOpt.get();
+
+		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
+
+		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
+
+		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(proveedor.getResetPasswordToken());
+
+		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
+			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
+		}
 
 		if (Optional.ofNullable(newInfo.getFotoPerfilUrl()).isPresent()) {
 			UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -276,8 +342,16 @@ public class UsuarioService {
 
 		saveProveedorUpdateChange(newInfo);
 
-		proveedorRepository.save(proveedor);
 
+		// TODO: refactor this, apply it to the other fields
+		Optional.ofNullable(newInfo.getPassword()).ifPresent(newPassword -> {
+			String backupToken = this.sendUserDataChangedEmail(proveedor.getEmail(), proveedor.getName(),
+					proveedor.getId(), proveedor.getRole().getNombre(), List.of("password"));
+
+			proveedor.setResetPasswordToken(backupToken);
+		});
+
+		proveedorRepository.save(proveedor);
 		return proveedor;
 
 	}
@@ -304,10 +378,11 @@ public class UsuarioService {
 			throw new UserNotFoundException();
 
 		if (checkIfInactive && !usuario.isActive())
-			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"), ACCOUNT_STATUS.disabled );
+			throw new UserInactiveException(getMessageTag("exceptions.account.disabled"), ACCOUNT_STATUS.disabled);
 
 		if (checkIfInactive && !usuario.isAccountVerified())
-			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"),  ACCOUNT_STATUS.unverified);
+			throw new UserInactiveException(getMessageTag("exceptions.account.emailNotVerified"),
+					ACCOUNT_STATUS.unverified);
 
 		return usuario;
 	}
@@ -424,7 +499,7 @@ public class UsuarioService {
 
 		ResponseEntity response = httpClient.postForEntity(
 				mailingServiceUrl + UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL,
-				new RegistrationLinkMailInfo(email, linkToken), Void.class);
+				new LinkMailInfo(email, linkToken), Void.class);
 
 		if (response.getStatusCodeValue() != 200) {
 			throw new AccountVerificationException(getMessageTag("exceptions.account.couldntSendEmail"));
@@ -454,6 +529,45 @@ public class UsuarioService {
 
 		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.SIGNUP_OK_EMAIL, new MailInfo(email),
 				Void.class);
+
+	}
+
+	@Transactional
+	public int sendForgotPasswordLink(String email) throws ResetPasswordAlreadyRequested {
+
+		try {
+			Usuario foundUser = this.findByEmail(email, false);
+			Optional<String> storedTokenOpt = Optional.ofNullable(foundUser.getResetPasswordToken());
+
+			boolean isTokenEmpty = storedTokenOpt.isEmpty() || !StringUtils.hasLength(storedTokenOpt.get());
+
+			if (!isTokenEmpty && checkUserToken(storedTokenOpt.get())) {
+				throw new ResetPasswordAlreadyRequested(getMessageTag("exceptions.passwordChange.alreadyRequested"));
+			}
+
+			TokenInfoPayload body = new TokenInfoPayload(email, TokenType.reset_password, foundUser.getId(),
+					foundUser.getRole().getNombre());
+
+			HttpEntity<TokenInfoPayload> entity = new HttpEntity<TokenInfoPayload>(body);
+
+			ResponseEntity<String> createdTokenResponse = httpClient.exchange(
+					serviceSecurityUrl + SecurityControllerUrls.TOKEN_BASE_PATH, HttpMethod.POST, entity, String.class);
+
+			String newToken = createdTokenResponse.getBody();
+			foundUser.setResetPasswordToken(newToken);
+			usuarioRepository.save(foundUser);
+
+			ForgotPasswordMailInfo mailInfo = new ForgotPasswordMailInfo(email, newToken, foundUser.getName(),
+					FORGOT_PASSWORD_TOKEN_DURATION);
+
+			httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.FORGOT_PASSWORD_EMAIL, mailInfo,
+					Void.class);
+
+		} catch (UserNotFoundException | UserInactiveException e) {
+			return FORGOT_PASSWORD_TOKEN_DURATION;
+		}
+
+		return FORGOT_PASSWORD_TOKEN_DURATION;
 
 	}
 }

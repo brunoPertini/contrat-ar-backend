@@ -23,4 +23,8 @@ public final class UsersControllerUrls {
 	public static final String SEND_REGISTRATION_LINK_EMAIL = "/mail/signup/link";
 	
 	public static final String SIGNUP_OK_EMAIL = "/mail/signup/ok";
+	
+	public static final String FORGOT_PASSWORD_EMAIL = "/mail/password/forgot";
+	
+	public static final String USER_FIELD_CHANGE_SUCCESS = "/mail/user/change";
 }
