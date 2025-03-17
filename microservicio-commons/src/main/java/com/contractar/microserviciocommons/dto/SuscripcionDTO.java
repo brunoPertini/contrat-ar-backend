@@ -2,11 +2,10 @@ package com.contractar.microserviciocommons.dto;
 
 import java.time.LocalDate;
 
-import com.contractar.microserviciocommons.serialization.SuscripcionDTOSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonSerialize(using = SuscripcionDTOSerializer.class)
+@JsonIgnoreProperties({"datePattern"})
 public class SuscripcionDTO extends WithDatePatternDTO {
 	private Long id;
 	private boolean isActive;

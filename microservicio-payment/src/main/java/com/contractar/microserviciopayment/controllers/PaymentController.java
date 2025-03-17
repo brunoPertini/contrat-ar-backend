@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
+import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.dtos.PaymentDTO;
-import com.contractar.microserviciopayment.dtos.PaymentInfoDTO;
 import com.contractar.microserviciopayment.dtos.PaymentProviderDTO;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.providers.uala.WebhookBody;
@@ -34,9 +34,10 @@ public class PaymentController {
 	
 	private ProviderServiceImplFactory providerServiceImplFactory;
 
-	public PaymentController(PaymentService paymentService, ProviderServiceImplFactory providerServiceImplFactory) {
+	public PaymentController(PaymentService paymentService, ProviderServiceImplFactory providerServiceImplFactory, SuscriptionPaymentService suscriptionPaymentService) {
 		this.paymentService = paymentService;
 		this.providerServiceImplFactory = providerServiceImplFactory;
+		this.suscriptionPaymentService = suscriptionPaymentService;
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_SIGNUP_SUSCRIPTION)
@@ -63,11 +64,9 @@ public class PaymentController {
 	@GetMapping(PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL)
 	public ResponseEntity<PaymentInfoDTO> getLastSuscriptionPayment(@PathVariable Long suscriptionId) throws PaymentNotFoundException {
 		Payment payment = paymentService.findLastSuscriptionPayment(suscriptionId);
-		PaymentInfoDTO response = new PaymentInfoDTO(payment.getId(),
-				payment.getExternalId(),
-				payment.getAmount(),
-				payment.getCurrency(),
-				payment.getState().toString());
+		PaymentInfoDTO response = new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
+				payment.getPaymentPeriod(), payment.getDate(), payment.getAmount(), payment.getCurrency(), payment.getState().toString(),
+				payment.getPaymentProvider().getName());
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	

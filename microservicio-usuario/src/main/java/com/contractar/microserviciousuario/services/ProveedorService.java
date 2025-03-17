@@ -128,11 +128,15 @@ public class ProveedorService {
 							.replace("{suscriptionId}", String.valueOf(suscription.getId())), Boolean.class);
 
 			PaymentInfoDTO lastPaymentInfo = httpClient.getForObject(
-					microservicioPaymentUrl + PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL,
+					microservicioPaymentUrl + PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL
+					.replace("{suscriptionId}", String.valueOf(suscription.getId())),
 					PaymentInfoDTO.class);
+			
+			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(
+					paymentInfo -> paymentInfo.getDate().plusMonths(1))
+					.orElse(null);
 
-			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid,
-					lastPaymentInfo.getDate().plusMonths(1));
+			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);
 
 			responseDTO.setValidity(validity);
 

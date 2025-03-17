@@ -26,13 +26,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
-import com.contractar.microserviciopayment.dtos.PaymentInfoDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
@@ -130,7 +130,8 @@ public class PaymentService {
 
 	public PaymentInfoDTO getPaymentInfo(Long paymentId) {
 		return this.paymentRepository.findById(paymentId).map(p -> new PaymentInfoDTO(p.getId(), p.getExternalId(),
-				p.getAmount(), p.getCurrency(), p.getState().toString())).orElse(null);
+				p.getPaymentPeriod(), p.getDate(), p.getAmount(), p.getCurrency(), p.getState().toString(),
+				p.getPaymentProvider().getName())).orElse(null);
 	}
 
 	public PaymentProvider getActivePaymentProvider() {

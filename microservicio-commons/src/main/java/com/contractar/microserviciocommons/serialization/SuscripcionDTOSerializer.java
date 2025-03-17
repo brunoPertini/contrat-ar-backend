@@ -20,6 +20,8 @@ public class SuscripcionDTOSerializer extends JsonSerializer<SuscripcionDTO> {
 		generator.writeNumberField("usuarioId", dto.getUsuarioId());
 		generator.writeNumberField("planId", dto.getPlanId());
 		generator.writeNumberField("planPrice", dto.getPlanPrice());
+		generator.writeFieldName("validity");
+		generator.writeObject(dto.getValidity());
 		generator.writeStringField("createdDate", dto.getCreatedDate().format(formatter));
 		generator.writeEndObject();
 	}

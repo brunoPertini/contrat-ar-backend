@@ -132,8 +132,6 @@ public class UsuarioController {
 			proveedorDTO.setIs2FaValid(is2FaValid);
 			return new ResponseEntity<>(proveedorDTO, HttpStatus.OK);
 		}
-		;
-
 		UsuarioDTO usuarioDTO = DtoHelper.toUsuarioDTO(user);
 		usuarioDTO.setRole(user.getRole());
 		usuarioDTO.setIs2FaValid(is2FaValid);
@@ -205,7 +203,8 @@ public class UsuarioController {
 	}
 
 	@PostMapping(UsersControllerUrls.FORGOT_PASSWORD_EMAIL)
-	public ResponseEntity<Integer> sendForgotPasswordEmail(@RequestBody MailInfo body) throws ResetPasswordAlreadyRequested {
+	public ResponseEntity<Integer> sendForgotPasswordEmail(@RequestBody MailInfo body)
+			throws ResetPasswordAlreadyRequested {
 		int expiresInMinutes = this.usuarioService.sendForgotPasswordLink(body.getToAddress());
 		return new ResponseEntity<Integer>(expiresInMinutes, HttpStatus.OK);
 	}

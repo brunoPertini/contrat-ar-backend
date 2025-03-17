@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
@@ -97,6 +98,12 @@ public class SuscriptionPaymentService {
 		}
 
 		SuscriptionPayment payment = lastPaymentOpt.get();
+		
+		boolean isFreePlanSuscription = payment.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
+		
+		if (isFreePlanSuscription) {
+			return true;
+		}
 
 		YearMonth paymentPeriod = payment.getPaymentPeriod();
 
