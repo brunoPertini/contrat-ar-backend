@@ -97,13 +97,7 @@ public class SuscriptionPaymentService {
 			return false;
 		}
 
-		SuscriptionPayment payment = lastPaymentOpt.get();
-		
-		boolean isFreePlanSuscription = payment.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
-		
-		if (isFreePlanSuscription) {
-			return true;
-		}
+		SuscriptionPayment payment = lastPaymentOpt.get();		
 
 		YearMonth paymentPeriod = payment.getPaymentPeriod();
 

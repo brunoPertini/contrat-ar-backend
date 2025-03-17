@@ -114,9 +114,8 @@ public class ProveedorService {
 
 	public SuscripcionDTO getSuscripcion(Long proveedorId) {
 		try {
-			SuscripcionAccesor suscription = Optional.ofNullable(this.findById(proveedorId).getSuscripcion())
-					.map(s -> s)
-					.orElseThrow(() -> new UserNotFoundException(getMessageTag("exceptions.user.notFound")));
+			Proveedor proveedor = this.findById(proveedorId);
+			SuscripcionAccesor suscription = proveedor.getSuscripcion();
 
 			String datePattern = this.fetchDatePattern();
 
@@ -137,6 +136,17 @@ public class ProveedorService {
 					.orElse(null);
 
 			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);
+			
+			boolean hasFreePlan = proveedor.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
+			
+			if (!validity.isValid() && !hasFreePlan) {
+				Plan freePlan = planRepository.findById(1L).map(p -> p).orElse(null);
+				proveedor.getSuscripcion().setPlan(freePlan);
+				proveedorRepository.save(proveedor);
+				
+				responseDTO.setPlanId(freePlan.getId());
+				responseDTO.setPlanPrice(freePlan.getPrice());
+			}
 
 			responseDTO.setValidity(validity);
 
