@@ -7,6 +7,8 @@ public final class PaymentControllerUrls {
 	
 	public static final String SUSCRIPTION_BY_ID = "/suscription/{suscriptionId}";
 	
+	public static final String IS_SUSCRIPTION_PAYABLE = SUSCRIPTION_BY_ID + "/payable";
+	
 	public static final String SUSCRIPTION_PAYMENT_BASE_URL = PAYMENT_BASE_URL + SUSCRIPTION_BY_ID;
 	
 	public static final String LAST_SUSCRIPTION_PAYMENT_BASE_URL = SUSCRIPTION_BY_ID + PAYMENT_BASE_URL;

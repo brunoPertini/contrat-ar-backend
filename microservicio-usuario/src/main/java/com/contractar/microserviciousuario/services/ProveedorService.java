@@ -137,6 +137,10 @@ public class ProveedorService {
 
 			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);
 			
+			boolean canBePayed = httpClient.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE.replace("{suscriptionId}", 
+					suscription.getId().toString()), Boolean.class);
+			validity.setCanBePayed(canBePayed);
+			
 			boolean hasFreePlan = proveedor.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
 			
 			if (!validity.isValid() && !hasFreePlan) {

@@ -223,7 +223,7 @@ public class PaymentService {
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
 
-		if (!suscriptionPaymentService.canSuscriptionBePayed(suscriptionId, paymentProviderImpl)) {
+		if (!suscriptionPaymentService.canSuscriptionBePayed(suscriptionId)) {
 			return "";
 		}
 

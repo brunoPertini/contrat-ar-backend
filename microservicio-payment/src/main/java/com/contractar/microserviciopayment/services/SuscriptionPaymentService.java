@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
@@ -20,7 +19,6 @@ import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.PaymentProvider;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
-import com.contractar.microserviciopayment.providers.OutsitePaymentProvider;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
 import com.contractar.microserviciousuario.models.Suscripcion;
 
@@ -64,7 +62,8 @@ public class SuscriptionPaymentService {
 		}
 	}
 
-	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId) throws SuscriptionNotFound {
+	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId)
+			throws SuscriptionNotFound {
 		if (currentProvider == null) {
 			throw new RuntimeException("Payment provider not set");
 		}
@@ -89,15 +88,19 @@ public class SuscriptionPaymentService {
 		return repository.save(newPayment);
 	}
 
-	public boolean isSuscriptionValid(Long suscriptionId, OutsitePaymentProvider currentProviderImpl) {
+	public boolean isSuscriptionValid(Long suscriptionId) {
 		// TODO: handle non OUTSITE providers
-		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+
+		Optional<SuscriptionPayment> lastPaymentOpt = repository
+				.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
 
 		if (lastPaymentOpt.isEmpty()) {
 			return false;
 		}
 
-		SuscriptionPayment payment = lastPaymentOpt.get();		
+		SuscriptionPayment payment = lastPaymentOpt.get();
 
 		YearMonth paymentPeriod = payment.getPaymentPeriod();
 
@@ -115,31 +118,35 @@ public class SuscriptionPaymentService {
 				&& currentProviderImpl.wasPaymentAccepted(payment);
 	}
 
-	public boolean canSuscriptionBePayed(Long suscriptionId, OutsitePaymentProvider currentProviderImpl)
-			throws PaymentAlreadyDone {
-		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
-		
+	public boolean canSuscriptionBePayed(Long suscriptionId) throws PaymentAlreadyDone {
+		// TODO: handle non OUTSITE providers
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+
+		Optional<SuscriptionPayment> lastPaymentOpt = repository
+				.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
+
 		// First pay to be made
 		if (lastPaymentOpt.isEmpty()) {
 			return true;
 		}
 
 		SuscriptionPayment lastPayment = lastPaymentOpt.get();
-		
-		YearMonth paymentPeriod = lastPayment.getPaymentPeriod() != null ? lastPayment.getPaymentPeriod().plusMonths(1) : YearMonth.now();
-		
+
+		YearMonth paymentPeriod = lastPayment.getPaymentPeriod() != null ? lastPayment.getPaymentPeriod().plusMonths(1)
+				: YearMonth.now();
+
 		// User is paying some previous expired period
 		boolean isPayingPreviousPeriod = paymentPeriod.isBefore(YearMonth.now());
-		
+
 		if (isPayingPreviousPeriod) {
 			return true;
 		}
-		
-		if (currentProviderImpl.wasPaymentRejected(lastPayment) 
-				|| currentProviderImpl.isPaymentPending(lastPayment)) {
+
+		if (currentProviderImpl.wasPaymentRejected(lastPayment) || currentProviderImpl.isPaymentPending(lastPayment)) {
 			return true;
 		}
-		
+
 		if (currentProviderImpl.isPaymentProcessed(lastPayment)) {
 			throw new PaymentAlreadyDone(getMessageTag("exception.payment.suscription.stillPending"));
 		}
@@ -150,13 +157,14 @@ public class SuscriptionPaymentService {
 
 		LocalDate today = LocalDate.now();
 
-		// If it may be missing days for minimalPayDate, subscription is not able to be payed
+		// If it may be missing days for minimalPayDate, subscription is not able to be
+		// payed
 		boolean isPreviousToMinimalDate = today.isBefore(minimalPayDate);
-		
-		if(isPreviousToMinimalDate) {
+
+		if (isPreviousToMinimalDate) {
 			throw new PaymentAlreadyDone(getMessageTag("exception.payment.suscription.outOfDates"));
 		}
-		
+
 		return true;
 	}
 }

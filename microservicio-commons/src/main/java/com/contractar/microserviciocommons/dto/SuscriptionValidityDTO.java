@@ -2,9 +2,15 @@ package com.contractar.microserviciocommons.dto;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class SuscriptionValidityDTO {
 	private boolean isValid;
+
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate expirationDate;
+
+	private boolean canBePayed;
 	
 	public SuscriptionValidityDTO() {}
 
@@ -24,5 +30,13 @@ public class SuscriptionValidityDTO {
 	}
 	public void setExpirationDate(LocalDate expirationDate) {
 		this.expirationDate = expirationDate;
+	}
+
+	public boolean isCanBePayed() {
+		return canBePayed;
+	}
+
+	public void setCanBePayed(boolean canBePayed) {
+		this.canBePayed = canBePayed;
 	}
 }

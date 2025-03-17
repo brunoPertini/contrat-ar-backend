@@ -32,11 +32,8 @@ public class PaymentController {
 	private PaymentService paymentService;
 	private SuscriptionPaymentService suscriptionPaymentService;
 	
-	private ProviderServiceImplFactory providerServiceImplFactory;
-
 	public PaymentController(PaymentService paymentService, ProviderServiceImplFactory providerServiceImplFactory, SuscriptionPaymentService suscriptionPaymentService) {
 		this.paymentService = paymentService;
-		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.suscriptionPaymentService = suscriptionPaymentService;
 	}
 	
@@ -56,9 +53,7 @@ public class PaymentController {
 	
 	@GetMapping(PaymentControllerUrls.SUSCRIPTION_PAYMENT_BASE_URL)
 	public ResponseEntity<Boolean> isSuscriptionValid(@PathVariable Long suscriptionId) {
-		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
-				.getOutsitePaymentProvider();
-		return new ResponseEntity<>(suscriptionPaymentService.isSuscriptionValid(suscriptionId, paymentProviderImpl),  HttpStatus.OK);
+		return new ResponseEntity<>(suscriptionPaymentService.isSuscriptionValid(suscriptionId),  HttpStatus.OK);
 	}
 	
 	@GetMapping(PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL)
@@ -73,6 +68,11 @@ public class PaymentController {
 	@PostMapping(PaymentControllerUrls.PAYMENT_BASE_URL)
 	public ResponseEntity<?> createPayment(@RequestBody @Valid PaymentCreateDTO body) {
 		return new ResponseEntity<>(paymentService.createPayment(body), HttpStatusCode.valueOf(200));
+	}
+	
+	@GetMapping(PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE)
+	public ResponseEntity<Boolean> isSubscriptionPayable(@PathVariable Long suscriptionId) throws PaymentAlreadyDone {
+		return new ResponseEntity<>(suscriptionPaymentService.canSuscriptionBePayed(suscriptionId), HttpStatus.OK);
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_WEBHOOK_URL)
