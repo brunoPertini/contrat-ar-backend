@@ -71,7 +71,7 @@ public class PaymentController {
 	}
 	
 	@GetMapping(PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE)
-	public ResponseEntity<Boolean> isSubscriptionPayable(@PathVariable Long suscriptionId) throws PaymentAlreadyDone {
+	public ResponseEntity<Boolean> isSubscriptionPayable(@PathVariable Long suscriptionId) {
 		return new ResponseEntity<>(suscriptionPaymentService.canSuscriptionBePayed(suscriptionId), HttpStatus.OK);
 	}
 	

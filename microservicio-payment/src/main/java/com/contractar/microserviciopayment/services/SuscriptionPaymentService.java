@@ -118,7 +118,7 @@ public class SuscriptionPaymentService {
 				&& currentProviderImpl.wasPaymentAccepted(payment);
 	}
 
-	public boolean canSuscriptionBePayed(Long suscriptionId) throws PaymentAlreadyDone {
+	public boolean canSuscriptionBePayed(Long suscriptionId) {
 		// TODO: handle non OUTSITE providers
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
@@ -148,7 +148,7 @@ public class SuscriptionPaymentService {
 		}
 
 		if (currentProviderImpl.isPaymentProcessed(lastPayment)) {
-			throw new PaymentAlreadyDone(getMessageTag("exception.payment.suscription.stillPending"));
+			return false;
 		}
 
 		LocalDate suscriptionExpirationDate = lastPayment.getDate().plusMonths(1);
@@ -157,14 +157,9 @@ public class SuscriptionPaymentService {
 
 		LocalDate today = LocalDate.now();
 
-		// If it may be missing days for minimalPayDate, subscription is not able to be
-		// payed
+		// If it may be missing days for minimalPayDate, subscription is not able to be payed
 		boolean isPreviousToMinimalDate = today.isBefore(minimalPayDate);
 
-		if (isPreviousToMinimalDate) {
-			throw new PaymentAlreadyDone(getMessageTag("exception.payment.suscription.outOfDates"));
-		}
-
-		return true;
+		return !isPreviousToMinimalDate;
 	}
 }
