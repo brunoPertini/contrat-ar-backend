@@ -11,11 +11,15 @@ public final class PaymentControllerUrls {
 	
 	public static final String SUSCRIPTION_PAYMENT_BASE_URL = PAYMENT_BASE_URL + SUSCRIPTION_BY_ID;
 	
+	public static final String IS_SUSCRIPTION_VALID=SUSCRIPTION_PAYMENT_BASE_URL+"/valid";
+	
 	public static final String LAST_SUSCRIPTION_PAYMENT_BASE_URL = SUSCRIPTION_BY_ID + PAYMENT_BASE_URL;
 	
 	public static final String PAYMENT_BY_ID = PAYMENT_BASE_URL + "/{id}";
 	
 	public static final String PAYMENT_SIGNUP_SUSCRIPTION = PAYMENT_BASE_URL + "/signup/{suscriptionId}";
+	
+	public static final String PAYMENT_USER_PROFILE_SUSCRIPTION = PAYMENT_BASE_URL + "/profile" + SUSCRIPTION_BY_ID;
 	
 	public static final String PAYMENT_WEBHOOK_URL = PAYMENT_BASE_URL + "/notification";
 	

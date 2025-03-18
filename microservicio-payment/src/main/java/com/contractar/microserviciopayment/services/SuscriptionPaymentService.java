@@ -3,8 +3,10 @@ package com.contractar.microserviciopayment.services;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -13,6 +15,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
+import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
@@ -161,5 +164,14 @@ public class SuscriptionPaymentService {
 		boolean isPreviousToMinimalDate = today.isBefore(minimalPayDate);
 
 		return !isPreviousToMinimalDate;
+	}
+	
+	public List<PaymentInfoDTO> getPaymentsOfSubscription(Long subscriptionId) {
+		return this.repository.findAllBySuscripcionId(subscriptionId)
+				.stream()
+				.map(payment -> new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
+						payment.getPaymentPeriod(), payment.getDate(), payment.getAmount(),
+						payment.getCurrency(), payment.getState().toString(),
+						payment.getPaymentProvider().getName())).collect(Collectors.toList());
 	}
 }

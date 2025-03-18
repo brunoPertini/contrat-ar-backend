@@ -1,5 +1,6 @@
 package com.contractar.microserviciopayment.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
@@ -12,6 +13,8 @@ public interface SuscriptionPaymentRepository extends CrudRepository<Suscription
 
 	@SuppressWarnings("unchecked")
 	SuscriptionPayment save(SuscriptionPayment s);
+	
+	List<SuscriptionPayment> findAllBySuscripcionId(Long suscripcionId);
 
 	Optional<SuscriptionPayment> findTopBySuscripcionIdOrderByPaymentPeriodDesc(Long suscripcionId);
 

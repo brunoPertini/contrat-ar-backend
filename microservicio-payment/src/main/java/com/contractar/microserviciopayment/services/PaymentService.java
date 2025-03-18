@@ -69,6 +69,9 @@ public class PaymentService {
 
 	@Value("${frontend.payment.signup.suscription}")
 	private String frontendReturnUrl;
+	
+	@Value("${fontend.payment.userProfile.suscription}")
+	private String userProfileReturnUrl;
 
 	@Value("${provider.uala.webhookUrl}")
 	private String webhookUrl;
@@ -80,6 +83,11 @@ public class PaymentService {
 	private String microservicioUsuarioUrl;
 
 	private static int PAYMENT_URL_MINUTES_DURATION = 15;
+	
+	public enum PAYMENT_SOURCES {
+		SIGNUP,
+		PROFILE,
+	}
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
 			PaymentProviderRepository paymentProviderRepository, PaymentRepository paymentRepository,
@@ -164,6 +172,23 @@ public class PaymentService {
 			throw e;
 		}
 	}
+	
+	private PaymentUrls resolvePaymentUrls(PAYMENT_SOURCES source, String createdPaymentId) {
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+		
+		String basePath = source.equals(PAYMENT_SOURCES.SIGNUP) ? frontendReturnUrl : userProfileReturnUrl;
+	
+		String successReturnUrl = basePath
+				.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
+				.replace("{paymentId}", createdPaymentId);
+
+		String errorReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
+				.replace("{paymentId}", createdPaymentId);
+
+		return new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
+
+	}
 
 	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) throws PaymentNotFoundException {
 		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
@@ -194,7 +219,7 @@ public class PaymentService {
 	/**
 	 * 
 	 * @param suscriptionId
-	 * @param amount
+	 * @param source
 	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
 	 * @throws SuscriptionNotFound
@@ -203,8 +228,8 @@ public class PaymentService {
 	 * @throws PaymentNotFoundException 
 	 */
 	@Transactional
-	public String payLastSuscriptionPeriod(Long suscriptionId)
-			throws SuscriptionNotFound, PaymentAlreadyDone, PaymentCantBeDone, PaymentNotFoundException {
+	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source)
+			throws SuscriptionNotFound, PaymentCantBeDone, PaymentNotFoundException {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
@@ -237,7 +262,7 @@ public class PaymentService {
 			}
 		}
 
-		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment).map(payment -> payment.getPaymentPeriod())
+		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment).map(Payment::getPaymentPeriod)
 				.orElse(null);
 
 		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
@@ -273,14 +298,7 @@ public class PaymentService {
 
 		String createdPaymentId = createdPayment.getId().toString();
 
-		String successReturnUrl = frontendReturnUrl
-				.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
-				.replace("{paymentId}", createdPaymentId);
-
-		String errorReturnUrl = frontendReturnUrl.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
-				.replace("{paymentId}", createdPaymentId);
-
-		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
+		PaymentUrls urls = this.resolvePaymentUrls(source, createdPaymentId);
 
 		String checkoutUrl = paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
 				getMessageTag("payment.suscription.description"), createdPayment.getId(), urls, authToken);
