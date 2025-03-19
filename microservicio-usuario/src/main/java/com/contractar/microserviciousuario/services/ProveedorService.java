@@ -123,7 +123,7 @@ public class ProveedorService {
 					suscription.getPlan().getId(), suscription.getCreatedDate(), datePattern);
 
 			Boolean isSuscriptionValid = httpClient
-					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.SUSCRIPTION_PAYMENT_BASE_URL
+					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
 							.replace("{suscriptionId}", String.valueOf(suscription.getId())), Boolean.class);
 
 			PaymentInfoDTO lastPaymentInfo = httpClient.getForObject(
