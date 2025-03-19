@@ -38,7 +38,7 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
 
-	public static enum UsuariosTypeFilter {
+	public enum UsuariosTypeFilter {
 		proveedores, clientes,
 	};
 
@@ -64,7 +64,7 @@ public class AdminController {
 
 	@PutMapping(AdminControllerUrls.ADMIN_USER)
 	public ResponseEntity<Void> updateUserInfo(@RequestBody @Valid UsuarioPersonalDataUpdateDTO body) 
-		throws ChangeAlreadyRequestedException,	UserNotFoundException {
+		throws ChangeAlreadyRequestedException {
 
 		try {
 			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
@@ -76,7 +76,7 @@ public class AdminController {
 	
 	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR)
 	public ResponseEntity<Void> updateProveedorInfo(@RequestBody @Valid ProveedorPersonalDataUpdateDTO body)
-			throws ChangeAlreadyRequestedException, UserNotFoundException {
+			throws ChangeAlreadyRequestedException {
 
 		try {
 			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
