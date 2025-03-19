@@ -4,6 +4,8 @@ import com.contractar.microserviciocommons.constants.controllers.UsersController
 
 public class UsuarioActiveDTO extends UsuarioAbstractDTO {
 	private boolean active;
+	
+	public UsuarioActiveDTO() {}
 
 	public UsuarioActiveDTO(Long userId, boolean active) {
 		super(userId);

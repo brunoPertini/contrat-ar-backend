@@ -10,6 +10,8 @@ public final class AdminControllerUrls {
 	
 	public static final String ADMIN_USUARIOS_BY_ID = "/admin/usuarios/{id}";
 	
+	public static final String ADMIN_USUARIOS_ACTIVE = "/admin/usuarios/active";
+	
 	public static final String ADMIN_USUARIOS_SENSIBLE_INFO = ADMIN_USUARIOS_BY_ID + "/security";
 		
 	public static final String ADMIN_PROVEEDORES_BY_ID = "/admin/proveedores/{id}";

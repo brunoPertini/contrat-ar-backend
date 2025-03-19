@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
@@ -111,6 +112,12 @@ public class AdminController {
 			@RequestBody @Valid UsuarioPersonalDataUpdateDTO body)
 			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		adminService.updateClientePersonalData(userId, body);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
+	
+	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
+	public ResponseEntity<Void> updateCliente(@RequestBody @Valid UsuarioActiveDTO body) throws ChangeAlreadyRequestedException {
+		adminService.addChangeRequestEntry(body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
