@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -13,10 +12,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
+import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
-import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.PaymentProvider;
@@ -38,9 +38,10 @@ public class SuscriptionPaymentService {
 	private RestTemplate httpClient;
 
 	private ProviderServiceImplFactory providerServiceImplFactory;
-
+	
 	public SuscriptionPaymentService(SuscriptionPaymentRepository repository,
-			ProviderServiceImplFactory providerServiceImplFactory, RestTemplate httpClient) {
+			ProviderServiceImplFactory providerServiceImplFactory,
+			RestTemplate httpClient) {
 		this.repository = repository;
 		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.httpClient = httpClient;
@@ -55,7 +56,11 @@ public class SuscriptionPaymentService {
 		try {
 			String url = microservicioUsuarioUrl
 					+ ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
-			return httpClient.getForObject(url, Suscripcion.class, Map.of("getAsEntity", "true"));
+			
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url)
+					.queryParam("getAsEntity", "true");
+
+			return httpClient.getForObject(uriBuilder.toUriString(), Suscripcion.class);
 		} catch (HttpClientErrorException e) {
 			if (e.getStatusCode().equals(HttpStatusCode.valueOf(404))) {
 				throw new SuscriptionNotFound(getMessageTag("exception.suscription.notFound"));
@@ -64,6 +69,25 @@ public class SuscriptionPaymentService {
 			throw e;
 		}
 	}
+	
+	private SuscripcionDTO getSuscriptionDTO(Long suscripcionId) throws SuscriptionNotFound {
+		try {
+			String url = microservicioUsuarioUrl
+					+ ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
+			
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url)
+					.queryParam("getAsEntity", "false");
+
+			return httpClient.getForObject(uriBuilder.toUriString(), SuscripcionDTO.class);
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode().equals(HttpStatusCode.valueOf(404))) {
+				throw new SuscriptionNotFound(getMessageTag("exception.suscription.notFound"));
+			}
+
+			throw e;
+		}
+	}
+	
 
 	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId)
 			throws SuscriptionNotFound {
@@ -92,13 +116,28 @@ public class SuscriptionPaymentService {
 	}
 
 	public boolean isSuscriptionValid(Long suscriptionId) {
+		SuscripcionDTO subscription;
+		
+		try {
+			subscription = this.getSuscriptionDTO(suscriptionId);
+		} catch(SuscriptionNotFound e) {
+			return false;
+		}
+		
+		boolean isFreePlan = subscription.getPlanPrice() == 0;
+		
+		if (isFreePlan) {
+			return true;
+		}
+
 		// TODO: handle non OUTSITE providers
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
 
 		Optional<SuscriptionPayment> lastPaymentOpt = repository
 				.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
-
+		
+		
 		if (lastPaymentOpt.isEmpty()) {
 			return false;
 		}

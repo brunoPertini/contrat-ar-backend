@@ -190,9 +190,9 @@ public class PaymentService {
 
 	}
 
-	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) throws PaymentNotFoundException {
+	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
 		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
-				.map(payment -> payment).orElseThrow(() -> new PaymentNotFoundException(getMessageTag("exception.payment.notFound")));
+				.map(payment -> payment).orElse(null);
 	}
 
 	public Payment createPayment(PaymentCreateDTO dto) {
@@ -229,7 +229,7 @@ public class PaymentService {
 	 */
 	@Transactional
 	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source)
-			throws SuscriptionNotFound, PaymentCantBeDone, PaymentNotFoundException {
+			throws SuscriptionNotFound, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);

@@ -15,7 +15,6 @@ import com.contractar.microserviciocommons.constants.controllers.PaymentControll
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
-import com.contractar.microserviciocommons.exceptions.payment.PaymentNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.dtos.PaymentDTO;
@@ -42,14 +41,14 @@ public class PaymentController {
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_SIGNUP_SUSCRIPTION)
 	public ResponseEntity<String> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound,
-	PaymentAlreadyDone, PaymentCantBeDone, PaymentNotFoundException {
+	PaymentAlreadyDone, PaymentCantBeDone {
 		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_USER_PROFILE_SUSCRIPTION)
 	public ResponseEntity<String> payUserProfileSubscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound, 
-	PaymentAlreadyDone, PaymentCantBeDone, PaymentNotFoundException {
+	PaymentAlreadyDone, PaymentCantBeDone {
 		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE);
 		return ResponseEntity.ok(checkoutUrl);
 	}
@@ -72,11 +71,11 @@ public class PaymentController {
 	}
 	
 	@GetMapping(PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL)
-	public ResponseEntity<PaymentInfoDTO> getLastSuscriptionPayment(@PathVariable Long suscriptionId) throws PaymentNotFoundException {
+	public ResponseEntity<PaymentInfoDTO> getLastSuscriptionPayment(@PathVariable Long suscriptionId) {
 		Payment payment = paymentService.findLastSuscriptionPayment(suscriptionId);
-		PaymentInfoDTO response = new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
+		PaymentInfoDTO response = payment != null ? new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
 				payment.getPaymentPeriod(), payment.getDate(), payment.getAmount(), payment.getCurrency(), payment.getState().toString(),
-				payment.getPaymentProvider().getName());
+				payment.getPaymentProvider().getName()) : new PaymentInfoDTO();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
