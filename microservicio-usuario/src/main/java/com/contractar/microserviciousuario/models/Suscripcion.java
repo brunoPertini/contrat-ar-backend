@@ -5,7 +5,12 @@ import java.time.LocalDate;
 import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanAccesor;
+import com.contractar.microserviciousuario.serialization.PlanDeserializer;
+import com.contractar.microserviciousuario.serialization.ProveedorDeserializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.NullSerializer;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,10 +34,12 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 
 	private boolean isActive;
 
+	@JsonSerialize(using = NullSerializer.class)
 	@OneToOne(mappedBy = "suscripcion")
 	@JoinColumn(name = "usuario")
 	private Proveedor usuario;
 
+	@JsonDeserialize(using = PlanDeserializer.class)
 	@OneToOne
 	@JoinColumn(name = "plan")
 	private Plan plan;
