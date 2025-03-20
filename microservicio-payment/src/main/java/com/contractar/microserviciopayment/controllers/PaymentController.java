@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
@@ -42,14 +43,16 @@ public class PaymentController {
 	@PostMapping(PaymentControllerUrls.PAYMENT_SIGNUP_SUSCRIPTION)
 	public ResponseEntity<String> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound,
 	PaymentAlreadyDone, PaymentCantBeDone {
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP);
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_USER_PROFILE_SUSCRIPTION)
-	public ResponseEntity<String> payUserProfileSubscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound, 
-	PaymentAlreadyDone, PaymentCantBeDone {
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE);
+	public ResponseEntity<String> payUserProfileSubscription(@RequestBody @Valid PaymentDTO body, 
+			@PathVariable Long suscriptionId,
+			@RequestParam(required = true) String returnTab) throws SuscriptionNotFound, 
+	PaymentCantBeDone {
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE, returnTab);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	

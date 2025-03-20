@@ -173,7 +173,7 @@ public class PaymentService {
 		}
 	}
 	
-	private PaymentUrls resolvePaymentUrls(PAYMENT_SOURCES source, String createdPaymentId) {
+	private PaymentUrls resolvePaymentUrls(PAYMENT_SOURCES source, String createdPaymentId, String returnTab) {
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
 		
@@ -185,6 +185,11 @@ public class PaymentService {
 
 		String errorReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
 				.replace("{paymentId}", createdPaymentId);
+		
+		if (StringUtils.hasLength(returnTab)) {
+			successReturnUrl += "&returnTab="+returnTab;
+			errorReturnUrl += "&returnTab="+returnTab;
+		}
 
 		return new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
 
@@ -218,8 +223,9 @@ public class PaymentService {
 
 	/**
 	 * 
-	 * @param suscriptionId
-	 * @param source
+	 * @param suscriptionId id of subscription to be payed
+	 * @param source Where from its payed in frontend
+	 * @param returnTab If the return urls should include this param to open some tab in frontemd
 	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
 	 * @throws SuscriptionNotFound
@@ -228,7 +234,7 @@ public class PaymentService {
 	 * @throws PaymentNotFoundException 
 	 */
 	@Transactional
-	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source)
+	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source, String returnTab)
 			throws SuscriptionNotFound, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
@@ -298,7 +304,7 @@ public class PaymentService {
 
 		String createdPaymentId = createdPayment.getId().toString();
 
-		PaymentUrls urls = this.resolvePaymentUrls(source, createdPaymentId);
+		PaymentUrls urls = this.resolvePaymentUrls(source, createdPaymentId, returnTab);
 
 		String checkoutUrl = paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
 				getMessageTag("payment.suscription.description"), createdPayment.getId(), urls, authToken);
