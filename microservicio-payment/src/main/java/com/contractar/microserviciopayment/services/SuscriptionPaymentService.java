@@ -20,9 +20,12 @@ import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.PaymentProvider;
+import com.contractar.microserviciopayment.models.PaymentState;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
+import com.contractar.microserviciopayment.models.enums.UalaPaymentStateValue;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
+import com.contractar.microserviciopayment.repository.UalaPaymentStateRepository;
 import com.contractar.microserviciousuario.models.Suscripcion;
 
 @Service
@@ -39,11 +42,15 @@ public class SuscriptionPaymentService {
 
 	private ProviderServiceImplFactory providerServiceImplFactory;
 	
+	private UalaPaymentStateRepository ualaPaymentStateRepository;
+	
 	public SuscriptionPaymentService(SuscriptionPaymentRepository repository,
 			ProviderServiceImplFactory providerServiceImplFactory,
-			RestTemplate httpClient) {
+			RestTemplate httpClient,
+			UalaPaymentStateRepository ualaPaymentStateRepository) {
 		this.repository = repository;
 		this.providerServiceImplFactory = providerServiceImplFactory;
+		this.ualaPaymentStateRepository = ualaPaymentStateRepository;
 		this.httpClient = httpClient;
 	}
 
@@ -133,9 +140,10 @@ public class SuscriptionPaymentService {
 		// TODO: handle non OUTSITE providers
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
+		
+		PaymentState successPaymentState =  ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).get();
 
-		Optional<SuscriptionPayment> lastPaymentOpt = repository
-				.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
+		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, successPaymentState);
 		
 		
 		if (lastPaymentOpt.isEmpty()) {
@@ -146,8 +154,6 @@ public class SuscriptionPaymentService {
 
 		YearMonth paymentPeriod = payment.getPaymentPeriod();
 
-		boolean wasPaymentDoneAtExpectedYear = paymentPeriod.getYear() == YearMonth.now().getYear();
-
 		Month paymentMonth = paymentPeriod.getMonth();
 
 		Month currentMonth = YearMonth.now().getMonth();
@@ -156,8 +162,7 @@ public class SuscriptionPaymentService {
 				|| (paymentMonth.equals(currentMonth.minus(1))
 						&& payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
 
-		return wasPaymentDoneAtExpectedYear && wasPaymentDoneAtExpectedMonth
-				&& currentProviderImpl.wasPaymentAccepted(payment);
+		return  wasPaymentDoneAtExpectedMonth && currentProviderImpl.wasPaymentAccepted(payment);
 	}
 
 	public boolean canSuscriptionBePayed(Long suscriptionId) {

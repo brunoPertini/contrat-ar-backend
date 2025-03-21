@@ -75,7 +75,7 @@ public class PaymentController {
 	
 	@GetMapping(PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL)
 	public ResponseEntity<PaymentInfoDTO> getLastSuscriptionPayment(@PathVariable Long suscriptionId) {
-		Payment payment = paymentService.findLastSuscriptionPayment(suscriptionId);
+		Payment payment = paymentService.findLastSuccesfullSuscriptionPayment(suscriptionId);
 		PaymentInfoDTO response = payment != null ? new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
 				payment.getPaymentPeriod(), payment.getDate(), payment.getAmount(), payment.getCurrency(), payment.getState().toString(),
 				payment.getPaymentProvider().getName()) : new PaymentInfoDTO();

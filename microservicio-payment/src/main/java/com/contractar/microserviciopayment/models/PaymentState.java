@@ -1,5 +1,7 @@
 package com.contractar.microserviciopayment.models;
 
+import java.io.Serializable;
+
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
@@ -12,7 +14,10 @@ import jakarta.persistence.InheritanceType;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "provider_id", discriminatorType = DiscriminatorType.INTEGER)
-public class PaymentState {
+public class PaymentState implements Serializable{
+	
+	private static final long serialVersionUID = 8217446853653351726L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

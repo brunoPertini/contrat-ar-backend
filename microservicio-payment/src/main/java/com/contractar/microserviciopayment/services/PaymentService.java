@@ -36,14 +36,17 @@ import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
+import com.contractar.microserviciopayment.models.PaymentState;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
+import com.contractar.microserviciopayment.models.enums.UalaPaymentStateValue;
 import com.contractar.microserviciopayment.providers.PaymentUrls;
 import com.contractar.microserviciopayment.providers.uala.WebhookBody;
 import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentRepository;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
+import com.contractar.microserviciopayment.repository.UalaPaymentStateRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -57,6 +60,8 @@ public class PaymentService {
 	private PaymentRepository paymentRepository;
 
 	private SuscriptionPaymentRepository suscriptionPaymentRepository;
+	
+	private UalaPaymentStateRepository ualaPaymentStateRepository;
 
 	private SuscriptionPaymentService suscriptionPaymentService;
 
@@ -90,9 +95,12 @@ public class PaymentService {
 	}
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
-			PaymentProviderRepository paymentProviderRepository, PaymentRepository paymentRepository,
+			PaymentProviderRepository paymentProviderRepository,
+			PaymentRepository paymentRepository,
 			ProviderServiceImplFactory providerServiceImplFactory,
-			SuscriptionPaymentRepository suscriptionPaymentRepository, RestTemplate httpClient,
+			SuscriptionPaymentRepository suscriptionPaymentRepository,
+			UalaPaymentStateRepository ualaPaymentStateRepository,
+			RestTemplate httpClient,
 			SuscriptionPaymentService suscriptionPaymentService) {
 		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.httpClient = httpClient;
@@ -100,6 +108,7 @@ public class PaymentService {
 		this.outsitePaymentProviderRepository = outsitePaymentProviderRepository;
 		this.suscriptionPaymentRepository = suscriptionPaymentRepository;
 		this.paymentRepository = paymentRepository;
+		this.ualaPaymentStateRepository = ualaPaymentStateRepository;
 		this.suscriptionPaymentService = suscriptionPaymentService;
 	}
 
@@ -134,6 +143,11 @@ public class PaymentService {
 
 		return !dateFromUnix.isBefore(today);
 
+	}
+	
+	private PaymentState fetchSuccessPaymentStateEntity() {
+		// TODO: decouple harcoded provider
+		return ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).map(state -> state).orElse(null);
 	}
 
 	public PaymentInfoDTO getPaymentInfo(Long paymentId) {
@@ -197,6 +211,12 @@ public class PaymentService {
 
 	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
 		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
+				.map(payment -> payment).orElse(null);
+	}
+	
+	public SuscriptionPayment findLastSuccesfullSuscriptionPayment(Long suscriptionId) {
+		PaymentState succesfullPaymentState = this.fetchSuccessPaymentStateEntity();
+		return suscriptionPaymentRepository.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, succesfullPaymentState)
 				.map(payment -> payment).orElse(null);
 	}
 

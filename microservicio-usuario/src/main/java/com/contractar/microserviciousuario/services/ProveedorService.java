@@ -132,7 +132,7 @@ public class ProveedorService {
 					PaymentInfoDTO.class);
 			
 			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> 
-			Optional.ofNullable(optPaymentInfo.getDate()).map(paymentInfo -> paymentInfo).orElse(null))
+			Optional.ofNullable(optPaymentInfo.getDate()).map(expDate -> expDate.plusMonths(1)).orElse(null))
 					.orElse(null);
 
 			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);
