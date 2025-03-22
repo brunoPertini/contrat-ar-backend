@@ -116,7 +116,7 @@ public class AdminController {
 	}
 	
 	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
-	public ResponseEntity<Void> updateCliente(@RequestBody @Valid UsuarioActiveDTO body) throws ChangeAlreadyRequestedException {
+	public ResponseEntity<Void> changeUserActive(@RequestBody @Valid UsuarioActiveDTO body) throws ChangeAlreadyRequestedException {
 		adminService.addChangeRequestEntry(body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}

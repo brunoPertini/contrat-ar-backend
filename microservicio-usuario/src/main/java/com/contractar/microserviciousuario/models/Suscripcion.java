@@ -34,7 +34,7 @@ public class Suscripcion implements Serializable, SuscripcionAccesor {
 
 	private boolean isActive;
 
-	@JsonSerialize(using = NullSerializer.class)
+	@JsonSerialize(using = NullSerializer.class) //FIXME: this may break something, test the flows thoroughly
 	@OneToOne(mappedBy = "suscripcion")
 	@JoinColumn(name = "usuario")
 	private Proveedor usuario;
