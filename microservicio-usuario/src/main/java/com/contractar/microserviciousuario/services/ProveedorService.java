@@ -21,7 +21,6 @@ import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
-import com.contractar.microserviciocommons.exceptions.vendibles.SubscriptionAlreadyExistsException;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Suscripcion;
@@ -87,27 +86,46 @@ public class ProveedorService {
 		return this.suscripcionRepository.findById(id).map(s -> s).orElseThrow(() -> new SuscriptionNotFound(""));
 	}
 
+	private PaymentInfoDTO fetchLastSuccessfulPaymentInfo(Long suscriptionId) {
+
+		return httpClient.getForObject(microservicioPaymentUrl + PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL
+				.replace("{suscriptionId}", String.valueOf(suscriptionId)), PaymentInfoDTO.class);
+	}
+
+	private Suscripcion createPaidPlanSuscription(Proveedor proveedor) {
+		Plan paidPlan = planRepository.findByType(PlanType.PAID).get();
+		Suscripcion suscripcion = new Suscripcion(true, proveedor, paidPlan, LocalDate.now());
+
+		return suscripcionRepository.save(suscripcion);
+
+	}
+
+	private Suscripcion createFreePlanSuscription(Proveedor proveedor) {
+		Plan freePlan = planRepository.findByType(PlanType.FREE).get();
+		
+		
+		LocalDate createdDate =  this.fetchLastSuccessfulPaymentInfo(proveedor.getSuscripcion().getId()).getDate().plusMonths(1);
+		
+		Suscripcion suscripcion = new Suscripcion(true, proveedor, freePlan, createdDate);
+
+		return suscripcionRepository.save(suscripcion);
+
+	}
+
 	public SuscripcionDTO createSuscripcion(Long proveedorId, Long planId)
 			throws UserNotFoundException, CantCreateException {
 		Proveedor proveedor = this.findById(proveedorId);
 
 		Plan plan = planRepository.findById(planId).map(p -> p).orElseThrow(CantCreateException::new);
 
-		if (suscripcionRepository.existsByUsuario_Id(proveedorId)) {
-			throw new SubscriptionAlreadyExistsException(
-					usuarioService.getMessageTag("exceptions.subscription.alreadyCreated"));
-		}
-
-		boolean isActive = plan.getType().equals(PlanType.FREE);
-
-		Suscripcion suscripcion = new Suscripcion(isActive, proveedor, plan, LocalDate.now());
-
-		suscripcionRepository.save(suscripcion);
-
-		proveedor.setSuscripcion(suscripcion);
-		proveedorRepository.save(proveedor);
-
-		return new SuscripcionDTO(suscripcion.getId(), isActive, proveedorId, planId, suscripcion.getCreatedDate(),
+		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID) ? createPaidPlanSuscription(proveedor) 
+				: createFreePlanSuscription(proveedor);
+		
+		return new SuscripcionDTO(temporalCreatedSuscription.getId(), 
+				temporalCreatedSuscription.isActive(),
+				proveedorId,
+				planId,
+				temporalCreatedSuscription.getCreatedDate(),
 				fetchDatePattern());
 
 	}
@@ -126,28 +144,26 @@ public class ProveedorService {
 					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
 							.replace("{suscriptionId}", String.valueOf(suscription.getId())), Boolean.class);
 
-			PaymentInfoDTO lastPaymentInfo = httpClient.getForObject(
-					microservicioPaymentUrl + PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL
-					.replace("{suscriptionId}", String.valueOf(suscription.getId())),
-					PaymentInfoDTO.class);
-			
-			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> 
-			Optional.ofNullable(optPaymentInfo.getDate()).map(expDate -> expDate.plusMonths(1)).orElse(null))
+			PaymentInfoDTO lastPaymentInfo = this.fetchLastSuccessfulPaymentInfo(suscription.getId());
+
+			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> Optional
+					.ofNullable(optPaymentInfo.getDate()).map(expDate -> expDate.plusMonths(1)).orElse(null))
 					.orElse(null);
 
 			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);
-			
-			boolean canBePayed = httpClient.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE.replace("{suscriptionId}", 
-					suscription.getId().toString()), Boolean.class);
+
+			boolean canBePayed = httpClient
+					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE
+							.replace("{suscriptionId}", suscription.getId().toString()), Boolean.class);
 			validity.setCanBePayed(canBePayed);
-			
+
 			boolean hasFreePlan = proveedor.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
-			
+
 			if (!validity.isValid() && !hasFreePlan) {
 				Plan freePlan = planRepository.findById(1L).map(p -> p).orElse(null);
 				proveedor.getSuscripcion().setPlan(freePlan);
 				proveedorRepository.save(proveedor);
-				
+
 				responseDTO.setPlanId(freePlan.getId());
 				responseDTO.setPlanPrice(freePlan.getPrice());
 			}
