@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
@@ -38,7 +39,7 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
 
-	public static enum UsuariosTypeFilter {
+	public enum UsuariosTypeFilter {
 		proveedores, clientes,
 	};
 
@@ -64,7 +65,7 @@ public class AdminController {
 
 	@PutMapping(AdminControllerUrls.ADMIN_USER)
 	public ResponseEntity<Void> updateUserInfo(@RequestBody @Valid UsuarioPersonalDataUpdateDTO body) 
-		throws ChangeAlreadyRequestedException,	UserNotFoundException {
+		throws ChangeAlreadyRequestedException {
 
 		try {
 			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
@@ -76,7 +77,7 @@ public class AdminController {
 	
 	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR)
 	public ResponseEntity<Void> updateProveedorInfo(@RequestBody @Valid ProveedorPersonalDataUpdateDTO body)
-			throws ChangeAlreadyRequestedException, UserNotFoundException {
+			throws ChangeAlreadyRequestedException {
 
 		try {
 			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
@@ -111,6 +112,12 @@ public class AdminController {
 			@RequestBody @Valid UsuarioPersonalDataUpdateDTO body)
 			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		adminService.updateClientePersonalData(userId, body);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
+	
+	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
+	public ResponseEntity<Void> changeUserActive(@RequestBody @Valid UsuarioActiveDTO body) throws ChangeAlreadyRequestedException {
+		adminService.addChangeRequestEntry(body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 

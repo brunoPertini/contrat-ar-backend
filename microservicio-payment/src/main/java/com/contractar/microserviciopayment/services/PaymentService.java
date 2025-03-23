@@ -36,14 +36,17 @@ import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.PaymentProvider;
+import com.contractar.microserviciopayment.models.PaymentState;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
+import com.contractar.microserviciopayment.models.enums.UalaPaymentStateValue;
 import com.contractar.microserviciopayment.providers.PaymentUrls;
 import com.contractar.microserviciopayment.providers.uala.WebhookBody;
 import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentRepository;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
+import com.contractar.microserviciopayment.repository.UalaPaymentStateRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -57,6 +60,8 @@ public class PaymentService {
 	private PaymentRepository paymentRepository;
 
 	private SuscriptionPaymentRepository suscriptionPaymentRepository;
+	
+	private UalaPaymentStateRepository ualaPaymentStateRepository;
 
 	private SuscriptionPaymentService suscriptionPaymentService;
 
@@ -69,6 +74,9 @@ public class PaymentService {
 
 	@Value("${frontend.payment.signup.suscription}")
 	private String frontendReturnUrl;
+	
+	@Value("${fontend.payment.userProfile.suscription}")
+	private String userProfileReturnUrl;
 
 	@Value("${provider.uala.webhookUrl}")
 	private String webhookUrl;
@@ -80,11 +88,19 @@ public class PaymentService {
 	private String microservicioUsuarioUrl;
 
 	private static int PAYMENT_URL_MINUTES_DURATION = 15;
+	
+	public enum PAYMENT_SOURCES {
+		SIGNUP,
+		PROFILE,
+	}
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
-			PaymentProviderRepository paymentProviderRepository, PaymentRepository paymentRepository,
+			PaymentProviderRepository paymentProviderRepository,
+			PaymentRepository paymentRepository,
 			ProviderServiceImplFactory providerServiceImplFactory,
-			SuscriptionPaymentRepository suscriptionPaymentRepository, RestTemplate httpClient,
+			SuscriptionPaymentRepository suscriptionPaymentRepository,
+			UalaPaymentStateRepository ualaPaymentStateRepository,
+			RestTemplate httpClient,
 			SuscriptionPaymentService suscriptionPaymentService) {
 		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.httpClient = httpClient;
@@ -92,6 +108,7 @@ public class PaymentService {
 		this.outsitePaymentProviderRepository = outsitePaymentProviderRepository;
 		this.suscriptionPaymentRepository = suscriptionPaymentRepository;
 		this.paymentRepository = paymentRepository;
+		this.ualaPaymentStateRepository = ualaPaymentStateRepository;
 		this.suscriptionPaymentService = suscriptionPaymentService;
 	}
 
@@ -126,6 +143,11 @@ public class PaymentService {
 
 		return !dateFromUnix.isBefore(today);
 
+	}
+	
+	private PaymentState fetchSuccessPaymentStateEntity() {
+		// TODO: decouple harcoded provider
+		return ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).map(state -> state).orElse(null);
 	}
 
 	public PaymentInfoDTO getPaymentInfo(Long paymentId) {
@@ -164,10 +186,38 @@ public class PaymentService {
 			throw e;
 		}
 	}
+	
+	private PaymentUrls resolvePaymentUrls(PAYMENT_SOURCES source, String createdPaymentId, String returnTab) {
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+		
+		String basePath = source.equals(PAYMENT_SOURCES.SIGNUP) ? frontendReturnUrl : userProfileReturnUrl;
+	
+		String successReturnUrl = basePath
+				.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
+				.replace("{paymentId}", createdPaymentId);
 
-	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) throws PaymentNotFoundException {
+		String errorReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
+				.replace("{paymentId}", createdPaymentId);
+		
+		if (StringUtils.hasLength(returnTab)) {
+			successReturnUrl += "&returnTab="+returnTab;
+			errorReturnUrl += "&returnTab="+returnTab;
+		}
+
+		return new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
+
+	}
+
+	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
 		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
-				.map(payment -> payment).orElseThrow(() -> new PaymentNotFoundException(getMessageTag("exception.payment.notFound")));
+				.map(payment -> payment).orElse(null);
+	}
+	
+	public SuscriptionPayment findLastSuccesfullSuscriptionPayment(Long suscriptionId) {
+		PaymentState succesfullPaymentState = this.fetchSuccessPaymentStateEntity();
+		return suscriptionPaymentRepository.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, succesfullPaymentState)
+				.map(payment -> payment).orElse(null);
 	}
 
 	public Payment createPayment(PaymentCreateDTO dto) {
@@ -193,8 +243,9 @@ public class PaymentService {
 
 	/**
 	 * 
-	 * @param suscriptionId
-	 * @param amount
+	 * @param suscriptionId id of subscription to be payed
+	 * @param source Where from its payed in frontend
+	 * @param returnTab If the return urls should include this param to open some tab in frontemd
 	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
 	 * @throws SuscriptionNotFound
@@ -203,8 +254,8 @@ public class PaymentService {
 	 * @throws PaymentNotFoundException 
 	 */
 	@Transactional
-	public String payLastSuscriptionPeriod(Long suscriptionId)
-			throws SuscriptionNotFound, PaymentAlreadyDone, PaymentCantBeDone, PaymentNotFoundException {
+	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source, String returnTab)
+			throws SuscriptionNotFound, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
@@ -237,7 +288,7 @@ public class PaymentService {
 			}
 		}
 
-		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment).map(payment -> payment.getPaymentPeriod())
+		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment).map(Payment::getPaymentPeriod)
 				.orElse(null);
 
 		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
@@ -273,14 +324,7 @@ public class PaymentService {
 
 		String createdPaymentId = createdPayment.getId().toString();
 
-		String successReturnUrl = frontendReturnUrl
-				.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
-				.replace("{paymentId}", createdPaymentId);
-
-		String errorReturnUrl = frontendReturnUrl.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
-				.replace("{paymentId}", createdPaymentId);
-
-		PaymentUrls urls = new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
+		PaymentUrls urls = this.resolvePaymentUrls(source, createdPaymentId, returnTab);
 
 		String checkoutUrl = paymentProviderImpl.createCheckout(foundSuscription.getPlanPrice(),
 				getMessageTag("payment.suscription.description"), createdPayment.getId(), urls, authToken);

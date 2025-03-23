@@ -4,13 +4,19 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Currency;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({"paymentPeriod", "date", "amount", "currency", "state", "paymentProviderName"})
 public class PaymentInfoDTO {
 	private Long id;
 
 	private String externalId;
 
+	@JsonFormat(pattern = "MM/yyyy")
 	private YearMonth paymentPeriod;
 
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate date;
 
 	private int amount;

@@ -123,7 +123,7 @@ public class ProveedorService {
 					suscription.getPlan().getId(), suscription.getCreatedDate(), datePattern);
 
 			Boolean isSuscriptionValid = httpClient
-					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.SUSCRIPTION_PAYMENT_BASE_URL
+					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
 							.replace("{suscriptionId}", String.valueOf(suscription.getId())), Boolean.class);
 
 			PaymentInfoDTO lastPaymentInfo = httpClient.getForObject(
@@ -131,8 +131,8 @@ public class ProveedorService {
 					.replace("{suscriptionId}", String.valueOf(suscription.getId())),
 					PaymentInfoDTO.class);
 			
-			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(
-					paymentInfo -> paymentInfo.getDate().plusMonths(1))
+			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> 
+			Optional.ofNullable(optPaymentInfo.getDate()).map(expDate -> expDate.plusMonths(1)).orElse(null))
 					.orElse(null);
 
 			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);

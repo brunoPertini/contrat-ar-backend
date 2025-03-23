@@ -3,23 +3,29 @@ package com.contractar.microserviciopayment.services;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
-import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
+import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.PaymentProvider;
+import com.contractar.microserviciopayment.models.PaymentState;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
+import com.contractar.microserviciopayment.models.enums.UalaPaymentStateValue;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
+import com.contractar.microserviciopayment.repository.UalaPaymentStateRepository;
 import com.contractar.microserviciousuario.models.Suscripcion;
 
 @Service
@@ -35,11 +41,16 @@ public class SuscriptionPaymentService {
 	private RestTemplate httpClient;
 
 	private ProviderServiceImplFactory providerServiceImplFactory;
-
+	
+	private UalaPaymentStateRepository ualaPaymentStateRepository;
+	
 	public SuscriptionPaymentService(SuscriptionPaymentRepository repository,
-			ProviderServiceImplFactory providerServiceImplFactory, RestTemplate httpClient) {
+			ProviderServiceImplFactory providerServiceImplFactory,
+			RestTemplate httpClient,
+			UalaPaymentStateRepository ualaPaymentStateRepository) {
 		this.repository = repository;
 		this.providerServiceImplFactory = providerServiceImplFactory;
+		this.ualaPaymentStateRepository = ualaPaymentStateRepository;
 		this.httpClient = httpClient;
 	}
 
@@ -52,7 +63,11 @@ public class SuscriptionPaymentService {
 		try {
 			String url = microservicioUsuarioUrl
 					+ ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
-			return httpClient.getForObject(url, Suscripcion.class, Map.of("getAsEntity", "true"));
+			
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url)
+					.queryParam("getAsEntity", "true");
+
+			return httpClient.getForObject(uriBuilder.toUriString(), Suscripcion.class);
 		} catch (HttpClientErrorException e) {
 			if (e.getStatusCode().equals(HttpStatusCode.valueOf(404))) {
 				throw new SuscriptionNotFound(getMessageTag("exception.suscription.notFound"));
@@ -61,6 +76,25 @@ public class SuscriptionPaymentService {
 			throw e;
 		}
 	}
+	
+	private SuscripcionDTO getSuscriptionDTO(Long suscripcionId) throws SuscriptionNotFound {
+		try {
+			String url = microservicioUsuarioUrl
+					+ ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
+			
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url)
+					.queryParam("getAsEntity", "false");
+
+			return httpClient.getForObject(uriBuilder.toUriString(), SuscripcionDTO.class);
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode().equals(HttpStatusCode.valueOf(404))) {
+				throw new SuscriptionNotFound(getMessageTag("exception.suscription.notFound"));
+			}
+
+			throw e;
+		}
+	}
+	
 
 	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId)
 			throws SuscriptionNotFound {
@@ -89,13 +123,29 @@ public class SuscriptionPaymentService {
 	}
 
 	public boolean isSuscriptionValid(Long suscriptionId) {
+		SuscripcionDTO subscription;
+		
+		try {
+			subscription = this.getSuscriptionDTO(suscriptionId);
+		} catch(SuscriptionNotFound e) {
+			return false;
+		}
+		
+		boolean isFreePlan = subscription.getPlanPrice() == 0;
+		
+		if (isFreePlan) {
+			return true;
+		}
+
 		// TODO: handle non OUTSITE providers
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
+		
+		PaymentState successPaymentState =  ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).get();
 
-		Optional<SuscriptionPayment> lastPaymentOpt = repository
-				.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId);
-
+		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, successPaymentState);
+		
+		
 		if (lastPaymentOpt.isEmpty()) {
 			return false;
 		}
@@ -103,8 +153,6 @@ public class SuscriptionPaymentService {
 		SuscriptionPayment payment = lastPaymentOpt.get();
 
 		YearMonth paymentPeriod = payment.getPaymentPeriod();
-
-		boolean wasPaymentDoneAtExpectedYear = paymentPeriod.getYear() == YearMonth.now().getYear();
 
 		Month paymentMonth = paymentPeriod.getMonth();
 
@@ -114,8 +162,7 @@ public class SuscriptionPaymentService {
 				|| (paymentMonth.equals(currentMonth.minus(1))
 						&& payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
 
-		return wasPaymentDoneAtExpectedYear && wasPaymentDoneAtExpectedMonth
-				&& currentProviderImpl.wasPaymentAccepted(payment);
+		return  wasPaymentDoneAtExpectedMonth && currentProviderImpl.wasPaymentAccepted(payment);
 	}
 
 	public boolean canSuscriptionBePayed(Long suscriptionId) {
@@ -161,5 +208,14 @@ public class SuscriptionPaymentService {
 		boolean isPreviousToMinimalDate = today.isBefore(minimalPayDate);
 
 		return !isPreviousToMinimalDate;
+	}
+	
+	public List<PaymentInfoDTO> getPaymentsOfSubscription(Long subscriptionId) {
+		return this.repository.findAllBySuscripcionId(subscriptionId)
+				.stream()
+				.map(payment -> new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
+						payment.getPaymentPeriod(), payment.getDate(), payment.getAmount(),
+						payment.getCurrency(), payment.getState().toString(),
+						payment.getPaymentProvider().getName())).collect(Collectors.toList());
 	}
 }

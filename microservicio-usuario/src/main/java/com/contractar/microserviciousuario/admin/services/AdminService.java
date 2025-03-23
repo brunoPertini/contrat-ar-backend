@@ -19,6 +19,7 @@ import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.OperationNotAllowedException;
@@ -128,6 +129,21 @@ public class AdminService {
 				: attributes.get(0).toString();
 
 		return !attributes.isEmpty() && repository.getMatchingChangeRequest(idsAsString, attributesAsString) != null;
+	}
+	
+	public void addChangeRequestEntry(UsuarioActiveDTO info) throws ChangeAlreadyRequestedException {
+		String concatenatedIds = info.getUserId().toString();
+		boolean alreadyRequested = repository.getMatchingChangeRequest(concatenatedIds, "active") != null;
+
+		if (alreadyRequested) {
+			throw new ChangeAlreadyRequestedException(getMessageTag("exceptions.change.already.requested"));
+		}
+		
+		ChangeRequest newRequest = new ChangeRequest("usuario", "active=true",
+				false, List.of(info.getUserId()), List.of("id"));
+
+		newRequest.setChangeDetailUrl(info.getChangeDetailUrl(info.getUserId()));
+		repository.save(newRequest);
 	}
 
 	public void addChangeRequestEntry(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId)

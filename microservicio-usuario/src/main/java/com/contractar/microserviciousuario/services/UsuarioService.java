@@ -128,8 +128,7 @@ public class UsuarioService {
 	}
 
 	private void requestUsuarioActiveFlag(Long userId) throws UserCreationException {
-		String url = microservicioUsuarioUrl
-				+ AdminControllerUrls.ADMIN_USUARIOS_BY_ID.replace("{id}", userId.toString());
+		String url = microservicioUsuarioUrl + AdminControllerUrls.ADMIN_USUARIOS_ACTIVE;
 		try {
 			httpClient.put(url, new UsuarioActiveDTO(userId, true));
 		} catch (RestClientException e) {
