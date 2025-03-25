@@ -18,15 +18,18 @@ import com.contractar.microserviciocommons.date.enums.DateOperationType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.SuscriptionValidityDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
+import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
-import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
+import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.repository.PlanRepository;
 import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.SuscripcionRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProveedorService {
@@ -37,7 +40,7 @@ public class ProveedorService {
 
 	private SuscripcionRepository suscripcionRepository;
 
-	private UsuarioService usuarioService;
+	private AdminService adminService;
 
 	private RestTemplate httpClient;
 
@@ -64,12 +67,12 @@ public class ProveedorService {
 	}
 
 	public ProveedorService(PlanRepository planRepository, ProveedorRepository proveedorRepository,
-			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, UsuarioService usuarioService) {
+			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService) {
 		this.planRepository = planRepository;
 		this.proveedorRepository = proveedorRepository;
 		this.suscripcionRepository = suscripcionRepository;
 		this.httpClient = httpClient;
-		this.usuarioService = usuarioService;
+		this.adminService = adminService;
 	}
 
 	public Proveedor findById(Long proveedorId) throws UserNotFoundException {
@@ -100,23 +103,39 @@ public class ProveedorService {
 
 	}
 
-	private Suscripcion createFreePlanSuscription(Proveedor proveedor) {
+	@Transactional
+	private Suscripcion createFreePlanSuscription(Proveedor proveedor) throws CantCreateSuscription {
 		Plan freePlan = planRepository.findByType(PlanType.FREE).get();
 		
+		Long subscriptioId = proveedor.getSuscripcion().getId();
 		
-		LocalDate createdDate =  this.fetchLastSuccessfulPaymentInfo(proveedor.getSuscripcion().getId()).getDate().plusMonths(1);
+		PaymentInfoDTO pInfo = this.fetchLastSuccessfulPaymentInfo(subscriptioId);
+
+		LocalDate createdDate = Optional.ofNullable(pInfo.getDate())
+						.map(paymentDate -> paymentDate.plusMonths(1))
+						.orElse(LocalDate.now());
 		
 		Suscripcion suscripcion = new Suscripcion(true, proveedor, freePlan, createdDate);
+		
+		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
+		
+		adminService.addChangeRequestEntry(proveedor.getId(), createdSuscripcion.getId());
 
-		return suscripcionRepository.save(suscripcion);
+		return createdSuscripcion;
 
 	}
 
 	public SuscripcionDTO createSuscripcion(Long proveedorId, Long planId)
-			throws UserNotFoundException, CantCreateException {
+			throws UserNotFoundException, CantCreateSuscription {
 		Proveedor proveedor = this.findById(proveedorId);
 
-		Plan plan = planRepository.findById(planId).map(p -> p).orElseThrow(CantCreateException::new);
+		Plan plan = planRepository.findById(planId).map(p -> p).orElseThrow(() -> new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate")));
+		
+		boolean isTheSamePlan = plan.getId().equals(proveedor.getSuscripcion().getPlan().getId());
+		
+		if (isTheSamePlan) {
+			throw new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate"));
+		}
 
 		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID) ? createPaidPlanSuscription(proveedor) 
 				: createFreePlanSuscription(proveedor);

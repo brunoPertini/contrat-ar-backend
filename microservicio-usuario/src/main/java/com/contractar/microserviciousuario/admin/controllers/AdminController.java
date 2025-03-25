@@ -51,9 +51,15 @@ public class AdminController {
 
 	@DeleteMapping(AdminControllerUrls.CHANGE_REQUEST_BY_ID)
 	public ResponseEntity<?> denyRequestChange(@PathVariable Long id)
-			throws ChangeConfirmException, VendibleNotFoundException, ClassNotFoundException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException {
+			throws ChangeConfirmException {
 		adminService.denyChangeRequest(id);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+	
+	@DeleteMapping(AdminControllerUrls.PLAN_CHANGE_REQUEST_BY_ID)
+	public ResponseEntity<?> denyPlanChange(@PathVariable("id") Long changeRequestId, HttpServletRequest request)
+			throws ChangeConfirmException {
+		adminService.denyPlanChange(changeRequestId, request);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
@@ -87,11 +93,12 @@ public class AdminController {
 		}
 	}
 
-	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR_SUBSCRIPTION_PLAN_CHANGE)
-	public ResponseEntity<Void> updateProveedorPlan(@PathVariable("proveedorId") Long proveedorId,
-			@PathVariable("planId") Long newPlanId) throws ChangeAlreadyRequestedException, ChangeConfirmException {
-		adminService.addChangeRequestEntry(proveedorId, newPlanId);
-		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	@PostMapping(AdminControllerUrls.ADMIN_PROVEEDOR_SUBSCRIPTION_PLAN_CHANGE)
+	public ResponseEntity<Void> updateProveedorPlan(@PathVariable(name = "id") Long proveedorId,
+			@PathVariable Long suscriptionId) throws ChangeAlreadyRequestedException, 
+	ChangeConfirmException {
+		adminService.addChangeRequestEntry(proveedorId, suscriptionId);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(201));
 	}
 
 	@PatchMapping(AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID)
