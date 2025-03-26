@@ -57,7 +57,7 @@ public class AdminController {
 	}
 	
 	@DeleteMapping(AdminControllerUrls.PLAN_CHANGE_REQUEST_BY_ID)
-	public ResponseEntity<?> denyPlanChange(@PathVariable("id") Long changeRequestId, HttpServletRequest request)
+	public ResponseEntity<?> denyPlanChange(@PathVariable Long changeRequestId, HttpServletRequest request)
 			throws ChangeConfirmException {
 		adminService.denyPlanChange(changeRequestId, request);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);

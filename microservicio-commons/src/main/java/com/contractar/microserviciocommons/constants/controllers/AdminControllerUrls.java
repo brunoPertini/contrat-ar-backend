@@ -10,7 +10,7 @@ public final class AdminControllerUrls {
 	
 	public static final String CHANGE_REQUEST_BY_ID = CHANGE_REQUEST_BASE_URL+"/{id}";
 	
-	public static final String PLAN_CHANGE_REQUEST_BY_ID = CHANGE_REQUEST_BASE_URL+"/{id}/plan";
+	public static final String PLAN_CHANGE_REQUEST_BY_ID = "/admin/plan/{changeRequestId}/change";
 	
 	public static final String ADMIN_USUARIOS_BY_ID = "/admin/usuarios/{id}";
 	

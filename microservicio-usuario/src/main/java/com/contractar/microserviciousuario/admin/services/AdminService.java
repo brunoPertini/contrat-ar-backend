@@ -353,7 +353,8 @@ public class AdminService {
 		
 		// 	If requesting user is not admin, have to check that logued one matches with the one that requested this change request
 		if (!userRole.equals(RolesValues.ADMIN.name())) {
-			Long loguedUserId = (Long)tokenPayload.get("id");
+			Long loguedUserId = Long.valueOf((String)tokenPayload.get("id"));
+				
 			
 			ChangeRequest changeRequest = this.findById(changeRequestId);
 						
