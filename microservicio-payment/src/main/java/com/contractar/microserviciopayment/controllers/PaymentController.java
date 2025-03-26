@@ -43,7 +43,7 @@ public class PaymentController {
 	@PostMapping(PaymentControllerUrls.PAYMENT_SIGNUP_SUSCRIPTION)
 	public ResponseEntity<String> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound,
 	PaymentAlreadyDone, PaymentCantBeDone {
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null);
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null, null);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
@@ -52,7 +52,7 @@ public class PaymentController {
 			@PathVariable Long suscriptionId,
 			@RequestParam(required = true) String returnTab) throws SuscriptionNotFound, 
 	PaymentCantBeDone {
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE, returnTab);
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE, returnTab, body.getToBeBindUserId());
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
@@ -90,6 +90,12 @@ public class PaymentController {
 	@GetMapping(PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE)
 	public ResponseEntity<Boolean> isSubscriptionPayable(@PathVariable Long suscriptionId) {
 		return new ResponseEntity<>(suscriptionPaymentService.canSuscriptionBePayed(suscriptionId), HttpStatus.OK);
+	}
+	
+	@PostMapping(PaymentControllerUrls.PAYMENT_WEBHOOK_URL_PLAN_CHANGE)
+	public ResponseEntity<?> postPaymentPlanUpdate(@RequestBody WebhookBody body) {
+		paymentService.handleWebhookPlanChangeNotification(body);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_WEBHOOK_URL)

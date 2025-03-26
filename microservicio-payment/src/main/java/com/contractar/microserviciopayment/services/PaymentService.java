@@ -60,7 +60,7 @@ public class PaymentService {
 	private PaymentRepository paymentRepository;
 
 	private SuscriptionPaymentRepository suscriptionPaymentRepository;
-	
+
 	private UalaPaymentStateRepository ualaPaymentStateRepository;
 
 	private SuscriptionPaymentService suscriptionPaymentService;
@@ -74,7 +74,7 @@ public class PaymentService {
 
 	@Value("${frontend.payment.signup.suscription}")
 	private String frontendReturnUrl;
-	
+
 	@Value("${fontend.payment.userProfile.suscription}")
 	private String userProfileReturnUrl;
 
@@ -87,20 +87,20 @@ public class PaymentService {
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
 
+	@Value("${provider.uala.webhookUrl.planChange}")
+	private String webhookPlanChangeUrl;
+
 	private static int PAYMENT_URL_MINUTES_DURATION = 15;
-	
+
 	public enum PAYMENT_SOURCES {
-		SIGNUP,
-		PROFILE,
+		SIGNUP, PROFILE,
 	}
 
 	public PaymentService(OutsitePaymentProviderRepository outsitePaymentProviderRepository,
-			PaymentProviderRepository paymentProviderRepository,
-			PaymentRepository paymentRepository,
+			PaymentProviderRepository paymentProviderRepository, PaymentRepository paymentRepository,
 			ProviderServiceImplFactory providerServiceImplFactory,
 			SuscriptionPaymentRepository suscriptionPaymentRepository,
-			UalaPaymentStateRepository ualaPaymentStateRepository,
-			RestTemplate httpClient,
+			UalaPaymentStateRepository ualaPaymentStateRepository, RestTemplate httpClient,
 			SuscriptionPaymentService suscriptionPaymentService) {
 		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.httpClient = httpClient;
@@ -144,16 +144,17 @@ public class PaymentService {
 		return !dateFromUnix.isBefore(today);
 
 	}
-	
+
 	private PaymentState fetchSuccessPaymentStateEntity() {
 		// TODO: decouple harcoded provider
 		return ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).map(state -> state).orElse(null);
 	}
 
 	public PaymentInfoDTO getPaymentInfo(Long paymentId) {
-		return this.paymentRepository.findById(paymentId).map(p -> new PaymentInfoDTO(p.getId(), p.getExternalId(),
-				p.getPaymentPeriod(), p.getDate(), p.getAmount(), p.getCurrency(), p.getState().toString(),
-				p.getPaymentProvider().getName())).orElse(null);
+		return this.paymentRepository.findById(paymentId)
+				.map(p -> new PaymentInfoDTO(p.getId(), p.getExternalId(), p.getPaymentPeriod(), p.getDate(),
+						p.getAmount(), p.getCurrency(), p.getState().toString(), p.getPaymentProvider().getName()))
+				.orElse(null);
 	}
 
 	public PaymentProvider getActivePaymentProvider() {
@@ -186,26 +187,27 @@ public class PaymentService {
 			throw e;
 		}
 	}
-	
+
 	private PaymentUrls resolvePaymentUrls(PAYMENT_SOURCES source, String createdPaymentId, String returnTab) {
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
-		
+
 		String basePath = source.equals(PAYMENT_SOURCES.SIGNUP) ? frontendReturnUrl : userProfileReturnUrl;
-	
-		String successReturnUrl = basePath
-				.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
+
+		String successReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
 				.replace("{paymentId}", createdPaymentId);
 
 		String errorReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
 				.replace("{paymentId}", createdPaymentId);
-		
+
+		String resolvedWebhookUrl = source.equals(PAYMENT_SOURCES.SIGNUP) ? webhookUrl : webhookPlanChangeUrl;
+
 		if (StringUtils.hasLength(returnTab)) {
-			successReturnUrl += "&returnTab="+returnTab;
-			errorReturnUrl += "&returnTab="+returnTab;
+			successReturnUrl += "&returnTab=" + returnTab;
+			errorReturnUrl += "&returnTab=" + returnTab;
 		}
 
-		return new PaymentUrls(successReturnUrl, errorReturnUrl, webhookUrl);
+		return new PaymentUrls(successReturnUrl, errorReturnUrl, resolvedWebhookUrl);
 
 	}
 
@@ -213,10 +215,11 @@ public class PaymentService {
 		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
 				.map(payment -> payment).orElse(null);
 	}
-	
+
 	public SuscriptionPayment findLastSuccesfullSuscriptionPayment(Long suscriptionId) {
 		PaymentState succesfullPaymentState = this.fetchSuccessPaymentStateEntity();
-		return suscriptionPaymentRepository.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, succesfullPaymentState)
+		return suscriptionPaymentRepository
+				.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, succesfullPaymentState)
 				.map(payment -> payment).orElse(null);
 	}
 
@@ -244,18 +247,19 @@ public class PaymentService {
 	/**
 	 * 
 	 * @param suscriptionId id of subscription to be payed
-	 * @param source Where from its payed in frontend
-	 * @param returnTab If the return urls should include this param to open some tab in frontemd
+	 * @param source        Where from its payed in frontend
+	 * @param returnTab     If the return urls should include this param to open
+	 *                      some tab in frontemd
 	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
 	 * @throws SuscriptionNotFound
 	 * @throws PaymentAlreadyDone
 	 * @throws PaymentCantBeDone
-	 * @throws PaymentNotFoundException 
+	 * @throws PaymentNotFoundException
 	 */
 	@Transactional
-	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source, String returnTab)
-			throws SuscriptionNotFound, PaymentCantBeDone {
+	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source, String returnTab,
+			Long toBindUserId) throws SuscriptionNotFound, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
@@ -288,8 +292,7 @@ public class PaymentService {
 			}
 		}
 
-		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment).map(Payment::getPaymentPeriod)
-				.orElse(null);
+		YearMonth lastPeriodPayment = Optional.ofNullable(lastPayment).map(Payment::getPaymentPeriod).orElse(null);
 
 		YearMonth paymentPeriod = lastPeriodPayment != null ? lastPeriodPayment.plusMonths(1) : YearMonth.now();
 
@@ -322,6 +325,13 @@ public class PaymentService {
 		SuscriptionPayment createdPayment = suscriptionPaymentService.createPayment(paymentCreateDTO,
 				activePaymentProvider, suscriptionId);
 
+		boolean shouldBindUser = source.equals(PAYMENT_SOURCES.PROFILE)
+				&& Optional.ofNullable(toBindUserId).isPresent();
+
+		if (shouldBindUser) {
+			createdPayment.setToBeBindUserId(toBindUserId);
+		}
+
 		String createdPaymentId = createdPayment.getId().toString();
 
 		PaymentUrls urls = this.resolvePaymentUrls(source, createdPaymentId, returnTab);
@@ -341,6 +351,12 @@ public class PaymentService {
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
 		paymentProviderImpl.handleWebhookNotification(body);
+	}
+
+	public void handleWebhookPlanChangeNotification(WebhookBody body) {
+		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+				.getOutsitePaymentProvider();
+		paymentProviderImpl.handleWebhookPlanChangeNotification(body);
 	}
 
 	public boolean wasPaymentAccepted(Long paymentId) {

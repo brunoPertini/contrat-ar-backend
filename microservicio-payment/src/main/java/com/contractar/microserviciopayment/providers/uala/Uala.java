@@ -5,10 +5,13 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
+import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.UalaPaymentState;
@@ -17,12 +20,14 @@ import com.contractar.microserviciopayment.providers.OutsitePaymentProvider;
 import com.contractar.microserviciopayment.providers.PaymentUrls;
 import com.contractar.microserviciopayment.repository.OutsitePaymentProviderRepository;
 import com.contractar.microserviciopayment.repository.PaymentRepository;
+import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
 import com.contractar.microserviciopayment.repository.UalaPaymentStateRepository;
 
 import jakarta.transaction.Transactional;
 
 @Component
-public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePaymentProviderImpl, UalaAuthResponse, WebhookBody> {
+public class Uala
+		implements OutsitePaymentProvider<CheckoutBody, OutsitePaymentProviderImpl, UalaAuthResponse, WebhookBody> {
 	private static final String keysPrefix = "provider.uala.prod";
 
 	@Value("${" + keysPrefix + ".username}")
@@ -39,37 +44,41 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 
 	@Value("${" + keysPrefix + ".checkoutUrl}")
 	private String checkoutUrl;
-	
+
+	@Value("${microservicio-usuario.url}")
+	private String usersServiceUrl;
+
 	private RestTemplate httpClient;
 
 	private OutsitePaymentProviderRepository ualaPaymentProviderRepository;
-	
+
 	private UalaPaymentStateRepository ualaPaymentStateRepository;
-	
+
 	private PaymentRepository paymentRepository;
 
-	public Uala(RestTemplate httpClient,
-			OutsitePaymentProviderRepository ualaPaymentProviderRepository,
-			UalaPaymentStateRepository ualaPaymentStateRepository,
-			PaymentRepository paymentRepository) {
+	private SuscriptionPaymentRepository suscriptionPaymentRepository;
+
+	public Uala(RestTemplate httpClient, OutsitePaymentProviderRepository ualaPaymentProviderRepository,
+			UalaPaymentStateRepository ualaPaymentStateRepository, PaymentRepository paymentRepository,
+			SuscriptionPaymentRepository suscriptionPaymentRepository) {
 		this.httpClient = httpClient;
 		this.ualaPaymentProviderRepository = ualaPaymentProviderRepository;
 		this.ualaPaymentStateRepository = ualaPaymentStateRepository;
 		this.paymentRepository = paymentRepository;
+		this.suscriptionPaymentRepository = suscriptionPaymentRepository;
 	}
-	
+
 	@Transactional
 	public void handleWebhookNotification(WebhookBody body) {
 		Long paymentId = Long.valueOf(body.getExternalReference());
 		paymentRepository.findById(paymentId).ifPresent(payment -> {
-		    UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus()).get();
-		    
-		    payment.setState(newState);
-		    payment.setExternalId(body.getUuid());
-		    
-		    paymentRepository.save(payment);
-		});
+			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus()).get();
 
+			payment.setState(newState);
+			payment.setExternalId(body.getUuid());
+
+			paymentRepository.save(payment);
+		});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -83,7 +92,8 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public String createCheckout(int amount, String description, Long externalReference, PaymentUrls urls, String authToken) {
+	public String createCheckout(int amount, String description, Long externalReference, PaymentUrls urls,
+			String authToken) {
 		CheckoutBody checkoutBody = this.createCheckoutBody(amount, description, urls.getFailUrl(),
 				urls.getSuccessUrl(), urls.getNotificationUrl(), externalReference);
 
@@ -107,7 +117,8 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	@Override
 	public CheckoutBody createCheckoutBody(int amount, String description, String callbackFail, String callbackSuccess,
 			String notificationUrl, Long externalReference) {
-		return new CheckoutBody(amount, description, username, callbackFail, callbackSuccess, notificationUrl, externalReference.toString());
+		return new CheckoutBody(amount, description, username, callbackFail, callbackSuccess, notificationUrl,
+				externalReference.toString());
 	}
 
 	@Override
@@ -120,7 +131,7 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	public boolean wasPaymentAccepted(Payment payment) {
 		return ((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.APPROVED);
 	}
-	
+
 	@Override
 	public boolean wasPaymentRejected(Payment payment) {
 		return ((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.REJECTED);
@@ -146,6 +157,30 @@ public class Uala implements OutsitePaymentProvider<CheckoutBody, OutsitePayment
 	@Override
 	public String getFailureStateValue() {
 		return UalaPaymentStateValue.REJECTED.toString();
+	}
+
+	@Override
+	public void handleWebhookPlanChangeNotification(WebhookBody body) {
+		Long paymentId = Long.valueOf(body.getExternalReference());
+		suscriptionPaymentRepository.findById(paymentId).ifPresent(payment -> {
+			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus()).get();
+			payment.setState(newState);
+			payment.setExternalId(body.getUuid());
+			suscriptionPaymentRepository.save(payment);
+
+			String updateSubsdcriptionUrl = usersServiceUrl + ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION.replace("{proveedorId}",
+					payment.getToBeBindUserId().toString());
+
+			SuscriptionActiveUpdateDTO requestBody = new SuscriptionActiveUpdateDTO(payment.getSuscripcion().getId(),
+					newState.getState().equals(UalaPaymentStateValue.APPROVED));
+
+			// HttpEntity<SuscriptionActiveUpdateDTO> entity = new HttpEntity<>(requestBody);
+			
+			httpClient.put(updateSubsdcriptionUrl, requestBody);
+
+			// httpClient.exchange(updateSubsdcriptionUrl, HttpMethod.PUT, entity, Void.class);
+		});
+
 	}
 
 }

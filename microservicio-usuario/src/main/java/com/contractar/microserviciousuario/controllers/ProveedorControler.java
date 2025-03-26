@@ -2,6 +2,7 @@ package com.contractar.microserviciousuario.controllers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
@@ -71,8 +73,10 @@ public class ProveedorControler {
 		
 		boolean getAsEntityBool = Boolean.parseBoolean(getAsEntity);
 		
+		Long userId = Optional.ofNullable(suscripcion.getUsuario()).map(s -> s.getId()).orElse(null);
+		
 		return  new ResponseEntity<>(!getAsEntityBool ? new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
-				suscripcion.getUsuario().getId(),
+				userId,
 				suscripcion.getPlan().getId(),
 				suscripcion.getCreatedDate(),
 				suscripcion.getPlan().getPrice()) : suscripcion, HttpStatus.OK);
@@ -86,6 +90,12 @@ public class ProveedorControler {
 				suscripcion.getUsuario().getId(),
 				suscripcion.getPlan().getId(), suscripcion.getCreatedDate(),
 				suscripcion.getPlan().getPrice()), HttpStatus.OK);
+	}
+	
+	@PutMapping(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION)
+	public ResponseEntity<?> updateLinkedSuscripcion(@PathVariable Long proveedorId, @RequestBody SuscriptionActiveUpdateDTO body) {
+		this.proveedorService.updateLinkedSubscription(proveedorId, body);
+		return ResponseEntity.ok().build();
 	}
 	
 	@PostMapping(ProveedorControllerUrls.POST_PROVEEDOR_SUSCRIPCION)

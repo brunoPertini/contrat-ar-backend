@@ -23,5 +23,7 @@ public final class PaymentControllerUrls {
 	
 	public static final String PAYMENT_WEBHOOK_URL = PAYMENT_BASE_URL + "/notification";
 	
+	public static final String PAYMENT_WEBHOOK_URL_PLAN_CHANGE = PAYMENT_WEBHOOK_URL + "/plan";
+	
 	public static final String PAYMENT_PROVIDER = PAYMENT_BASE_URL + "/provider";
 }

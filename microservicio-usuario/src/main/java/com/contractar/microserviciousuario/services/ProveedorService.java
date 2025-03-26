@@ -16,6 +16,7 @@ import com.contractar.microserviciocommons.constants.controllers.PaymentControll
 import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
 import com.contractar.microserviciocommons.dto.SuscriptionValidityDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
@@ -106,19 +107,18 @@ public class ProveedorService {
 	@Transactional
 	private Suscripcion createFreePlanSuscription(Proveedor proveedor) throws CantCreateSuscription {
 		Plan freePlan = planRepository.findByType(PlanType.FREE).get();
-		
+
 		Long subscriptioId = proveedor.getSuscripcion().getId();
-		
+
 		PaymentInfoDTO pInfo = this.fetchLastSuccessfulPaymentInfo(subscriptioId);
 
-		LocalDate createdDate = Optional.ofNullable(pInfo.getDate())
-						.map(paymentDate -> paymentDate.plusMonths(1))
-						.orElse(LocalDate.now());
-		
+		LocalDate createdDate = Optional.ofNullable(pInfo.getDate()).map(paymentDate -> paymentDate.plusMonths(1))
+				.orElse(LocalDate.now());
+
 		Suscripcion suscripcion = new Suscripcion(true, proveedor, freePlan, createdDate);
-		
+
 		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
-		
+
 		adminService.addChangeRequestEntry(proveedor.getId(), createdSuscripcion.getId());
 
 		return createdSuscripcion;
@@ -129,23 +129,21 @@ public class ProveedorService {
 			throws UserNotFoundException, CantCreateSuscription {
 		Proveedor proveedor = this.findById(proveedorId);
 
-		Plan plan = planRepository.findById(planId).map(p -> p).orElseThrow(() -> new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate")));
-		
+		Plan plan = planRepository.findById(planId).map(p -> p)
+				.orElseThrow(() -> new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate")));
+
 		boolean isTheSamePlan = plan.getId().equals(proveedor.getSuscripcion().getPlan().getId());
-		
+
 		if (isTheSamePlan) {
 			throw new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate"));
 		}
 
-		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID) ? createPaidPlanSuscription(proveedor) 
+		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID)
+				? createPaidPlanSuscription(proveedor)
 				: createFreePlanSuscription(proveedor);
-		
-		return new SuscripcionDTO(temporalCreatedSuscription.getId(), 
-				temporalCreatedSuscription.isActive(),
-				proveedorId,
-				planId,
-				temporalCreatedSuscription.getCreatedDate(),
-				fetchDatePattern());
+
+		return new SuscripcionDTO(temporalCreatedSuscription.getId(), temporalCreatedSuscription.isActive(),
+				proveedorId, planId, temporalCreatedSuscription.getCreatedDate(), fetchDatePattern());
 
 	}
 
@@ -195,5 +193,23 @@ public class ProveedorService {
 			return null;
 		}
 
+	}
+
+	@Transactional
+	public void updateLinkedSubscription(Long userId, SuscriptionActiveUpdateDTO dto) {
+		proveedorRepository.findById(userId).ifPresent(proveedor -> {
+			suscripcionRepository.findById(dto.getId()).ifPresent(subscription -> {
+				subscription.setActive(dto.isActive());
+				subscription.setUsuario(proveedor);
+
+				suscripcionRepository.save(subscription);
+
+				if (dto.isActive()) {
+					proveedor.setSuscripcion(subscription);
+					proveedorRepository.save(proveedor);
+				}
+
+			});
+		});
 	}
 }
