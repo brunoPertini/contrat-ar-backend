@@ -64,9 +64,8 @@ public class AdminController {
 	}
 
 	@PostMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
-	public ResponseEntity<?> requestChangeExists(@RequestBody(required = true) ChangeRequestSearchDTO body) {
-		boolean requestExists = adminService.requestExists(body.getSearchIds(), body.getSearchAttributes());
-		return requestExists ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	public ResponseEntity<Long> getMatchingChangeRequest(@RequestBody(required = true) ChangeRequestSearchDTO body) {
+		return new ResponseEntity<>(adminService.getMatchingChangeRequest(body.getSearchIds(), body.getSearchAttributes()), HttpStatus.OK);
 	}
 
 	@PutMapping(AdminControllerUrls.ADMIN_USER)

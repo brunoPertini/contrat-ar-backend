@@ -146,15 +146,15 @@ public class AdminService {
 		return this.proveedorVendibleService.findById(id);
 	}
 
-	public boolean requestExists(List<Long> sourceTableIds, List<String> attributes) {
+	public Long getMatchingChangeRequest(List<Long> sourceTableIds, List<String> attributes) {
 		String idsAsString = sourceTableIds.size() > 1
 				? Helper.joinString.apply(sourceTableIds.stream().map(id -> id.toString()).collect(Collectors.toList()))
 				: sourceTableIds.get(0).toString();
 
 		String attributesAsString = attributes.size() > 1 ? Helper.joinString.apply(attributes)
 				: attributes.get(0).toString();
-
-		return !attributes.isEmpty() && repository.getMatchingChangeRequest(idsAsString, attributesAsString) != null;
+		
+		return repository.getMatchingChangeRequest(idsAsString, attributesAsString);
 	}
 	
 	public void addChangeRequestEntry(UsuarioActiveDTO info) throws ChangeAlreadyRequestedException {
@@ -242,7 +242,7 @@ public class AdminService {
 	public void addChangeRequestEntry(Long proveedorId, Long subscriptionId) {
 		proveedorRepository.findById(proveedorId).ifPresentOrElse(foundProveedor -> {
 			try {
-				boolean infoAlreadyRequested = requestExists(List.of(proveedorId), List.of(subscriptionId.toString()));
+				boolean infoAlreadyRequested = getMatchingChangeRequest(List.of(proveedorId), List.of(subscriptionId.toString())) != null;
 
 				if (infoAlreadyRequested) {
 					throw new ChangeAlreadyRequestedException();
