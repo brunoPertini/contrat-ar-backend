@@ -168,17 +168,13 @@ public class Uala
 			payment.setExternalId(body.getUuid());
 			suscriptionPaymentRepository.save(payment);
 
-			String updateSubsdcriptionUrl = usersServiceUrl + ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION.replace("{proveedorId}",
-					payment.getToBeBindUserId().toString());
+			String updateSubsdcriptionUrl = usersServiceUrl + ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION
+					.replace("{proveedorId}", payment.getToBeBindUserId().toString());
 
 			SuscriptionActiveUpdateDTO requestBody = new SuscriptionActiveUpdateDTO(payment.getSuscripcion().getId(),
 					newState.getState().equals(UalaPaymentStateValue.APPROVED));
 
-			// HttpEntity<SuscriptionActiveUpdateDTO> entity = new HttpEntity<>(requestBody);
-			
 			httpClient.put(updateSubsdcriptionUrl, requestBody);
-
-			// httpClient.exchange(updateSubsdcriptionUrl, HttpMethod.PUT, entity, Void.class);
 		});
 
 	}

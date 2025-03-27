@@ -351,15 +351,17 @@ public class AdminService {
 		
 		String userRole = (String) tokenPayload.get("role");
 		
-		// 	If requesting user is not admin, have to check that logued one matches with the one that requested this change request
+		// 	If requesting user is not admin, have to check that logued one matches with the one that requested this change
 		if (!userRole.equals(RolesValues.ADMIN.name())) {
 			Long loguedUserId = Long.valueOf((String)tokenPayload.get("id"));
 				
 			
 			ChangeRequest changeRequest = this.findById(changeRequestId);
+			
+			List<String> sourceTableIdNames = changeRequest.getSourceTableIdNames();
 						
-			int proveedorIdIndex = IntStream.range(0, userEntitiedIdsNames.size())
-	                .filter(i -> userEntitiedIdsNames.get(i).equals(userEntitiedIdsNames.get(0)))
+			int proveedorIdIndex = IntStream.range(0, sourceTableIdNames.size())
+	                .filter(i -> sourceTableIdNames.get(i).equals(userEntitiedIdsNames.get(0)))
 	                .findFirst()
 	                .orElse(-1);
 			

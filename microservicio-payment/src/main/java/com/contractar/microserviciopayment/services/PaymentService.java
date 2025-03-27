@@ -250,7 +250,8 @@ public class PaymentService {
 	 * @param source        Where from its payed in frontend
 	 * @param returnTab     If the return urls should include this param to open
 	 *                      some tab in frontemd
-	 * @return The checkout url to be used by the frontend so the user can finish
+	   @param toBindUserId used for subscription payments when a user changes its plan
+ 	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
 	 * @throws SuscriptionNotFound
 	 * @throws PaymentAlreadyDone

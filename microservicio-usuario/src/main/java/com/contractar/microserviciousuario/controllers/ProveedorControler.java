@@ -73,7 +73,7 @@ public class ProveedorControler {
 		
 		boolean getAsEntityBool = Boolean.parseBoolean(getAsEntity);
 		
-		Long userId = Optional.ofNullable(suscripcion.getUsuario()).map(s -> s.getId()).orElse(null);
+		Long userId = Optional.ofNullable(suscripcion.getUsuario()).map(u -> u.getId()).orElse(null);
 		
 		return  new ResponseEntity<>(!getAsEntityBool ? new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
 				userId,
