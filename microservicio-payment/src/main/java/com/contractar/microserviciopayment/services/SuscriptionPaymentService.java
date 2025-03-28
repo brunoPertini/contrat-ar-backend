@@ -41,12 +41,11 @@ public class SuscriptionPaymentService {
 	private RestTemplate httpClient;
 
 	private ProviderServiceImplFactory providerServiceImplFactory;
-	
+
 	private UalaPaymentStateRepository ualaPaymentStateRepository;
-	
+
 	public SuscriptionPaymentService(SuscriptionPaymentRepository repository,
-			ProviderServiceImplFactory providerServiceImplFactory,
-			RestTemplate httpClient,
+			ProviderServiceImplFactory providerServiceImplFactory, RestTemplate httpClient,
 			UalaPaymentStateRepository ualaPaymentStateRepository) {
 		this.repository = repository;
 		this.providerServiceImplFactory = providerServiceImplFactory;
@@ -63,9 +62,8 @@ public class SuscriptionPaymentService {
 		try {
 			String url = microservicioUsuarioUrl
 					+ ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
-			
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url)
-					.queryParam("getAsEntity", "true");
+
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url).queryParam("getAsEntity", "true");
 
 			return httpClient.getForObject(uriBuilder.toUriString(), Suscripcion.class);
 		} catch (HttpClientErrorException e) {
@@ -76,14 +74,13 @@ public class SuscriptionPaymentService {
 			throw e;
 		}
 	}
-	
+
 	private SuscripcionDTO getSuscriptionDTO(Long suscripcionId) throws SuscriptionNotFound {
 		try {
 			String url = microservicioUsuarioUrl
 					+ ProveedorControllerUrls.GET_SUSCRIPCION.replace("{suscriptionId}", suscripcionId.toString());
-			
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url)
-					.queryParam("getAsEntity", "false");
+
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url).queryParam("getAsEntity", "false");
 
 			return httpClient.getForObject(uriBuilder.toUriString(), SuscripcionDTO.class);
 		} catch (HttpClientErrorException e) {
@@ -94,7 +91,6 @@ public class SuscriptionPaymentService {
 			throw e;
 		}
 	}
-	
 
 	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId)
 			throws SuscriptionNotFound {
@@ -124,15 +120,15 @@ public class SuscriptionPaymentService {
 
 	public boolean isSuscriptionValid(Long suscriptionId) {
 		SuscripcionDTO subscription;
-		
+
 		try {
 			subscription = this.getSuscriptionDTO(suscriptionId);
-		} catch(SuscriptionNotFound e) {
+		} catch (SuscriptionNotFound e) {
 			return false;
 		}
-		
+
 		boolean isFreePlan = subscription.getPlanPrice() == 0;
-		
+
 		if (isFreePlan) {
 			return true;
 		}
@@ -140,12 +136,12 @@ public class SuscriptionPaymentService {
 		// TODO: handle non OUTSITE providers
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
-		
-		PaymentState successPaymentState =  ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).get();
 
-		Optional<SuscriptionPayment> lastPaymentOpt = repository.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, successPaymentState);
-		
-		
+		PaymentState successPaymentState = ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).get();
+
+		Optional<SuscriptionPayment> lastPaymentOpt = repository
+				.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, successPaymentState);
+
 		if (lastPaymentOpt.isEmpty()) {
 			return false;
 		}
@@ -162,10 +158,16 @@ public class SuscriptionPaymentService {
 				|| (paymentMonth.equals(currentMonth.minus(1))
 						&& payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
 
-		return  wasPaymentDoneAtExpectedMonth && currentProviderImpl.wasPaymentAccepted(payment);
+		return wasPaymentDoneAtExpectedMonth && currentProviderImpl.wasPaymentAccepted(payment);
 	}
 
-	public boolean canSuscriptionBePayed(Long suscriptionId) {
+	public boolean canSuscriptionBePayed(Long suscriptionId) throws SuscriptionNotFound {
+		boolean hasFreePlan = this.getSuscriptionDTO(suscriptionId).getPlanPrice() == 0;
+
+		if (hasFreePlan) {
+			return false;
+		}
+
 		// TODO: handle non OUTSITE providers
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
@@ -204,18 +206,18 @@ public class SuscriptionPaymentService {
 
 		LocalDate today = LocalDate.now();
 
-		// If it may be missing days for minimalPayDate, subscription is not able to be payed
+		// If it may be missing days for minimalPayDate, subscription is not able to be
+		// payed
 		boolean isPreviousToMinimalDate = today.isBefore(minimalPayDate);
 
 		return !isPreviousToMinimalDate;
 	}
-	
-	public List<PaymentInfoDTO> getPaymentsOfSubscription(Long subscriptionId) {
-		return this.repository.findAllBySuscripcionId(subscriptionId)
-				.stream()
-				.map(payment -> new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
-						payment.getPaymentPeriod(), payment.getDate(), payment.getAmount(),
-						payment.getCurrency(), payment.getState().toString(),
-						payment.getPaymentProvider().getName())).collect(Collectors.toList());
+
+	public List<PaymentInfoDTO> getPaymentsOfUser(Long userId) {
+		return this.repository.findAllBySuscripcionUsuarioProveedorId(userId).stream()
+				.map(payment -> new PaymentInfoDTO(payment.getId(), payment.getExternalId(), payment.getPaymentPeriod(),
+						payment.getDate(), payment.getAmount(), payment.getCurrency(), payment.getState().toString(),
+						payment.getPaymentProvider().getName()))
+				.collect(Collectors.toList());
 	}
 }

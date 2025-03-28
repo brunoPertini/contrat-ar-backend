@@ -11,6 +11,8 @@ public final class PaymentControllerUrls {
 	
 	public static final String SUSCRIPTION_PAYMENT_BASE_URL = PAYMENT_BASE_URL + SUSCRIPTION_BY_ID;
 	
+	public static final String USER_PAYMENT_URL = "/payments/{userId}";
+	
 	public static final String IS_SUSCRIPTION_VALID=SUSCRIPTION_PAYMENT_BASE_URL+"/valid";
 	
 	public static final String LAST_SUSCRIPTION_PAYMENT_BASE_URL = SUSCRIPTION_BY_ID + PAYMENT_BASE_URL;

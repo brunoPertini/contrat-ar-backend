@@ -68,9 +68,9 @@ public class PaymentController {
 		return new ResponseEntity<>(suscriptionPaymentService.isSuscriptionValid(suscriptionId),  HttpStatus.OK);
 	}
 	
-	@GetMapping(PaymentControllerUrls.SUSCRIPTION_PAYMENT_BASE_URL)
-	public ResponseEntity<List<PaymentInfoDTO>> getSubscriptionPayments(@PathVariable Long suscriptionId) {
-		return new ResponseEntity<>(suscriptionPaymentService.getPaymentsOfSubscription(suscriptionId),  HttpStatus.OK);
+	@GetMapping(PaymentControllerUrls.USER_PAYMENT_URL)
+	public ResponseEntity<List<PaymentInfoDTO>> getUserPayments(@PathVariable Long userId) {
+		return new ResponseEntity<>(suscriptionPaymentService.getPaymentsOfUser(userId),  HttpStatus.OK);
 	}
 	
 	@GetMapping(PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL)
@@ -88,7 +88,7 @@ public class PaymentController {
 	}
 	
 	@GetMapping(PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE)
-	public ResponseEntity<Boolean> isSubscriptionPayable(@PathVariable Long suscriptionId) {
+	public ResponseEntity<Boolean> isSubscriptionPayable(@PathVariable Long suscriptionId) throws SuscriptionNotFound {
 		return new ResponseEntity<>(suscriptionPaymentService.canSuscriptionBePayed(suscriptionId), HttpStatus.OK);
 	}
 	
