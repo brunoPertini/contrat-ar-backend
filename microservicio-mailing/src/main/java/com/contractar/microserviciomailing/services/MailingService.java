@@ -149,4 +149,8 @@ public class MailingService {
 		return backupToken;
 	}
 	
+	public void sendPlanChangeConfirmationEmail() {
+		
+	}
+	
 }
