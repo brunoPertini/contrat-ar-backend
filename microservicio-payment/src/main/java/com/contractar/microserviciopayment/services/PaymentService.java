@@ -25,12 +25,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
+import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciopayment.dtos.AuthResponse;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
@@ -89,6 +91,9 @@ public class PaymentService {
 
 	@Value("${provider.uala.webhookUrl.planChange}")
 	private String webhookPlanChangeUrl;
+	
+	@Value("${microservicio-mailing.url}")
+	private String microservicioMailingUrl;
 
 	private static int PAYMENT_URL_MINUTES_DURATION = 15;
 
@@ -116,9 +121,8 @@ public class PaymentService {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
 	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private boolean checkUserToken(String token) {
+	
+	private Map<String, Object> getUserPayloadFromToken(String token) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", "Bearer " + token);
 
@@ -130,7 +134,12 @@ public class PaymentService {
 		ResponseEntity<Map> response = httpClient.exchange(tokenCheckUrlBuilder.toUriString(), HttpMethod.GET, entity,
 				Map.class);
 
-		Map<String, Object> payload = response.getBody();
+		return response.getBody();
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private boolean checkUserToken(String token) {
+		Map<String, Object> payload = this.getUserPayloadFromToken(token);
 
 		long expiresField = ((Number) payload.get("exp")).longValue();
 
@@ -143,6 +152,18 @@ public class PaymentService {
 
 		return !dateFromUnix.isBefore(today);
 
+	}
+	
+	private void sendPaymentLinkEmail(String userToken, String paymentLink) {
+		Map<String, Object> userInfo = this.getUserPayloadFromToken(userToken);
+		
+		PaymentLinkMailInfo mailInfo = new PaymentLinkMailInfo((String)userInfo.get("sub"),
+				(String) userInfo.get("name"),
+				paymentLink);
+		
+		String url = microservicioMailingUrl + UsersControllerUrls.PAYMENT_LINK_EMAIL;
+		
+		httpClient.postForEntity(url, mailInfo, Void.class);
 	}
 
 	private PaymentState fetchSuccessPaymentStateEntity() {
@@ -251,6 +272,7 @@ public class PaymentService {
 	 * @param returnTab     If the return urls should include this param to open
 	 *                      some tab in frontemd
 	   @param toBindUserId used for subscription payments when a user changes its plan
+	   @param userToken logged user info
  	 * @return The checkout url to be used by the frontend so the user can finish
 	 *         the pay there
 	 * @throws SuscriptionNotFound
@@ -260,7 +282,7 @@ public class PaymentService {
 	 */
 	@Transactional
 	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source, String returnTab,
-			Long toBindUserId) throws SuscriptionNotFound, PaymentCantBeDone {
+			Long toBindUserId, String userToken) throws SuscriptionNotFound, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
@@ -343,6 +365,8 @@ public class PaymentService {
 		createdPayment.setPaymentUrl(checkoutUrl);
 
 		createdPayment.setLinkCreationTime(LocalDateTime.now());
+		
+		this.sendPaymentLinkEmail(userToken, checkoutUrl);
 
 		return checkoutUrl;
 

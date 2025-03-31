@@ -13,6 +13,7 @@ import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.DateControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
@@ -22,6 +23,7 @@ import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
+import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -53,6 +55,9 @@ public class ProveedorService {
 
 	@Value("${microservicio-config.url}")
 	private String configServiceUrl;
+	
+	@Value("${microservicio-mailing.url}")
+	private String mailingServiceUrl;
 
 	private String fetchDatePattern() {
 		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(microservicioCommonsUrl)
@@ -141,6 +146,14 @@ public class ProveedorService {
 		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID)
 				? createPaidPlanSuscription(proveedor)
 				: createFreePlanSuscription(proveedor);
+		
+		String sourcePlan = getMessageTag("plan."+ proveedor.getSuscripcion().getPlan().getType().name());
+		
+		String destinyPlan = getMessageTag("plan."+ plan.getType().name());
+		
+		PlanChangeConfirmation mailBody = new PlanChangeConfirmation(proveedor.getEmail(), proveedor.getName(), sourcePlan, destinyPlan);
+		
+		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.PLAN_CHANGE_SUCCESS_EMAIL, mailBody, Void.class);
 
 		return new SuscripcionDTO(temporalCreatedSuscription.getId(), temporalCreatedSuscription.isActive(),
 				proveedorId, planId, temporalCreatedSuscription.getCreatedDate(), fetchDatePattern());

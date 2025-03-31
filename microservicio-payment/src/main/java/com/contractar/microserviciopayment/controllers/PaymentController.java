@@ -27,6 +27,8 @@ import com.contractar.microserviciopayment.services.PaymentService.PAYMENT_SOURC
 import com.contractar.microserviciopayment.services.ProviderServiceImplFactory;
 import com.contractar.microserviciopayment.services.SuscriptionPaymentService;
 
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -41,18 +43,23 @@ public class PaymentController {
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_SIGNUP_SUSCRIPTION)
-	public ResponseEntity<String> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound,
+	public ResponseEntity<String> paySignupSuscription(@RequestBody @Valid PaymentDTO body,
+			@PathVariable Long suscriptionId,
+			HttpServletRequest request) throws SuscriptionNotFound,
 	PaymentAlreadyDone, PaymentCantBeDone {
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null, null);
+		String token = request.getHeader("Authorization").replace("Bearer ", "");
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null, null, token);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_USER_PROFILE_SUSCRIPTION)
 	public ResponseEntity<String> payUserProfileSubscription(@RequestBody @Valid PaymentDTO body, 
 			@PathVariable Long suscriptionId,
-			@RequestParam(required = true) String returnTab) throws SuscriptionNotFound, 
+			@RequestParam(required = true) String returnTab,
+			HttpServletRequest request) throws SuscriptionNotFound, 
 	PaymentCantBeDone {
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE, returnTab, body.getToBeBindUserId());
+		String token = request.getHeader("Authorization").replace("Bearer ", "");
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE, returnTab, body.getToBeBindUserId(), token);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
