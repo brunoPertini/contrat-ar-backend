@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -55,9 +56,18 @@ public class ProveedorService {
 
 	@Value("${microservicio-config.url}")
 	private String configServiceUrl;
-	
+
 	@Value("${microservicio-mailing.url}")
 	private String mailingServiceUrl;
+
+	public ProveedorService(PlanRepository planRepository, ProveedorRepository proveedorRepository,
+			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService) {
+		this.planRepository = planRepository;
+		this.proveedorRepository = proveedorRepository;
+		this.suscripcionRepository = suscripcionRepository;
+		this.httpClient = httpClient;
+		this.adminService = adminService;
+	}
 
 	private String fetchDatePattern() {
 		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(microservicioCommonsUrl)
@@ -70,15 +80,6 @@ public class ProveedorService {
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
-	}
-
-	public ProveedorService(PlanRepository planRepository, ProveedorRepository proveedorRepository,
-			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService) {
-		this.planRepository = planRepository;
-		this.proveedorRepository = proveedorRepository;
-		this.suscripcionRepository = suscripcionRepository;
-		this.httpClient = httpClient;
-		this.adminService = adminService;
 	}
 
 	public Proveedor findById(Long proveedorId) throws UserNotFoundException {
@@ -109,6 +110,22 @@ public class ProveedorService {
 
 	}
 
+	private void notifyPlanChange(String email, String name, String sourcePlan, String destinyPlan) {
+		String sourcePlanTranslated = getMessageTag("plan." + sourcePlan);
+
+		String destinyPlanTranslated = getMessageTag("plan." + destinyPlan);
+
+		PlanChangeConfirmation mailBody = new PlanChangeConfirmation(email, name, sourcePlanTranslated,
+				destinyPlanTranslated);
+
+		try {
+			httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.PLAN_CHANGE_SUCCESS_EMAIL, mailBody,
+					Void.class);
+		} catch (ResourceAccessException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
 	@Transactional
 	private Suscripcion createFreePlanSuscription(Proveedor proveedor) throws CantCreateSuscription {
 		Plan freePlan = planRepository.findByType(PlanType.FREE).get();
@@ -125,6 +142,22 @@ public class ProveedorService {
 		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
 
 		adminService.addChangeRequestEntry(proveedor.getId(), createdSuscripcion.getId());
+
+		String sourcePlan = getMessageTag("plan.PAID");
+
+		String destinyPlan = getMessageTag("plan.FREE");
+
+		PlanChangeConfirmation mailBody = new PlanChangeConfirmation(proveedor.getEmail(), proveedor.getName(),
+				sourcePlan, destinyPlan);
+
+		try {
+			httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.PLAN_CHANGE_SUCCESS_EMAIL, mailBody,
+					Void.class);
+		} catch (ResourceAccessException e) {
+			System.out.println(e.getMessage());
+		}
+
+		notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.PAID.name(), PlanType.FREE.name());
 
 		return createdSuscripcion;
 
@@ -146,14 +179,6 @@ public class ProveedorService {
 		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID)
 				? createPaidPlanSuscription(proveedor)
 				: createFreePlanSuscription(proveedor);
-		
-		String sourcePlan = getMessageTag("plan."+ proveedor.getSuscripcion().getPlan().getType().name());
-		
-		String destinyPlan = getMessageTag("plan."+ plan.getType().name());
-		
-		PlanChangeConfirmation mailBody = new PlanChangeConfirmation(proveedor.getEmail(), proveedor.getName(), sourcePlan, destinyPlan);
-		
-		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.PLAN_CHANGE_SUCCESS_EMAIL, mailBody, Void.class);
 
 		return new SuscripcionDTO(temporalCreatedSuscription.getId(), temporalCreatedSuscription.isActive(),
 				proveedorId, planId, temporalCreatedSuscription.getCreatedDate(), fetchDatePattern());
@@ -220,6 +245,8 @@ public class ProveedorService {
 				if (dto.isActive()) {
 					proveedor.setSuscripcion(subscription);
 					proveedorRepository.save(proveedor);
+					notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.FREE.name(),
+							PlanType.PAID.name());
 				}
 
 			});
