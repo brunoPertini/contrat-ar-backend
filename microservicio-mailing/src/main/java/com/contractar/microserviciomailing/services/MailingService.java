@@ -158,7 +158,6 @@ public class MailingService {
 			throws IOException, MessagingException {
 		String emailContent = new FileReader().readFile("/static/plan-change-confirmation.html")
 				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName())
-				.replaceAll("\\$\\{previousPlan\\}", mailInfo.getSourcePlan())
 				.replaceAll("\\$\\{currentPlan\\}", mailInfo.getDestinyPlan())
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 

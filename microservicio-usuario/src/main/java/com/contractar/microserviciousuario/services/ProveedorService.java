@@ -110,13 +110,10 @@ public class ProveedorService {
 
 	}
 
-	private void notifyPlanChange(String email, String name, String sourcePlan, String destinyPlan) {
-		String sourcePlanTranslated = getMessageTag("plan." + sourcePlan);
-
+	private void notifyPlanChange(String email, String name, String destinyPlan) {
 		String destinyPlanTranslated = getMessageTag("plan." + destinyPlan);
 
-		PlanChangeConfirmation mailBody = new PlanChangeConfirmation(email, name, sourcePlanTranslated,
-				destinyPlanTranslated);
+		PlanChangeConfirmation mailBody = new PlanChangeConfirmation(email, name, destinyPlanTranslated);
 
 		try {
 			httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.PLAN_CHANGE_SUCCESS_EMAIL, mailBody,
@@ -130,34 +127,33 @@ public class ProveedorService {
 	private Suscripcion createFreePlanSuscription(Proveedor proveedor) throws CantCreateSuscription {
 		Plan freePlan = planRepository.findByType(PlanType.FREE).get();
 
-		Long subscriptioId = proveedor.getSuscripcion().getId();
+		boolean isSignupContext = proveedor.getSuscripcion() == null;
 
-		PaymentInfoDTO pInfo = this.fetchLastSuccessfulPaymentInfo(subscriptioId);
+		LocalDate createdDate;
 
-		LocalDate createdDate = Optional.ofNullable(pInfo.getDate()).map(paymentDate -> paymentDate.plusMonths(1))
-				.orElse(LocalDate.now());
+		if (!isSignupContext) {
+			Long subscriptioId = proveedor.getSuscripcion().getId();
+
+			PaymentInfoDTO pInfo = this.fetchLastSuccessfulPaymentInfo(subscriptioId);
+
+			createdDate = Optional.ofNullable(pInfo.getDate()).map(paymentDate -> paymentDate.plusMonths(1))
+					.orElse(LocalDate.now());
+		} else {
+			createdDate = LocalDate.now();
+		}
 
 		Suscripcion suscripcion = new Suscripcion(true, proveedor, freePlan, createdDate);
 
 		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
 
-		adminService.addChangeRequestEntry(proveedor.getId(), createdSuscripcion.getId());
-
-		String sourcePlan = getMessageTag("plan.PAID");
-
-		String destinyPlan = getMessageTag("plan.FREE");
-
-		PlanChangeConfirmation mailBody = new PlanChangeConfirmation(proveedor.getEmail(), proveedor.getName(),
-				sourcePlan, destinyPlan);
-
-		try {
-			httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.PLAN_CHANGE_SUCCESS_EMAIL, mailBody,
-					Void.class);
-		} catch (ResourceAccessException e) {
-			System.out.println(e.getMessage());
+		if (!isSignupContext) {
+			adminService.addChangeRequestEntry(proveedor.getId(), createdSuscripcion.getId());
+		} else {
+			proveedor.setSuscripcion(createdSuscripcion);
+			proveedorRepository.save(proveedor);
 		}
 
-		notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.PAID.name(), PlanType.FREE.name());
+		notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.FREE.name());
 
 		return createdSuscripcion;
 
@@ -170,7 +166,9 @@ public class ProveedorService {
 		Plan plan = planRepository.findById(planId).map(p -> p)
 				.orElseThrow(() -> new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate")));
 
-		boolean isTheSamePlan = plan.getId().equals(proveedor.getSuscripcion().getPlan().getId());
+		boolean isSignupContext = proveedor.getSuscripcion() == null;
+
+		boolean isTheSamePlan = !isSignupContext && plan.getId().equals(proveedor.getSuscripcion().getPlan().getId());
 
 		if (isTheSamePlan) {
 			throw new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate"));
@@ -245,7 +243,7 @@ public class ProveedorService {
 				if (dto.isActive()) {
 					proveedor.setSuscripcion(subscription);
 					proveedorRepository.save(proveedor);
-					notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.FREE.name(),
+					notifyPlanChange(proveedor.getEmail(), proveedor.getName(),
 							PlanType.PAID.name());
 				}
 
