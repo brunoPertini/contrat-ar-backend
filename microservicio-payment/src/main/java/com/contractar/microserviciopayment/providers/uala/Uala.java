@@ -5,7 +5,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -72,7 +71,7 @@ public class Uala
 	public void handleWebhookNotification(WebhookBody body) {
 		Long paymentId = Long.valueOf(body.getExternalReference());
 		paymentRepository.findById(paymentId).ifPresent(payment -> {
-			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus()).get();
+			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus().name()).get();
 
 			payment.setState(newState);
 			payment.setExternalId(body.getUuid());
@@ -123,29 +122,29 @@ public class Uala
 
 	@Override
 	public void setPaymentAsPending(Payment p) {
-		UalaPaymentState pendingState = ualaPaymentStateRepository.findByState(UalaPaymentStateValue.PENDING).get();
+		UalaPaymentState pendingState = ualaPaymentStateRepository.findByState(UalaPaymentStateValue.PENDING.name()).get();
 		p.setState(pendingState);
 	}
 
 	@Override
 	public boolean wasPaymentAccepted(Payment payment) {
-		return ((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.APPROVED);
+		return payment.getState().getState().equals(UalaPaymentStateValue.APPROVED.name());
 	}
 
 	@Override
 	public boolean wasPaymentRejected(Payment payment) {
-		return ((UalaPaymentState) payment.getState()).getState().equals(UalaPaymentStateValue.REJECTED);
+		return payment.getState().getState().equals(UalaPaymentStateValue.REJECTED.name());
 	}
 
 	@Override
 	public boolean isPaymentPending(Payment payment) {
-		UalaPaymentStateValue stateValue = ((UalaPaymentState) payment.getState()).getState();
+		UalaPaymentStateValue stateValue = UalaPaymentStateValue.valueOf(payment.getState().getState());
 		return stateValue.equals(UalaPaymentStateValue.PENDING);
 	}
 
 	@Override
 	public boolean isPaymentProcessed(Payment payment) {
-		UalaPaymentStateValue stateValue = ((UalaPaymentState) payment.getState()).getState();
+		UalaPaymentStateValue stateValue = UalaPaymentStateValue.valueOf(payment.getState().getState());
 		return stateValue.equals(UalaPaymentStateValue.PROCESSED);
 	}
 
@@ -163,7 +162,7 @@ public class Uala
 	public void handleWebhookPlanChangeNotification(WebhookBody body) {
 		Long paymentId = Long.valueOf(body.getExternalReference());
 		suscriptionPaymentRepository.findById(paymentId).ifPresent(payment -> {
-			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus()).get();
+			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus().name()).get();
 			payment.setState(newState);
 			payment.setExternalId(body.getUuid());
 			suscriptionPaymentRepository.save(payment);
@@ -172,7 +171,7 @@ public class Uala
 					.replace("{proveedorId}", payment.getToBeBindUserId().toString());
 
 			SuscriptionActiveUpdateDTO requestBody = new SuscriptionActiveUpdateDTO(payment.getSuscripcion().getId(),
-					newState.getState().equals(UalaPaymentStateValue.APPROVED));
+					newState.getState().equals(UalaPaymentStateValue.APPROVED.name()));
 
 			httpClient.put(updateSubsdcriptionUrl, requestBody);
 		});

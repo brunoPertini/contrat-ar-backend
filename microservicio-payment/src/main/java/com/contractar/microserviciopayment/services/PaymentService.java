@@ -168,7 +168,7 @@ public class PaymentService {
 
 	private PaymentState fetchSuccessPaymentStateEntity() {
 		// TODO: decouple harcoded provider
-		return ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).map(state -> state).orElse(null);
+		return ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED.name()).map(state -> state).orElse(null);
 	}
 
 	public PaymentInfoDTO getPaymentInfo(Long paymentId) {

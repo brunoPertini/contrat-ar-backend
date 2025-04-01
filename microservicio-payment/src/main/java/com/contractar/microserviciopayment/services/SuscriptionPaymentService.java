@@ -3,7 +3,9 @@ package com.contractar.microserviciopayment.services;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
+import com.contractar.microserviciocommons.dto.payment.PaymentsResponseDTO;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.models.PaymentProvider;
@@ -24,6 +27,7 @@ import com.contractar.microserviciopayment.models.PaymentState;
 import com.contractar.microserviciopayment.models.SuscriptionPayment;
 import com.contractar.microserviciopayment.models.enums.IntegrationType;
 import com.contractar.microserviciopayment.models.enums.UalaPaymentStateValue;
+import com.contractar.microserviciopayment.repository.PaymentStateRepository;
 import com.contractar.microserviciopayment.repository.SuscriptionPaymentRepository;
 import com.contractar.microserviciopayment.repository.UalaPaymentStateRepository;
 import com.contractar.microserviciousuario.models.Suscripcion;
@@ -43,14 +47,19 @@ public class SuscriptionPaymentService {
 	private ProviderServiceImplFactory providerServiceImplFactory;
 
 	private UalaPaymentStateRepository ualaPaymentStateRepository;
+	
+	private PaymentStateRepository paymentStateRepository;
 
 	public SuscriptionPaymentService(SuscriptionPaymentRepository repository,
-			ProviderServiceImplFactory providerServiceImplFactory, RestTemplate httpClient,
-			UalaPaymentStateRepository ualaPaymentStateRepository) {
+			ProviderServiceImplFactory providerServiceImplFactory,
+			RestTemplate httpClient,
+			UalaPaymentStateRepository ualaPaymentStateRepository,
+			PaymentStateRepository paymentStateRepository) {
 		this.repository = repository;
 		this.providerServiceImplFactory = providerServiceImplFactory;
 		this.ualaPaymentStateRepository = ualaPaymentStateRepository;
 		this.httpClient = httpClient;
+		this.paymentStateRepository = paymentStateRepository;
 	}
 
 	private String getMessageTag(String tagId) {
@@ -137,7 +146,7 @@ public class SuscriptionPaymentService {
 		com.contractar.microserviciopayment.providers.OutsitePaymentProvider currentProviderImpl = providerServiceImplFactory
 				.getOutsitePaymentProvider();
 
-		PaymentState successPaymentState = ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED).get();
+		PaymentState successPaymentState = ualaPaymentStateRepository.findByState(UalaPaymentStateValue.APPROVED.name()).get();
 
 		Optional<SuscriptionPayment> lastPaymentOpt = repository
 				.findTopBySuscripcionIdAndStateOrderByPaymentPeriodDesc(suscriptionId, successPaymentState);
@@ -213,11 +222,19 @@ public class SuscriptionPaymentService {
 		return !isPreviousToMinimalDate;
 	}
 
-	public List<PaymentInfoDTO> getPaymentsOfUser(Long userId) {
-		return this.repository.findAllBySuscripcionUsuarioProveedorId(userId).stream()
+	public PaymentsResponseDTO getPaymentsOfUser(Long userId) {
+		List<PaymentInfoDTO> payments = this.repository.findAllBySuscripcionUsuarioProveedorId(userId).stream()
 				.map(payment -> new PaymentInfoDTO(payment.getId(), payment.getExternalId(), payment.getPaymentPeriod(),
 						payment.getDate(), payment.getAmount(), payment.getCurrency(), payment.getState().toString(),
 						payment.getPaymentProvider().getName()))
 				.collect(Collectors.toList());
+				
+		Map<String, String> states = new HashMap<>();
+		
+		this.paymentStateRepository.findAll().forEach(paymentState -> {
+			states.put(paymentState.getState(), paymentState.getDescription());
+		});
+		
+		return new PaymentsResponseDTO(states, payments);
 	}
 }

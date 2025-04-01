@@ -10,5 +10,5 @@ import com.contractar.microserviciopayment.models.enums.UalaPaymentStateValue;
 
 @Repository
 public interface UalaPaymentStateRepository extends CrudRepository<UalaPaymentState, Long>{
-	public Optional<UalaPaymentState> findByState(UalaPaymentStateValue state);
+	public Optional<UalaPaymentState> findByState(String state);
 }

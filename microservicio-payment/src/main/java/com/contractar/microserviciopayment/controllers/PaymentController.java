@@ -1,7 +1,5 @@
 package com.contractar.microserviciopayment.controllers;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
+import com.contractar.microserviciocommons.dto.payment.PaymentsResponseDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
@@ -27,7 +26,6 @@ import com.contractar.microserviciopayment.services.PaymentService.PAYMENT_SOURC
 import com.contractar.microserviciopayment.services.ProviderServiceImplFactory;
 import com.contractar.microserviciopayment.services.SuscriptionPaymentService;
 
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -76,7 +74,7 @@ public class PaymentController {
 	}
 	
 	@GetMapping(PaymentControllerUrls.USER_PAYMENT_URL)
-	public ResponseEntity<List<PaymentInfoDTO>> getUserPayments(@PathVariable Long userId) {
+	public ResponseEntity<PaymentsResponseDTO> getUserPayments(@PathVariable Long userId) {
 		return new ResponseEntity<>(suscriptionPaymentService.getPaymentsOfUser(userId),  HttpStatus.OK);
 	}
 	
