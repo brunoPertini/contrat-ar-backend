@@ -18,7 +18,7 @@ public interface SuscriptionPaymentRepository extends CrudRepository<Suscription
 
 	List<SuscriptionPayment> findAllBySuscripcionId(Long suscripcionId);
 	
-	@Query("SELECT s FROM SuscriptionPayment s WHERE (s.id IS NOT NULL AND s.id=:userId) OR (s.toBeBindUserId =:userId)")
+	@Query("SELECT s FROM SuscriptionPayment s WHERE (s.suscripcion IS NOT NULL AND s.suscripcion.usuario.id =:userId) OR (s.toBeBindUserId =:userId)")
 	List<SuscriptionPayment> findAllBySuscripcionUsuarioProveedorId(Long userId);
 
 	Optional<SuscriptionPayment> findTopBySuscripcionIdOrderByPaymentPeriodDesc(Long suscripcionId);

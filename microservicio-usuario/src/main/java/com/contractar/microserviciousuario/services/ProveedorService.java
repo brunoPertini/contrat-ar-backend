@@ -102,13 +102,6 @@ public class ProveedorService {
 				.replace("{suscriptionId}", String.valueOf(suscriptionId)), PaymentInfoDTO.class);
 	}
 
-	private Suscripcion createPaidPlanSuscription(Proveedor proveedor) {
-		Plan paidPlan = planRepository.findByType(PlanType.PAID).get();
-		Suscripcion suscripcion = new Suscripcion(true, proveedor, paidPlan, LocalDate.now());
-
-		return suscripcionRepository.save(suscripcion);
-
-	}
 
 	private void notifyPlanChange(String email, String name, String destinyPlan) {
 		String destinyPlanTranslated = getMessageTag("plan." + destinyPlan);
@@ -121,6 +114,24 @@ public class ProveedorService {
 		} catch (ResourceAccessException e) {
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	@Transactional
+	private Suscripcion createPaidPlanSuscription(Proveedor proveedor) {
+		Plan paidPlan = planRepository.findByType(PlanType.PAID).get();
+		Suscripcion suscripcion = new Suscripcion(true, proveedor, paidPlan, LocalDate.now());
+		
+		boolean isSignupContext = proveedor.getSuscripcion() == null;
+
+		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
+		
+		if (isSignupContext) {
+			proveedor.setSuscripcion(createdSuscripcion);
+			proveedorRepository.save(proveedor);
+		}
+		
+		return createdSuscripcion;
+
 	}
 
 	@Transactional

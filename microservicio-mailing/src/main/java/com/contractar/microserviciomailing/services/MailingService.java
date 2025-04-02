@@ -166,7 +166,7 @@ public class MailingService {
 
 	public void sendPaymentLinkEmail(PaymentLinkMailInfo mailInfo) throws IOException, MessagingException {
 		String emailContent = new FileReader().readFile("/static/payment_started.html")
-				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName())
+				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName() != null ?  (" "+ mailInfo.getUserName()) : "")
 				.replaceAll("\\$\\{paymentLink\\}", mailInfo.getPaymentLink());
 
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.paymentStarted.title"), emailContent, true);
