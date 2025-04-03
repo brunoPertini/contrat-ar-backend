@@ -26,14 +26,14 @@ public class SuscriptionPayment extends Payment {
 	private String paymentUrl;
 	
 	// Used for the cases when a user changes its plan. As its not yet binded in proveedor side, have to persist it to not be lost.
-	private Long toBeBindUserId;
+	private Long userId;
 
-	public Long getToBeBindUserId() {
-		return toBeBindUserId;
+	public Long getuserId() {
+		return userId;
 	}
 
-	public void setToBeBindUserId(Long toBeBindUserId) {
-		this.toBeBindUserId = toBeBindUserId;
+	public void setuserId(Long userId) {
+		this.userId = userId;
 	}
 
 	public String getPaymentUrl() {

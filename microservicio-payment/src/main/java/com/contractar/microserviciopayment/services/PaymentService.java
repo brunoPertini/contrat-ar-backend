@@ -308,8 +308,10 @@ public class PaymentService {
 		SuscriptionPayment lastPayment = this.findLastSuscriptionPayment(suscriptionId);
 
 		if (lastPayment != null && paymentProviderImpl.isPaymentPending(lastPayment)) {
-			boolean isLinkValid = Duration.between(lastPayment.getLinkCreationTime(), LocalDateTime.now())
+			boolean isLinkValid = Optional.ofNullable(lastPayment.getLinkCreationTime()).isPresent() &&
+					Duration.between(lastPayment.getLinkCreationTime(), LocalDateTime.now())
 					.toMinutes() <= PAYMENT_URL_MINUTES_DURATION;
+
 			if (isLinkValid) {
 				return lastPayment.getPaymentUrl();
 			}
@@ -348,12 +350,7 @@ public class PaymentService {
 		SuscriptionPayment createdPayment = suscriptionPaymentService.createPayment(paymentCreateDTO,
 				activePaymentProvider, suscriptionId);
 
-		boolean shouldBindUser = source.equals(PAYMENT_SOURCES.PROFILE)
-				&& Optional.ofNullable(toBindUserId).isPresent();
-
-		if (shouldBindUser) {
-			createdPayment.setToBeBindUserId(toBindUserId);
-		}
+		createdPayment.setuserId(toBindUserId);
 
 		String createdPaymentId = createdPayment.getId().toString();
 

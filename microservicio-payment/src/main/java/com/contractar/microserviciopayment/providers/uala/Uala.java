@@ -168,7 +168,7 @@ public class Uala
 			suscriptionPaymentRepository.save(payment);
 
 			String updateSubsdcriptionUrl = usersServiceUrl + ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION
-					.replace("{proveedorId}", payment.getToBeBindUserId().toString());
+					.replace("{proveedorId}", payment.getuserId().toString());
 
 			SuscriptionActiveUpdateDTO requestBody = new SuscriptionActiveUpdateDTO(payment.getSuscripcion().getId(),
 					newState.getState().equals(UalaPaymentStateValue.APPROVED.name()));
