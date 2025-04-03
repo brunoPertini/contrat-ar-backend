@@ -2,6 +2,7 @@ package com.contractar.microserviciousuario.controllers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -18,16 +19,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleFilter;
 import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.ProveedorVendiblesResponseDTO;
 import com.contractar.microserviciocommons.dto.vendibles.SimplifiedVendibleDTO;
 import com.contractar.microserviciocommons.dto.vendibles.VendibleProveedoresDTO;
+import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
 import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.ImageNotUploadedException;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
-import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
@@ -71,8 +73,10 @@ public class ProveedorControler {
 		
 		boolean getAsEntityBool = Boolean.parseBoolean(getAsEntity);
 		
+		Long userId = Optional.ofNullable(suscripcion.getUsuario()).map(u -> u.getId()).orElse(null);
+		
 		return  new ResponseEntity<>(!getAsEntityBool ? new SuscripcionDTO(suscripcion.getId(), suscripcion.isActive(),
-				suscripcion.getUsuario().getId(),
+				userId,
 				suscripcion.getPlan().getId(),
 				suscripcion.getCreatedDate(),
 				suscripcion.getPlan().getPrice()) : suscripcion, HttpStatus.OK);
@@ -88,9 +92,15 @@ public class ProveedorControler {
 				suscripcion.getPlan().getPrice()), HttpStatus.OK);
 	}
 	
+	@PutMapping(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION)
+	public ResponseEntity<?> updateLinkedSuscripcion(@PathVariable Long proveedorId, @RequestBody SuscriptionActiveUpdateDTO body) {
+		this.proveedorService.updateLinkedSubscription(proveedorId, body);
+		return ResponseEntity.ok().build();
+	}
+	
 	@PostMapping(ProveedorControllerUrls.POST_PROVEEDOR_SUSCRIPCION)
 	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable Long proveedorId, @PathVariable Long planId) throws UserNotFoundException,
-	CantCreateException {
+	CantCreateSuscription {
 		return new ResponseEntity<SuscripcionDTO>(proveedorService.createSuscripcion(proveedorId, planId), HttpStatus.CREATED);
 	}
 

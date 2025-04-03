@@ -64,7 +64,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	private final String[] publicPayUrls = {"/pay/**"};
 	
-	private final String webHookUrl = "/pay/notification";
+	private final String webHookUrl = "/pay/notification/**";
 
 	@Bean
 	public JwtTokenStore tokenStore() {

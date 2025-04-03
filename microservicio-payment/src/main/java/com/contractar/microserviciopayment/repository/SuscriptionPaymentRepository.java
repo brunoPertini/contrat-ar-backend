@@ -3,6 +3,7 @@ package com.contractar.microserviciopayment.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +17,9 @@ public interface SuscriptionPaymentRepository extends CrudRepository<Suscription
 	SuscriptionPayment save(SuscriptionPayment s);
 
 	List<SuscriptionPayment> findAllBySuscripcionId(Long suscripcionId);
+	
+	@Query("SELECT s FROM SuscriptionPayment s WHERE (s.userId =:userId)")
+	List<SuscriptionPayment> findAllBySuscripcionUsuarioProveedorId(Long userId);
 
 	Optional<SuscriptionPayment> findTopBySuscripcionIdOrderByPaymentPeriodDesc(Long suscripcionId);
 
