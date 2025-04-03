@@ -159,12 +159,12 @@ public class ProveedorService {
 
 		if (!isSignupContext) {
 			adminService.addChangeRequestEntry(proveedor.getId(), createdSuscripcion.getId());
+			notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.FREE.name());
 		} else {
 			proveedor.setSuscripcion(createdSuscripcion);
 			proveedorRepository.save(proveedor);
 		}
 
-		notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.FREE.name());
 
 		return createdSuscripcion;
 
