@@ -11,5 +11,4 @@ public class BeansConfig {
     RestTemplate restTemplate() {
 		return new RestTemplate();
 	}
-
 }

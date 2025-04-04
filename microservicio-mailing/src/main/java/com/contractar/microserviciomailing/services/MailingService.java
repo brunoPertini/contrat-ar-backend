@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
+import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.TokenInfoPayload;
 import com.contractar.microserviciocommons.dto.TokenType;
@@ -27,18 +29,18 @@ public class MailingService {
 	private JavaMailSender mailSender;
 
 	private Environment env;
-	
+
 	private RestTemplate httpClient;
-	
+
 	@Value("${configServiceUrl}")
 	private String configServiceUrl;
-	
+
 	@Value("${securityServiceUrl}")
 	private String securityServiceUrl;
-	
+
 	@Value("${site.changePassword.url}")
 	private String resetPasswordLink;
-	
+
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
@@ -64,89 +66,111 @@ public class MailingService {
 
 		mailSender.send(message);
 	}
-	
+
 	private String requestBackupPasswordToken(UserDataChangedMailInfo mailInfo) {
 		final String url = securityServiceUrl + SecurityControllerUrls.TOKEN_BASE_PATH;
-		
-		TokenInfoPayload body = new TokenInfoPayload(mailInfo.getToAddress(), TokenType.reset_password, mailInfo.getUserId(), mailInfo.getRoleName());
-		
+
+		TokenInfoPayload body = new TokenInfoPayload(mailInfo.getToAddress(), TokenType.reset_password,
+				mailInfo.getUserId(), mailInfo.getRoleName());
+
 		return httpClient.postForObject(url, body, String.class);
 	}
 
 	public void sendRegistrationLinkEmail(LinkMailInfo mailInfo) {
 		try {
-			String accountConfirmationUrl = env.getProperty("signup.verificationLink.url")+"?token="+mailInfo.getToken()+"&email="+mailInfo.getToAddress();
-			
-			String emailContent = new FileReader()
-					.readFile("/static/registration-link-template.html")
+			String accountConfirmationUrl = env.getProperty("signup.verificationLink.url") + "?token="
+					+ mailInfo.getToken() + "&email=" + mailInfo.getToAddress();
+
+			String emailContent = new FileReader().readFile("/static/registration-link-template.html")
 					.replaceAll("\\$\\{registrationLink\\}", accountConfirmationUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
-			
+
 			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.success.title"), emailContent, true);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 	}
-	
+
 	public void sendWelcomeEmail(MailInfo mailInfo) {
 		try {
 			String signinUrl = env.getProperty("site.signin.url");
-			
-			String emailContent = new FileReader()
-					.readFile("/static/welcome-email-template.html")
+
+			String emailContent = new FileReader().readFile("/static/welcome-email-template.html")
 					.replaceAll("\\$\\{siteLink\\}", signinUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
-			
-			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.confirm.success.title"), emailContent, true);  
-		} catch(IOException | MessagingException e) {
+
+			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.confirm.success.title"), emailContent,
+					true);
+		} catch (IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}
 	}
-	
-	public void sendTwoFactorAuthenticationEmail(TwoFactorAuthMailInfo mailInfo) throws IOException, MessagingException {
-		String emailContent = new FileReader()
-				.readFile("/static/two-factor-code-email.html")			
+
+	public void sendTwoFactorAuthenticationEmail(TwoFactorAuthMailInfo mailInfo)
+			throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/two-factor-code-email.html")
 				.replaceAll("\\$\\{code\\}", String.valueOf(mailInfo.getCode()))
 				.replaceAll("\\$\\{userName\\}", mailInfo.getFullUserName())
 				.replaceAll("\\$\\{expiresInMinutes\\}", String.valueOf(mailInfo.getExpiresInMinutes()))
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
 				.replaceAll("\\$\\{changePasswordLink\\}", env.getProperty("site.changePassword.url"))
 				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
-		
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.2fa.title"), emailContent, true);  
+
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.2fa.title"), emailContent, true);
 	}
-	
+
 	public void sendForgotPasswordEmail(ForgotPasswordMailInfo mailInfo) throws IOException, MessagingException {
 		String resetPasswordFinalLink = resetPasswordLink.replaceAll("\\{token\\}", mailInfo.getToken());
-		String emailContent = new FileReader()
-				.readFile("/static/forgot-password-template.html")
+		String emailContent = new FileReader().readFile("/static/forgot-password-template.html")
 				.replaceAll("\\$\\{link\\}", resetPasswordFinalLink)
 				.replaceAll("\\$\\{userName\\}", String.valueOf(mailInfo.getFullUserName()))
 				.replaceAll("\\$\\{expiresInMinutes\\}", String.valueOf(mailInfo.getExpiresInMinutes()))
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
-		
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
+
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true);
 	}
-	
-	public String sendUserDataChangeSuccessEmail(UserDataChangedMailInfo mailInfo) throws IOException, MessagingException {
-		String parsedAttributesList = mailInfo.getFieldsList().size() == 1 ? getMessageTag("fields.usuario."+mailInfo.getFieldsList().get(0))
-				: mailInfo.getFieldsList().stream().reduce("", (acum, attribute) -> acum + "y" + getMessageTag("fields.usuario."+attribute));
-		
+
+	public String sendUserDataChangeSuccessEmail(UserDataChangedMailInfo mailInfo)
+			throws IOException, MessagingException {
+		String parsedAttributesList = mailInfo.getFieldsList().size() == 1
+				? getMessageTag("fields.usuario." + mailInfo.getFieldsList().get(0))
+				: mailInfo.getFieldsList().stream().reduce("",
+						(acum, attribute) -> acum + "y" + getMessageTag("fields.usuario." + attribute));
+
 		String backupToken = this.requestBackupPasswordToken(mailInfo);
-		
-		String parsedChangePasswordUrl = env.getProperty("site.changePassword.url").replaceAll("\\{token\\}", backupToken);
-		
-		String emailContent = new FileReader()
-				.readFile("/static/user-data-change-success.html")
+
+		String parsedChangePasswordUrl = env.getProperty("site.changePassword.url").replaceAll("\\{token\\}",
+				backupToken);
+
+		String emailContent = new FileReader().readFile("/static/user-data-change-success.html")
 				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName())
 				.replaceAll("\\$\\{attributesListTemplate\\}", parsedAttributesList)
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
 				.replaceAll("\\$\\{changePasswordLink\\}", parsedChangePasswordUrl)
 				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
-		
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true); 
-		
+
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true);
+
 		return backupToken;
 	}
-	
+
+	public void sendPlanChangeConfirmationEmail(PlanChangeConfirmation mailInfo)
+			throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/plan-change-confirmation.html")
+				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName())
+				.replaceAll("\\$\\{currentPlan\\}", mailInfo.getDestinyPlan())
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
+
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.changePlan.title"), emailContent, true);
+	}
+
+	public void sendPaymentLinkEmail(PaymentLinkMailInfo mailInfo) throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/payment_started.html")
+				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName() != null ?  (" "+ mailInfo.getUserName()) : "")
+				.replaceAll("\\$\\{paymentLink\\}", mailInfo.getPaymentLink());
+
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.paymentStarted.title"), emailContent, true);
+
+	}
+
 }

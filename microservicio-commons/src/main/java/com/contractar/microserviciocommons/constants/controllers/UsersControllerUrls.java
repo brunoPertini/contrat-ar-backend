@@ -27,4 +27,8 @@ public final class UsersControllerUrls {
 	public static final String FORGOT_PASSWORD_EMAIL = "/mail/password/forgot";
 	
 	public static final String USER_FIELD_CHANGE_SUCCESS = "/mail/user/change";
+	
+	public static final String PLAN_CHANGE_SUCCESS_EMAIL = "/mail/plan/change";
+	
+	public static final String PAYMENT_LINK_EMAIL = "/mail/payment/link";
 }

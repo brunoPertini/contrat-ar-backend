@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
@@ -38,7 +39,7 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
 
-	public static enum UsuariosTypeFilter {
+	public enum UsuariosTypeFilter {
 		proveedores, clientes,
 	};
 
@@ -50,21 +51,26 @@ public class AdminController {
 
 	@DeleteMapping(AdminControllerUrls.CHANGE_REQUEST_BY_ID)
 	public ResponseEntity<?> denyRequestChange(@PathVariable Long id)
-			throws ChangeConfirmException, VendibleNotFoundException, ClassNotFoundException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException {
+			throws ChangeConfirmException {
 		adminService.denyChangeRequest(id);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+	
+	@DeleteMapping(AdminControllerUrls.PLAN_CHANGE_REQUEST_BY_ID)
+	public ResponseEntity<?> denyPlanChange(@PathVariable Long changeRequestId, HttpServletRequest request)
+			throws ChangeConfirmException {
+		adminService.denyPlanChange(changeRequestId, request);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@PostMapping(AdminControllerUrls.CHANGE_REQUEST_BASE_URL)
-	public ResponseEntity<?> requestChangeExists(@RequestBody(required = true) ChangeRequestSearchDTO body) {
-		boolean requestExists = adminService.requestExists(body.getSearchIds(), body.getSearchAttributes());
-		return requestExists ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	public ResponseEntity<Long> getMatchingChangeRequest(@RequestBody(required = true) ChangeRequestSearchDTO body) {
+		return new ResponseEntity<>(adminService.getMatchingChangeRequest(body.getSearchIds(), body.getSearchAttributes()), HttpStatus.OK);
 	}
 
 	@PutMapping(AdminControllerUrls.ADMIN_USER)
 	public ResponseEntity<Void> updateUserInfo(@RequestBody @Valid UsuarioPersonalDataUpdateDTO body) 
-		throws ChangeAlreadyRequestedException,	UserNotFoundException {
+		throws ChangeAlreadyRequestedException {
 
 		try {
 			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
@@ -76,7 +82,7 @@ public class AdminController {
 	
 	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR)
 	public ResponseEntity<Void> updateProveedorInfo(@RequestBody @Valid ProveedorPersonalDataUpdateDTO body)
-			throws ChangeAlreadyRequestedException, UserNotFoundException {
+			throws ChangeAlreadyRequestedException {
 
 		try {
 			adminService.addChangeRequestEntry(body, List.of(body.getUserId().toString()));
@@ -86,11 +92,12 @@ public class AdminController {
 		}
 	}
 
-	@PutMapping(AdminControllerUrls.ADMIN_PROVEEDOR_SUBSCRIPTION_PLAN_CHANGE)
-	public ResponseEntity<Void> updateProveedorPlan(@PathVariable("proveedorId") Long proveedorId,
-			@PathVariable("planId") Long newPlanId) throws ChangeAlreadyRequestedException, ChangeConfirmException {
-		adminService.addChangeRequestEntry(proveedorId, newPlanId);
-		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	@PostMapping(AdminControllerUrls.ADMIN_PROVEEDOR_SUBSCRIPTION_PLAN_CHANGE)
+	public ResponseEntity<Void> updateProveedorPlan(@PathVariable(name = "id") Long proveedorId,
+			@PathVariable Long suscriptionId) throws ChangeAlreadyRequestedException, 
+	ChangeConfirmException {
+		adminService.addChangeRequestEntry(proveedorId, suscriptionId);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(201));
 	}
 
 	@PatchMapping(AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID)
@@ -111,6 +118,12 @@ public class AdminController {
 			@RequestBody @Valid UsuarioPersonalDataUpdateDTO body)
 			throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		adminService.updateClientePersonalData(userId, body);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
+	}
+	
+	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
+	public ResponseEntity<Void> changeUserActive(@RequestBody @Valid UsuarioActiveDTO body) throws ChangeAlreadyRequestedException {
+		adminService.addChangeRequestEntry(body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 

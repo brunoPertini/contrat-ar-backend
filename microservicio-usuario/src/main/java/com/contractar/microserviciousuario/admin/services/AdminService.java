@@ -7,9 +7,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -17,8 +22,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.UsuarioFiltersDTO;
 import com.contractar.microserviciocommons.dto.proveedorvendible.ProveedorVendibleUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioActiveDTO;
 import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensibleInfoDTO;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.OperationNotAllowedException;
@@ -79,8 +86,14 @@ public class AdminService {
 
 	@Value("${microservicio-config.url}")
 	private String serviceConfigUrl;
+	
+	@Value("${microservicio-security.url}")
+	private String serviceSecurityUrl;
 
 	private final String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado";
+	
+	// TODO: refactor this, should not be hardcoded, should not be aware of DDBB attributes names
+	private final List<String> userEntitiedIdsNames = List.of("proveedor_id", "cliente_id", "id");
 
 	private final Map<String, Function<Long, ? extends Usuario>> fetchEntity = Map
 			.of(UsuariosTypeFilter.clientes.name(), (clienteId) -> {
@@ -105,6 +118,20 @@ public class AdminService {
 		final String fullUrl = serviceConfigUrl + "/i18n/" + tagId;
 		return restTemplate.getForObject(fullUrl, String.class);
 	}
+	
+	public Object getUserPayloadFromToken(HttpServletRequest request) {
+		String getPayloadUrl = serviceSecurityUrl + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", request.getHeader("Authorization"));
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<Object> getPayloadResponse = restTemplate.exchange(getPayloadUrl, HttpMethod.GET, entity,
+				Object.class);
+
+		return getPayloadResponse.getBody();
+	}
 
 	public List<ChangeRequest> findAllChangeRequests() {
 		return repository.findAll();
@@ -119,15 +146,30 @@ public class AdminService {
 		return this.proveedorVendibleService.findById(id);
 	}
 
-	public boolean requestExists(List<Long> sourceTableIds, List<String> attributes) {
+	public Long getMatchingChangeRequest(List<Long> sourceTableIds, List<String> attributes) {
 		String idsAsString = sourceTableIds.size() > 1
 				? Helper.joinString.apply(sourceTableIds.stream().map(id -> id.toString()).collect(Collectors.toList()))
 				: sourceTableIds.get(0).toString();
 
 		String attributesAsString = attributes.size() > 1 ? Helper.joinString.apply(attributes)
 				: attributes.get(0).toString();
+		
+		return repository.getMatchingChangeRequest(idsAsString, attributesAsString);
+	}
+	
+	public void addChangeRequestEntry(UsuarioActiveDTO info) throws ChangeAlreadyRequestedException {
+		String concatenatedIds = info.getUserId().toString();
+		boolean alreadyRequested = repository.getMatchingChangeRequest(concatenatedIds, "active") != null;
 
-		return !attributes.isEmpty() && repository.getMatchingChangeRequest(idsAsString, attributesAsString) != null;
+		if (alreadyRequested) {
+			throw new ChangeAlreadyRequestedException(getMessageTag("exceptions.change.already.requested"));
+		}
+		
+		ChangeRequest newRequest = new ChangeRequest("usuario", "active=true",
+				false, List.of(info.getUserId()), List.of("id"));
+
+		newRequest.setChangeDetailUrl(info.getChangeDetailUrl(info.getUserId()));
+		repository.save(newRequest);
 	}
 
 	public void addChangeRequestEntry(ProveedorVendibleAdminDTO newInfo, Long proveedorId, Long vendibleId)
@@ -197,25 +239,22 @@ public class AdminService {
 
 	}
 
-	public void addChangeRequestEntry(Long proveedorId, Long newPlanId)
-			throws ChangeAlreadyRequestedException, ChangeConfirmException {
+	public void addChangeRequestEntry(Long proveedorId, Long subscriptionId) {
 		proveedorRepository.findById(proveedorId).ifPresentOrElse(foundProveedor -> {
 			try {
-				Long subscriptionId = foundProveedor.getSuscripcion().getId();
-
-				boolean infoAlreadyRequested = requestExists(List.of(subscriptionId), List.of(newPlanId.toString()));
+				boolean infoAlreadyRequested = getMatchingChangeRequest(List.of(proveedorId), List.of(subscriptionId.toString())) != null;
 
 				if (infoAlreadyRequested) {
 					throw new ChangeAlreadyRequestedException();
 				}
 
-				String planAttributeChangeQuery = "plan=" + "\'" + newPlanId.toString() + "\'";
+				String planAttributeChangeQuery = "suscripcion=" + "\'" + subscriptionId.toString() + "\'";
 
-				ChangeRequest planChangeRequest = new ChangeRequest("suscripcion", planAttributeChangeQuery, false,
-						List.of(subscriptionId), List.of("id"));
+				ChangeRequest planChangeRequest = new ChangeRequest("proveedor", planAttributeChangeQuery, false,
+						List.of(proveedorId), List.of("proveedor_id"));
 
-				planChangeRequest.setChangeDetailUrl(ProveedorControllerUrls.GET_PROVEEDOR_SUSCRIPCION
-						.replace("{proveedorId}", proveedorId.toString()));
+				planChangeRequest.setChangeDetailUrl(ProveedorControllerUrls.GET_SUSCRIPCION
+						.replace("{suscriptionId}", subscriptionId.toString()));
 				repository.save(planChangeRequest);
 			} catch (ChangeAlreadyRequestedException e) {
 				throw new RuntimeException(e);
@@ -304,6 +343,34 @@ public class AdminService {
 
 		this.deleteChangeRequest(request.getId());
 
+	}
+	
+	public void denyPlanChange(Long changeRequestId, HttpServletRequest request) throws ChangeConfirmException {
+		@SuppressWarnings("unchecked")
+		Map<String, Object> tokenPayload = (Map<String, Object>) this.getUserPayloadFromToken(request);
+		
+		String userRole = (String) tokenPayload.get("role");
+		
+		// 	If requesting user is not admin, have to check that logued one matches with the one that requested this change
+		if (!userRole.equals(RolesValues.ADMIN.name())) {
+			Long loguedUserId = Long.valueOf((String)tokenPayload.get("id"));
+				
+			
+			ChangeRequest changeRequest = this.findById(changeRequestId);
+			
+			List<String> sourceTableIdNames = changeRequest.getSourceTableIdNames();
+						
+			int proveedorIdIndex = IntStream.range(0, sourceTableIdNames.size())
+	                .filter(i -> sourceTableIdNames.get(i).equals(userEntitiedIdsNames.get(0)))
+	                .findFirst()
+	                .orElse(-1);
+			
+			if (proveedorIdIndex == -1 || !changeRequest.getSourceTableIds().get(proveedorIdIndex).equals(loguedUserId)) {
+				throw new ChangeConfirmException();
+			}
+		}
+		
+		this.denyChangeRequest(changeRequestId);
 	}
 
 	public UsuariosByTypeResponse getAllFilteredUsuarios(@NonNull String usuarioType, UsuarioFiltersDTO filters,

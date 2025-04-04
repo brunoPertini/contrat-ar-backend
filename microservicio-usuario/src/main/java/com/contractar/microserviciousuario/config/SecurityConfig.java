@@ -1,8 +1,9 @@
 package com.contractar.microserviciousuario.config;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,9 +24,6 @@ import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 @EnableWebSecurity
 @EnableMethodSecurity()
 public class SecurityConfig {
-
-	@Autowired
-	private SecurityHelper securityHelper;
 	
 	private final String[] allowedDevOrigins = {"http://localhost:3000", "http://localhost:8090"};
 
@@ -41,7 +39,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public JwtDecoder jwtDecoder() throws Exception {
+	public JwtDecoder jwtDecoder(SecurityHelper securityHelper) throws IllegalArgumentException, NoSuchAlgorithmException, InvalidKeySpecException {
 		final String pKey = securityHelper.fetchPublicKey();
 		return NimbusJwtDecoder.withPublicKey(securityHelper.getRSAPublicKeyFromString(pKey)).build();
 	}
@@ -49,6 +47,8 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		String adminRole = RolesValues.ADMIN.name();
+		String proveedorProductoRole = RolesValues.PROVEEDOR_PRODUCTOS.name();
+		String proveedorServicioRole = RolesValues.PROVEEDOR_SERVICIOS.name();
 		
 		final String [] personalDataUrls = { AdminControllerUrls.ADMIN_USUARIOS_BY_ID,
 				AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID,
@@ -77,8 +77,10 @@ public class SecurityConfig {
 								.hasAuthority(adminRole)
 								.requestMatchers(HttpMethod.PATCH, personalDataUrls)
 								.hasAuthority(adminRole)
-								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.ADMIN_USUARIOS_BY_ID, AdminControllerUrls.CHANGE_REQUEST_BY_ID )
+								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
 								.hasAuthority(adminRole)
+								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.CHANGE_REQUEST_BY_ID)
+								.hasAnyAuthority(adminRole, proveedorProductoRole, proveedorServicioRole)
 								.requestMatchers(HttpMethod.GET, AdminControllerUrls.ADMIN_USUARIOS_SENSIBLE_INFO)
 								.hasAuthority(adminRole)
 								.anyRequest().permitAll())

@@ -2,17 +2,18 @@ package com.contractar.microserviciocommons.dto;
 
 import java.time.LocalDate;
 
-import com.contractar.microserviciocommons.serialization.SuscripcionDTOSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonSerialize(using = SuscripcionDTOSerializer.class)
+@JsonIgnoreProperties({"datePattern"})
 public class SuscripcionDTO extends WithDatePatternDTO {
 	private Long id;
 	private boolean isActive;
 	private Long usuarioId;
 	private Long planId;
 	private int planPrice;
+	
+	private SuscriptionValidityDTO validity;
 
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate createdDate;
@@ -96,4 +97,13 @@ public class SuscripcionDTO extends WithDatePatternDTO {
 	public void setPlanPrice(int planPrice) {
 		this.planPrice = planPrice;
 	}
+	
+	public SuscriptionValidityDTO getValidity() {
+		return validity;
+	}
+
+	public void setValidity(SuscriptionValidityDTO validity) {
+		this.validity = validity;
+	}
+
 }

@@ -7,34 +7,57 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
+import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
+import com.contractar.microserviciocommons.dto.payment.PaymentsResponseDTO;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentAlreadyDone;
 import com.contractar.microserviciocommons.exceptions.payment.PaymentCantBeDone;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciopayment.dtos.PaymentCreateDTO;
 import com.contractar.microserviciopayment.dtos.PaymentDTO;
-import com.contractar.microserviciopayment.dtos.PaymentInfoDTO;
 import com.contractar.microserviciopayment.dtos.PaymentProviderDTO;
+import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.providers.uala.WebhookBody;
 import com.contractar.microserviciopayment.services.PaymentService;
+import com.contractar.microserviciopayment.services.PaymentService.PAYMENT_SOURCES;
+import com.contractar.microserviciopayment.services.ProviderServiceImplFactory;
+import com.contractar.microserviciopayment.services.SuscriptionPaymentService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
 public class PaymentController {
 	
 	private PaymentService paymentService;
-
-	public PaymentController(PaymentService paymentService) {
+	private SuscriptionPaymentService suscriptionPaymentService;
+	
+	public PaymentController(PaymentService paymentService, ProviderServiceImplFactory providerServiceImplFactory, SuscriptionPaymentService suscriptionPaymentService) {
 		this.paymentService = paymentService;
+		this.suscriptionPaymentService = suscriptionPaymentService;
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_SIGNUP_SUSCRIPTION)
-	public ResponseEntity<?> paySignupSuscription(@RequestBody @Valid PaymentDTO body, @PathVariable Long suscriptionId) throws SuscriptionNotFound,
+	public ResponseEntity<String> paySignupSuscription(@RequestBody @Valid PaymentDTO body,
+			@PathVariable Long suscriptionId,
+			HttpServletRequest request) throws SuscriptionNotFound,
 	PaymentAlreadyDone, PaymentCantBeDone {
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId);
+		String token = request.getHeader("Authorization").replace("Bearer ", "");
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null, body.getToBeBindUserId(), token);
+		return ResponseEntity.ok(checkoutUrl);
+	}
+	
+	@PostMapping(PaymentControllerUrls.PAYMENT_USER_PROFILE_SUSCRIPTION)
+	public ResponseEntity<String> payUserProfileSubscription(@RequestBody @Valid PaymentDTO body, 
+			@PathVariable Long suscriptionId,
+			@RequestParam(required = true) String returnTab,
+			HttpServletRequest request) throws SuscriptionNotFound, 
+	PaymentCantBeDone {
+		String token = request.getHeader("Authorization").replace("Bearer ", "");
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE, returnTab, body.getToBeBindUserId(), token);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
@@ -45,9 +68,39 @@ public class PaymentController {
 		return dto != null ? new ResponseEntity(dto, HttpStatus.OK) : new ResponseEntity(HttpStatusCode.valueOf(404));
  	}
 	
+	@GetMapping(PaymentControllerUrls.IS_SUSCRIPTION_VALID)
+	public ResponseEntity<Boolean> isSuscriptionValid(@PathVariable Long suscriptionId) {
+		return new ResponseEntity<>(suscriptionPaymentService.isSuscriptionValid(suscriptionId),  HttpStatus.OK);
+	}
+	
+	@GetMapping(PaymentControllerUrls.USER_PAYMENT_URL)
+	public ResponseEntity<PaymentsResponseDTO> getUserPayments(@PathVariable Long userId) {
+		return new ResponseEntity<>(suscriptionPaymentService.getPaymentsOfUser(userId),  HttpStatus.OK);
+	}
+	
+	@GetMapping(PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL)
+	public ResponseEntity<PaymentInfoDTO> getLastSuscriptionPayment(@PathVariable Long suscriptionId) {
+		Payment payment = paymentService.findLastSuccesfullSuscriptionPayment(suscriptionId);
+		PaymentInfoDTO response = payment != null ? new PaymentInfoDTO(payment.getId(), payment.getExternalId(),
+				payment.getPaymentPeriod(), payment.getDate(), payment.getAmount(), payment.getCurrency(), payment.getState().toString(),
+				payment.getPaymentProvider().getName()) : new PaymentInfoDTO();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
 	@PostMapping(PaymentControllerUrls.PAYMENT_BASE_URL)
 	public ResponseEntity<?> createPayment(@RequestBody @Valid PaymentCreateDTO body) {
 		return new ResponseEntity<>(paymentService.createPayment(body), HttpStatusCode.valueOf(200));
+	}
+	
+	@GetMapping(PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE)
+	public ResponseEntity<Boolean> isSubscriptionPayable(@PathVariable Long suscriptionId) throws SuscriptionNotFound {
+		return new ResponseEntity<>(suscriptionPaymentService.canSuscriptionBePayed(suscriptionId), HttpStatus.OK);
+	}
+	
+	@PostMapping(PaymentControllerUrls.PAYMENT_WEBHOOK_URL_PLAN_CHANGE)
+	public ResponseEntity<?> postPaymentPlanUpdate(@RequestBody WebhookBody body) {
+		paymentService.handleWebhookPlanChangeNotification(body);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
 	@PostMapping(PaymentControllerUrls.PAYMENT_WEBHOOK_URL)

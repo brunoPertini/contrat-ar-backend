@@ -8,6 +8,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -107,9 +108,11 @@ public class SecurityController {
 
 	@GetMapping(SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN)
 	public ResponseEntity<?> getTokenPayloadFromHeaders(HttpServletRequest request,
-			@RequestParam(required = false) boolean verifyToken)
+			@RequestParam(required = false) Optional<Boolean> verifyTokenOpt)
 			throws JsonProcessingException, SessionExpiredException {
 		String token = request.getHeader("authorization");
+		boolean verifyToken = verifyTokenOpt.isPresent() ? verifyTokenOpt.get() : false;
+		
 		return ResponseEntity.ok(
 				!verifyToken ? jwtHelper.parsePayloadFromUnverifiedToken(token) : jwtHelper.parsePayloadFromJwt(token));
 

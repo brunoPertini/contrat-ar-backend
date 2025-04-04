@@ -11,6 +11,17 @@ public class PaymentDTO {
 	
 	// amout may be null for certain pay scenarios
 	private int amount;
+	
+	// Used for the cases when a user changes its plan. As its not yet binded in proveedor side, have to persist it to not be lost.
+	private Long toBeBindUserId;
+
+	public Long getToBeBindUserId() {
+		return toBeBindUserId;
+	}
+
+	public void setToBeBindUserId(Long toBeBindUserId) {
+		this.toBeBindUserId = toBeBindUserId;
+	}
 
 	public IntegrationType getIntegrationType() {
 		return integrationType;

@@ -24,6 +24,17 @@ public class SuscriptionPayment extends Payment {
 
 	// For outsite providers
 	private String paymentUrl;
+	
+	// Used for the cases when a user changes its plan. As its not yet binded in proveedor side, have to persist it to not be lost.
+	private Long userId;
+
+	public Long getuserId() {
+		return userId;
+	}
+
+	public void setuserId(Long userId) {
+		this.userId = userId;
+	}
 
 	public String getPaymentUrl() {
 		return paymentUrl;

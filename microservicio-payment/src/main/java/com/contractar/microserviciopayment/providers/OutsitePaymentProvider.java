@@ -26,6 +26,8 @@ public interface OutsitePaymentProvider<E, M, R, D> {
 	public void setPaymentAsPending(Payment p);
 
 	public void handleWebhookNotification(D body);
+	
+	public void handleWebhookPlanChangeNotification(D body);
 
 	public boolean wasPaymentRejected(Payment payment);
 
