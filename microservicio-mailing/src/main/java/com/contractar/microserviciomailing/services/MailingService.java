@@ -19,6 +19,7 @@ import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
 import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
+import com.contractar.microserviciocommons.mailing.VendibleModificationNotification;
 import com.contractar.microserviciomailing.utils.FileReader;
 
 import jakarta.mail.MessagingException;
@@ -41,9 +42,12 @@ public class MailingService {
 
 	@Value("${site.changePassword.url}")
 	private String resetPasswordLink;
-	
+
 	@Value("${mail.contactus}")
 	private String contactMail;
+
+	@Value("${site.termsAndConditions.link}")
+	private String termsAndConditionsUrl;
 
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
@@ -103,8 +107,7 @@ public class MailingService {
 					.replaceAll("\\$\\{siteLink\\}", signinUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
-			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signuo.result.title"), emailContent,
-					true);
+			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.result.title"), emailContent, true);
 		} catch (IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}
@@ -170,25 +173,41 @@ public class MailingService {
 
 	public void sendPaymentLinkEmail(PaymentLinkMailInfo mailInfo) throws IOException, MessagingException {
 		String emailContent = new FileReader().readFile("/static/payment_started.html")
-				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName() != null ?  (" "+ mailInfo.getUserName()) : "")
-				.replaceAll("\\$\\{paymentLink\\}", mailInfo.getPaymentLink());
+				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName() != null ? (" " + mailInfo.getUserName()) : "")
+				.replaceAll("\\$\\{paymentLink\\}", mailInfo.getPaymentLink())
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.paymentStarted.title"), emailContent, true);
 
 	}
-	
+
 	public void sendSignupResultNotification(MailNotificationResultBody body) throws IOException, MessagingException {
-		
+
 		if (body.isResult()) {
 			this.sendWelcomeEmail(body);
 		} else {
 			String emailContent = new FileReader().readFile("/static/signup_result_notification.html")
 					.replaceAll("\\$\\{userName\\}", body.getUserName())
 					.replaceAll("\\$\\{resultVerb\\}", getMessageTag("mails.signup.result.error"))
-					.replaceAll("\\$\\{contactMail\\}", "mailto:"+contactMail);
-			
-			this.sendEmail(body.getToAddress(), getMessageTag("mails.signuo.result.title"), emailContent, true);
+					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+					.replaceAll("\\$\\{contactMail\\}", "mailto:" + contactMail);
+
+			this.sendEmail(body.getToAddress(), getMessageTag("mails.signup.result.title"), emailContent, true);
 		}
+	}
+
+	public void sendPostUpdateResultNotification(VendibleModificationNotification body)
+			throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/post-state-change-notification.html")
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{userName\\}", body.getUserName())
+				.replaceAll("\\$\\{result\\}",
+						body.isResult() ? getMessageTag("mails.signup.result.success")
+								: getMessageTag("mails.signup.result.error"))
+				.replaceAll("\\$\\{termsAndConditionsLink\\}", termsAndConditionsUrl);
+
+		this.sendEmail(body.getToAddress(), getMessageTag("mails.post.result.title"), emailContent, true);
+
 	}
 
 }

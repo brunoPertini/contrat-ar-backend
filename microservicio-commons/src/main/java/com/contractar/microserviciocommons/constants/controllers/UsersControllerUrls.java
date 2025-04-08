@@ -35,4 +35,6 @@ public final class UsersControllerUrls {
 	public static final String PAYMENT_LINK_EMAIL = "/mail/payment/link";
 	
 	public static final String SIGNUP_RESULT_NOTIFICATION = "/mail/signup/result";
+	
+	public static final String POST_RESULT_NOTIFICATION = "/mail/post/result";
 }
