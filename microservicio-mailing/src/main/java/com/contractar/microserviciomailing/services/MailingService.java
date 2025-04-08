@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
@@ -40,6 +41,9 @@ public class MailingService {
 
 	@Value("${site.changePassword.url}")
 	private String resetPasswordLink;
+	
+	@Value("${mail.contactus}")
+	private String contactMail;
 
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
@@ -99,7 +103,7 @@ public class MailingService {
 					.replaceAll("\\$\\{siteLink\\}", signinUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
-			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.confirm.success.title"), emailContent,
+			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signuo.result.title"), emailContent,
 					true);
 		} catch (IOException | MessagingException e) {
 			System.out.println(e.getMessage());
@@ -171,6 +175,20 @@ public class MailingService {
 
 		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.paymentStarted.title"), emailContent, true);
 
+	}
+	
+	public void sendSignupResultNotification(MailNotificationResultBody body) throws IOException, MessagingException {
+		
+		if (body.isResult()) {
+			this.sendWelcomeEmail(body);
+		} else {
+			String emailContent = new FileReader().readFile("/static/signup_result_notification.html")
+					.replaceAll("\\$\\{userName\\}", body.getUserName())
+					.replaceAll("\\$\\{resultVerb\\}", getMessageTag("mails.signup.result.error"))
+					.replaceAll("\\$\\{contactMail\\}", "mailto:"+contactMail);
+			
+			this.sendEmail(body.getToAddress(), getMessageTag("mails.signuo.result.title"), emailContent, true);
+		}
 	}
 
 }

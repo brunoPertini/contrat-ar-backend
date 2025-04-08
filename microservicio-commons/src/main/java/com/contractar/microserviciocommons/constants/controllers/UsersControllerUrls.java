@@ -2,6 +2,8 @@ package com.contractar.microserviciocommons.constants.controllers;
 
 public final class UsersControllerUrls {
 	
+	private UsersControllerUrls() {}
+	
 	public static final String PROVEEDOR_VENDIBLE = "/usuarios/proveedor/{proveedorId}/vendible/{vendibleId}";
 
 	public static final String UPDATE_PROVEEDOR = "/usuarios/proveedor";
@@ -31,4 +33,6 @@ public final class UsersControllerUrls {
 	public static final String PLAN_CHANGE_SUCCESS_EMAIL = "/mail/plan/change";
 	
 	public static final String PAYMENT_LINK_EMAIL = "/mail/payment/link";
+	
+	public static final String SIGNUP_RESULT_NOTIFICATION = "/mail/signup/result";
 }

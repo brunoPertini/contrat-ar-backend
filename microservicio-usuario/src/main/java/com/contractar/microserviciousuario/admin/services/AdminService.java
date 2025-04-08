@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -30,6 +31,7 @@ import com.contractar.microserviciocommons.dto.usuario.sensibleinfo.UsuarioSensi
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.OperationNotAllowedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciousuario.admin.controllers.AdminController.UsuariosTypeFilter;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorAdminDTO;
@@ -41,7 +43,8 @@ import com.contractar.microserviciousuario.admin.models.ChangeRequest;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepository;
 import com.contractar.microserviciousuario.admin.repositories.ChangeRequestRepositoryImpl;
 import com.contractar.microserviciousuario.admin.repositories.UsuarioAdminCustomRepository;
-import com.contractar.microserviciousuario.admin.utils.ChangeRequestDenyFactoryStrategy;
+import com.contractar.microserviciousuario.admin.utils.ChangeRequestFactoryStrategy;
+import com.contractar.microserviciousuario.admin.utils.ChangeRequestStrategy;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
@@ -89,6 +92,9 @@ public class AdminService {
 	
 	@Value("${microservicio-security.url}")
 	private String serviceSecurityUrl;
+	
+	@Value("${microservicio-mailing.url}")
+	private String serviceMailingUrl;
 
 	private final String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado";
 	
@@ -119,6 +125,10 @@ public class AdminService {
 		return restTemplate.getForObject(fullUrl, String.class);
 	}
 	
+	public void sendEmail(String path, MailInfo body) {
+		restTemplate.postForEntity(serviceMailingUrl + path, body, Void.class);
+	}
+	
 	public Object getUserPayloadFromToken(HttpServletRequest request) {
 		String getPayloadUrl = serviceSecurityUrl + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
 
@@ -136,9 +146,13 @@ public class AdminService {
 	public List<ChangeRequest> findAllChangeRequests() {
 		return repository.findAll();
 	}
+	
+	public Usuario findUserById(Long id) throws UserNotFoundException{
+		return usuarioRepository.findById(id).map(u -> u).orElseThrow(UserNotFoundException::new);
+	}
 
 	public UsuarioSensibleInfoDTO findUserSensibleInfo(Long userId) throws UserNotFoundException {
-		Usuario usuario = usuarioRepository.findById(userId).map(u -> u).orElseThrow(UserNotFoundException::new);
+		Usuario usuario = findUserById(userId);
 		return new UsuarioSensibleInfoDTO(usuario.getEmail(), usuario.getPassword());
 	}
 
@@ -327,6 +341,10 @@ public class AdminService {
 	public void confirmChangeRequest(Long id) throws ChangeConfirmException {
 
 		ChangeRequest change = this.findById(id);
+		
+		final Map<String, Supplier<ChangeRequestStrategy>> creators = Map.of("usuario", ChangeRequestFactoryStrategy::createUserAcceptedStrategy);
+		
+		Optional.ofNullable(creators.get(change.getSourceTable())).ifPresent(strategy -> strategy.get().run(change, this));
 
 		repositoryImpl.applyChangeRequest(change);
 	}
@@ -337,9 +355,11 @@ public class AdminService {
 
 	public void denyChangeRequest(Long id) throws ChangeConfirmException {
 		ChangeRequest request = this.findById(id);
-		Optional.ofNullable(ChangeRequestDenyFactoryStrategy.create(request)).ifPresent(denyStrategy -> {
-			denyStrategy.run(request, this);
-		});
+		
+		final Map<String, Supplier<ChangeRequestStrategy>> creators = Map.of("usuario", ChangeRequestFactoryStrategy::createUserRejectedStrategy,
+				"proveedor_vendible", ChangeRequestFactoryStrategy::createPostRejectedStrategy);
+		
+		Optional.ofNullable(creators.get(request.getSourceTable())).ifPresent(denyStrategy -> denyStrategy.get().run(request, this));
 
 		this.deleteChangeRequest(request.getId());
 

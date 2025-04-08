@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
@@ -70,6 +71,12 @@ public class MailingController {
 	@PostMapping(UsersControllerUrls.PAYMENT_LINK_EMAIL)
 	ResponseEntity<Void> sendPaymentLinkEmil(@RequestBody @Valid PaymentLinkMailInfo mailInfo) throws IOException, MessagingException {
 		service.sendPaymentLinkEmail(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(UsersControllerUrls.SIGNUP_RESULT_NOTIFICATION)
+	ResponseEntity<Void> sendSignupResultMail(@RequestBody @Valid MailNotificationResultBody mailInfo) throws IOException, MessagingException {
+		service.sendSignupResultNotification(mailInfo);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }

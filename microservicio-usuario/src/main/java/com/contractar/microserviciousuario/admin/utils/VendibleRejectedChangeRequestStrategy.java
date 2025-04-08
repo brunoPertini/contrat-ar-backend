@@ -10,7 +10,7 @@ import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
 import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 
-public class VendibleChangeRequestStrategy implements ChangeRequestDenyStrategy {
+public class VendibleRejectedChangeRequestStrategy implements ChangeRequestStrategy {
 
 	@Override
 	public void run(ChangeRequest request, AdminService adminService) {

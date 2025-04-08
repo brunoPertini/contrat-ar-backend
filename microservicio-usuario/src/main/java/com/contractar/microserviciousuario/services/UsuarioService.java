@@ -37,7 +37,6 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
-import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
@@ -59,7 +58,6 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
-import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
@@ -525,10 +523,6 @@ public class UsuarioService {
 		foundUser.setAccountVerified(true);
 		foundUser.setAccountVerificationToken("");
 		usuarioRepository.save(foundUser);
-
-		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.SIGNUP_OK_EMAIL, new MailInfo(email),
-				Void.class);
-
 	}
 
 	@Transactional
