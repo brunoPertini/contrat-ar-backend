@@ -178,8 +178,8 @@ public class ProveedorVendibleService {
 	}
 
 	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData,
-			HttpServletRequest request) throws VendibleNotFoundException, VendibleUpdateException,
-			InvocationTargetException, IllegalAccessException, ClassNotFoundException {
+			HttpServletRequest request)
+			throws VendibleNotFoundException, VendibleUpdateException, IllegalAccessException {
 		if (newData.getImagenUrl() != null
 				&& !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
 			throw new VendibleUpdateException();
@@ -189,7 +189,7 @@ public class ProveedorVendibleService {
 
 		ProveedorVendibleId id = new ProveedorVendibleId(proveedorId, vendibleId);
 		ProveedorVendible vendible = this.findById(id);
-		
+
 		PostState vendibleCurrentState = vendible.getState();
 
 		boolean isChangingState = Optional.ofNullable(newData.getState()).isPresent();
@@ -199,7 +199,8 @@ public class ProveedorVendibleService {
 		boolean changesNeedApproval = !isChangingState && dtoRawFields.keySet().stream()
 				.anyMatch(objectField -> ProveedorVendibleUpdateDTO.proveedorVendibleUpdateStrategy().get(objectField));
 
-		if (isChangingState && !canUpdateStraight || changesNeedApproval || vendibleCurrentState.equals(PostState.REJECTED)) {
+		if (isChangingState && !canUpdateStraight || changesNeedApproval
+				|| vendibleCurrentState.equals(PostState.REJECTED)) {
 			newData.setState(PostState.IN_REVIEW);
 			performPostUpdate(vendible, newData);
 			String url = SERVICIO_VENDIBLE_URL + VendiblesControllersUrls.INTERNAL_POST_BY_ID
@@ -302,15 +303,7 @@ public class ProveedorVendibleService {
 		post.setOffersDelivery(isProviderLocationOk);
 		post.setOffersInCustomAddress(isPostLocationOk);
 
-		if (post.getOffersDelivery() && post.getOffersInCustomAddress()) {
-			return isProviderLocationOk && isPostLocationOk;
-		}
-
-		if (post.getOffersDelivery()) {
-			return isProviderLocationOk;
-		}
-
-		return isPostLocationOk;
+		return isProviderLocationOk || isPostLocationOk;
 	}
 
 	private Page<ProveedorVendible> findAllByLocationAndPlanConstraints(Long vendibleId, Point userLocation,

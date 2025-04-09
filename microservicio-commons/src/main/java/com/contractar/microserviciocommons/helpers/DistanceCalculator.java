@@ -8,6 +8,8 @@ public class DistanceCalculator {
     // Earth's radius
     static final double RADIUS = 6371;
     
+    private DistanceCalculator() {}
+    
     public static double haversine(double val) {
         return Math.pow(Math.sin(val / 2), 2);
     }

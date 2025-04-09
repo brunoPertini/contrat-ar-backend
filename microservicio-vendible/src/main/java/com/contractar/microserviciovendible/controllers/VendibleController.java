@@ -69,12 +69,12 @@ public class VendibleController {
 	}
 	
 	@PutMapping(VendiblesControllersUrls.INTERNAL_POST_BY_ID)
-	public ResponseEntity<Void> requestPostStateChange(@PathVariable("vendibleId") Long vendibleId,
-			@PathVariable("proveedorId") Long proveedorId,
+	public ResponseEntity<Void> requestPostStateChange(@PathVariable Long vendibleId,
+			@PathVariable Long proveedorId,
 			@RequestBody ProveedorVendibleAdminDTO body,
-			HttpServletRequest request) throws CouldntChangeStateException {
+			HttpServletRequest request) {
 		vendibleService.requestPostStateChange(proveedorId, vendibleId, body.getState(), request);
-		return new ResponseEntity<Void>(HttpStatus.OK);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
 }

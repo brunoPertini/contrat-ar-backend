@@ -140,7 +140,7 @@ public class UsuarioController {
 	}
 
 	@GetMapping(UsersControllerUrls.GET_USUARIO_FIELD)
-	public ResponseEntity<Object> getUsuarioFields(@PathVariable("userId") Long userId,
+	public ResponseEntity<Object> getUsuarioFields(@PathVariable Long userId,
 			@PathVariable("fieldName") String field) throws UserNotFoundException, IllegalAccessException {
 		Object fieldValue = usuarioService.getUsuarioField(field, userId);
 		return fieldValue != null ? new ResponseEntity<>(fieldValue, HttpStatus.OK)
@@ -173,13 +173,13 @@ public class UsuarioController {
 	}
 
 	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<?> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
+	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
 			@Valid @RequestBody ProveedorVendibleUpdateDTO body, HttpServletRequest request)
 			throws VendibleNotFoundException, VendibleUpdateException, InvocationTargetException,
 			IllegalAccessException, ClassNotFoundException {
 
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body, request);
-		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
 	@GetMapping(GeoControllersUrls.TRANSLATE_COORDINATES)

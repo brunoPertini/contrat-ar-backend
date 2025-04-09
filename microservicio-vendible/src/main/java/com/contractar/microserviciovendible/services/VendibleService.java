@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -50,6 +53,7 @@ import com.contractar.microserviciovendible.repository.ServicioRepository;
 import com.contractar.microserviciovendible.repository.VendibleCategoryRepository;
 import com.contractar.microserviciovendible.repository.VendibleRepository;
 import com.contractar.microserviciovendible.services.resolvers.VendibleFetchingMethodResolver;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -70,7 +74,7 @@ public class VendibleService {
 
 	@Value("${microservicio-usuario.url}")
 	private String microServicioUsuarioUrl;
-	
+
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
 
@@ -83,7 +87,7 @@ public class VendibleService {
 	private VendibleCategory categoryParentAux;
 
 	private static final int CATEGORY_BOUND = 3;
-	
+
 	private Object readJwtPayload(HttpServletRequest request) {
 		String getPayloadUrl = SERVICIO_SECURITY_URL + SecurityControllerUrls.GET_USER_PAYLOAD_FROM_TOKEN;
 
@@ -201,6 +205,23 @@ public class VendibleService {
 
 	}
 
+	private Point getUserLocation(Long userId) {
+
+		String getUserFieldUrl = microServicioUsuarioUrl + (UsersControllerUrls.GET_USUARIO_FIELD
+				.replace("{userId}", userId.toString()).replace("{fieldName}", "location"));
+
+		Map<String, Object> responseMap = restTemplate.getForObject(getUserFieldUrl, Map.class);
+
+		ArrayList coordsArray = (ArrayList) responseMap.get("coordinates");
+
+		double x = (double) coordsArray.get(0);
+		double y = (double) coordsArray.get(1);
+
+		GeometryFactory geometryFactory = new GeometryFactory();
+		return geometryFactory.createPoint(new Coordinate(x, y));
+
+	}
+
 	@Transactional
 	private Vendible persistVendible(String vendibleType, Vendible vendible) {
 		return vendibleType.equals(VendibleType.SERVICIO.name()) ? this.servicioRepository.save(vendible)
@@ -223,7 +244,7 @@ public class VendibleService {
 	}
 
 	public Vendible save(Vendible vendible, String vendibleType, Long proveedorId, HttpServletRequest request)
-			throws UserNotFoundException, CantCreateException, CouldntChangeStateException {
+			throws UserNotFoundException, CantCreateException {
 
 		boolean hasVendibleToLink = !vendible.getProveedoresVendibles().isEmpty();
 
@@ -274,6 +295,11 @@ public class VendibleService {
 
 			ProveedorVendibleAccesor pv = (ProveedorVendibleAccesor) vendible.getProveedoresVendibles().toArray()[0];
 			pv.setState(PostState.IN_REVIEW);
+
+			if (!pv.getOffersInCustomAddress()) {
+				Point proveedorLocation = this.getUserLocation(proveedorId);
+				pv.setLocation(proveedorLocation);
+			}
 
 			ResponseEntity<Void> addVendibleResponse = restTemplate.postForEntity(addVendibleUrl, pv, Void.class);
 
@@ -376,16 +402,13 @@ public class VendibleService {
 	public VendiblesResponseDTO findByNombreAsc(String nombre, Long categoryId,
 			VendibleFetchingMethodResolver repositoryMethodResolver, HttpServletRequest request) {
 		VendiblesResponseDTO response = new VendiblesResponseDTO();
-		
-		String userRole = (String)((Map<String, Object>) this.readJwtPayload(request)).get("role");
+
+		String userRole = (String) ((Map<String, Object>) this.readJwtPayload(request)).get("role");
 
 		repositoryMethodResolver.getFindByNombreRepositoryMethod(nombre, categoryId, userRole).get().stream()
-				.forEach(vendible -> { 
-					Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper
-							.getProveedoresVendibles(response,
-									vendible,
-									!userRole.equals(RolesNames.RolesValues.ADMIN.toString())
-									);
+				.forEach(vendible -> {
+					Set<SimplifiedProveedorVendibleDTO> proveedoresVendibles = VendibleHelper.getProveedoresVendibles(
+							response, vendible, !userRole.equals(RolesNames.RolesValues.ADMIN.toString()));
 					if (!proveedoresVendibles.isEmpty()) {
 						response.getVendibles().put(vendible.getNombre(), proveedoresVendibles);
 						vendible.getProveedoresVendibles().forEach(proveedorVendible -> {

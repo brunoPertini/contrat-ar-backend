@@ -39,6 +39,8 @@ public interface ProveedorVendibleAccesor {
 	
 	public void setState(PostState state);
 	
+	public void setLocation(Point p);
+	
 	public PostState getState();
 	
 	public String getVendibleType();
