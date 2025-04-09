@@ -201,6 +201,7 @@ public class MailingService {
 		String emailContent = new FileReader().readFile("/static/post-state-change-notification.html")
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
 				.replaceAll("\\$\\{userName\\}", body.getUserName())
+				.replaceAll("\\$\\{vendibleName\\}", body.getVendibleName())
 				.replaceAll("\\$\\{result\\}",
 						body.isResult() ? getMessageTag("mails.signup.result.success")
 								: getMessageTag("mails.signup.result.error"))

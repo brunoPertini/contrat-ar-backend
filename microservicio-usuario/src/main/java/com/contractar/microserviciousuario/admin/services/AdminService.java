@@ -342,7 +342,8 @@ public class AdminService {
 
 		ChangeRequest change = this.findById(id);
 		
-		final Map<String, Supplier<ChangeRequestStrategy>> creators = Map.of("usuario", ChangeRequestFactoryStrategy::createUserAcceptedStrategy);
+		final Map<String, Supplier<ChangeRequestStrategy>> creators = Map.of("usuario", ChangeRequestFactoryStrategy::createUserAcceptedStrategy,
+				"proveedor_vendible", ChangeRequestFactoryStrategy::createPostAcceptedStrategy);
 		
 		Optional.ofNullable(creators.get(change.getSourceTable())).ifPresent(strategy -> strategy.get().run(change, this));
 

@@ -2,6 +2,10 @@ package com.contractar.microserviciousuario.admin.utils;
 
 public final class ChangeRequestFactoryStrategy {	
 	private ChangeRequestFactoryStrategy() {}
+	
+	public static ChangeRequestStrategy createPostAcceptedStrategy() { 
+		return new VendibleAcceptedChangeRequestStrategy();
+	}
 
 	public static ChangeRequestStrategy createPostRejectedStrategy() {
 		return new VendibleRejectedChangeRequestStrategy();
