@@ -352,6 +352,7 @@ public class ProveedorVendibleService {
 
 		this.pricesForSlider = new ArrayList<>();
 		this.distancesForSlider = new ArrayList<>();
+		
 		Map<Long, Double> distances = new HashMap<>();
 
 		ArrayList<DistanceProveedorDTO> posts = (ArrayList<DistanceProveedorDTO>) results.filter(proveedorVendible -> {

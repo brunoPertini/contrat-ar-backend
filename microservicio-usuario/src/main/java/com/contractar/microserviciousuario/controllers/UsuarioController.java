@@ -175,8 +175,8 @@ public class UsuarioController {
 	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
 	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
 			@Valid @RequestBody ProveedorVendibleUpdateDTO body, HttpServletRequest request)
-			throws VendibleNotFoundException, VendibleUpdateException, InvocationTargetException,
-			IllegalAccessException, ClassNotFoundException {
+			throws VendibleNotFoundException, VendibleUpdateException,
+			IllegalAccessException {
 
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body, request);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));

@@ -33,25 +33,42 @@ public class DistanceCalculator {
     	return distance <= radius;
     }
     
+    public static double getToVendibleDistance(Point clienteLocation, ProveedorVendibleAccesor proveedorVendible) {
+    	Point vendibleLocation = proveedorVendible.getLocation();
+    	return calculateDistance(clienteLocation.getX(), clienteLocation.getY(), vendibleLocation.getX(), vendibleLocation.getY());
+    }
+    
+    public static double getToProveedorDistance(Point clienteLocation, ProveedorVendibleAccesor proveedorVendible) {
+    	Point proveedorLocation = proveedorVendible.getProveedor().getLocation();
+    	return calculateDistance(clienteLocation.getX(), clienteLocation.getY(), proveedorLocation.getX(), proveedorLocation.getY());
+    }
+    
     /**
-     * 
+     * Sets the offer distance as the minimum among client's location, proveedor's location and offer's location
      * @param clienteLocation
      * @param proveedorVendible
-     * @return The minimum distance from cliente location to Proveedor or Vendible's location.
+     * @return The minimum distance from client's location to Proveedor or Vendible's location.
      */
     public static double resolveDistanceFromClient(Point clienteLocation, ProveedorVendibleAccesor proveedorVendible) {
-    	Point proveedorLocation = proveedorVendible.getProveedor().getLocation();
-    	Point vendibleLocation = proveedorVendible.getLocation();
-    	
-    	double toProveedorDistance =  calculateDistance(clienteLocation.getX(), clienteLocation.getY(), proveedorLocation.getX(), proveedorLocation.getY());
-    	double toVendibleDistance = calculateDistance(clienteLocation.getX(), clienteLocation.getY(), vendibleLocation.getX(), vendibleLocation.getY());
+    	double toProveedorDistance =  getToProveedorDistance(clienteLocation, proveedorVendible);
+    	double toVendibleDistance = getToVendibleDistance(clienteLocation, proveedorVendible);
     	
     	if (proveedorVendible.getOffersDelivery() && proveedorVendible.getOffersInCustomAddress()) {
+    		double minimumDistance = Math.min(toProveedorDistance, toVendibleDistance);
+    		
+    		if (minimumDistance == toProveedorDistance) {
+    			proveedorVendible.setLocation(proveedorVendible.getProveedor().getLocation());
+    		} else {
+    			proveedorVendible.setLocation(proveedorVendible.getLocation());
+    		}
+    		
     		return Math.min(toProveedorDistance, toVendibleDistance);
     	} else if (proveedorVendible.getOffersDelivery()) {
+    		proveedorVendible.setLocation(proveedorVendible.getProveedor().getLocation());
     		return toProveedorDistance;
     	}
     	
+    	proveedorVendible.setLocation(proveedorVendible.getLocation());
     	return toVendibleDistance;
     }
 }
