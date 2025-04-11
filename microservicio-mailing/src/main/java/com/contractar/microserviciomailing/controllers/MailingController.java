@@ -20,6 +20,7 @@ import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
+import com.contractar.microserviciocommons.mailing.ContactFormBody;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
@@ -84,6 +85,12 @@ public class MailingController {
 	@PostMapping(UsersControllerUrls.POST_RESULT_NOTIFICATION)
 	ResponseEntity<Void> sendPostUpdateResultMail(@RequestBody @Valid VendibleModificationNotification mailInfo) throws IOException, MessagingException {
 		service.sendPostUpdateResultNotification(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(UsersControllerUrls.CONTACT_FORM_EMAIL)
+	ResponseEntity<Void> sendContactFormEmail(@RequestBody @Valid ContactFormBody mailInfo) throws IOException, MessagingException {
+		service.sendContactFormEmail(mailInfo);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }

@@ -62,6 +62,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	private final String[] passwordEmailUrls = {"/mail/password/forgot", "/security/token"};
 	
+	private final String[] emailServicePublicUrls = {"/mail/contact"};
+	
 	private final String[] publicPayUrls = {"/pay/**"};
 	
 	private final String webHookUrl = "/pay/notification/**";
@@ -135,6 +137,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error", "/geo/**", webHookUrl).permitAll()
+				.antMatchers(emailServicePublicUrls).permitAll()
 				.antMatchers(HttpMethod.GET, "/plan").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", signupEmailUrls[0], signupEmailUrls[1])
 				.access("@securityUtils.hasValidClientId(request)")
