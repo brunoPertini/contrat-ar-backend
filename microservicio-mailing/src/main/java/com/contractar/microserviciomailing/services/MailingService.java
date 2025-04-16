@@ -17,6 +17,7 @@ import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.TokenInfoPayload;
 import com.contractar.microserviciocommons.dto.TokenType;
+import com.contractar.microserviciocommons.mailing.AdminChangeRequestInfo;
 import com.contractar.microserviciocommons.mailing.ContactFormBody;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
@@ -49,6 +50,9 @@ public class MailingService {
 
 	@Value("${mail.contactus}")
 	private String contactMail;
+	
+	@Value("${mail.noReply}")
+	private String noReplyEmail;
 
 	@Value("${site.termsAndConditions.link}")
 	private String termsAndConditionsUrl;
@@ -237,6 +241,15 @@ public class MailingService {
 
 		this.sendEmail(contactMail, getMessageTag("mails.contactForm.title"), emailContent, true, body.getFromEmail());
 
+	}
+	
+	public void sendAdminChangeRequestInfo(AdminChangeRequestInfo mailInfo) throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/admin_notification_mail.html")
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{requestEntity\\}", mailInfo.getRequestEntity())
+				.replaceAll("\\$\\{requestId\\}", mailInfo.getChangeRequestId().toString());
+		
+		this.sendEmail(mailInfo.getToAddress() , getMessageTag("mails.admin.notification.changeRequest.title"), emailContent, true, null);
 	}
 
 }

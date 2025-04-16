@@ -298,15 +298,19 @@ public class UsuarioService {
 		}
 
 		Proveedor proveedor = proveedorOpt.get();
+		
+		Map<String, Object> tokenPayload = this.getUserPayloadFromToken(jwt);
+		
+		String loguedUserRole = (String) tokenPayload.get("role");
 
-		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+		boolean isResetPasswordToken = Optional.ofNullable(tokenPayload.get("type"))
 				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
 
 		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
 
 		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(proveedor.getResetPasswordToken());
 
-		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
+		if (!loguedUserRole.equals(RolesValues.ADMIN.name()) && (cantUpdateBy2Fa || cantUpdateByResetPassword)) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
 

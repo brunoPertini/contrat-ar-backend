@@ -16,10 +16,12 @@ import jakarta.validation.Valid;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
+import com.contractar.microserviciocommons.mailing.AdminChangeRequestInfo;
 import com.contractar.microserviciocommons.mailing.ContactFormBody;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
@@ -91,6 +93,12 @@ public class MailingController {
 	@PostMapping(UsersControllerUrls.CONTACT_FORM_EMAIL)
 	ResponseEntity<Void> sendContactFormEmail(@RequestBody @Valid ContactFormBody mailInfo) throws IOException, MessagingException {
 		service.sendContactFormEmail(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(AdminControllerUrls.ADMIN_SEND_NEW_CHANGE_REQUEST_EMAIL)
+	ResponseEntity<Void> sendChangeRequestEmail(@RequestBody @Valid AdminChangeRequestInfo mailInfo) throws IOException, MessagingException {
+		service.sendAdminChangeRequestInfo(mailInfo);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }
