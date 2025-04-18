@@ -236,6 +236,10 @@ public class UsuarioService {
 		}
 
 		Cliente cliente = clienteOpt.get();
+		
+		Map<String, Object> tokenPayload = this.getUserPayloadFromToken(jwt);
+		
+		String loguedUserRole = (String) tokenPayload.get("role");
 
 		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
 				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
@@ -243,12 +247,10 @@ public class UsuarioService {
 		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
 
 		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(cliente.getResetPasswordToken());
+		
+		boolean isNoAdmin = !loguedUserRole.equals(RolesValues.ADMIN.name());
 
-		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
-			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
-		}
-
-		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
+		if (isNoAdmin && cantUpdateBy2Fa || cantUpdateByResetPassword) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
 
@@ -302,6 +304,8 @@ public class UsuarioService {
 		Map<String, Object> tokenPayload = this.getUserPayloadFromToken(jwt);
 		
 		String loguedUserRole = (String) tokenPayload.get("role");
+		
+		boolean isNotAdmin = !loguedUserRole.equals(RolesValues.ADMIN.name());
 
 		boolean isResetPasswordToken = Optional.ofNullable(tokenPayload.get("type"))
 				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
@@ -310,7 +314,7 @@ public class UsuarioService {
 
 		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(proveedor.getResetPasswordToken());
 
-		if (!loguedUserRole.equals(RolesValues.ADMIN.name()) && (cantUpdateBy2Fa || cantUpdateByResetPassword)) {
+		if (isNotAdmin && (cantUpdateBy2Fa || cantUpdateByResetPassword)) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
 
