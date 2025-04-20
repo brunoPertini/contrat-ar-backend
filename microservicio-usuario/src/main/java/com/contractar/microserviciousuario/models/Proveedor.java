@@ -37,7 +37,6 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	@NotBlank
 	private String dni;
 
-
 	@OneToOne
 	@JoinColumn(name = "suscripcion")
 	private Suscripcion suscripcion;
@@ -48,7 +47,10 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 
 	@OneToMany(mappedBy = "proveedor", fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<ProveedorVendible> vendibles;
-	
+
+	@Column(columnDefinition = "BOOLEAN DEFAULT 0")
+	private boolean hasWhatsapp;
+
 	@NotBlank
 	private String fotoPerfilUrl;
 
@@ -59,14 +61,15 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	public void setVendibles(Set<ProveedorVendible> vendibles) {
 		this.vendibles = vendibles;
 	}
-	
+
 	public Proveedor() {
 		super();
 	}
 
 	public Proveedor(String name, String surname, String email, boolean isActive, Point location, String dni,
 			String password, Suscripcion suscripcion, Set<ProveedorVendible> vendibles, LocalDate birthDate,
-			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType, String fotoPerfilUrl, String phone) {
+			List<GrantedAuthority> authorities, Role role, ProveedorType proveedorType, String fotoPerfilUrl,
+			String phone) {
 		super(name, surname, email, isActive, location, birthDate, password, authorities, role, phone);
 		this.dni = dni;
 		this.suscripcion = suscripcion;
@@ -102,7 +105,7 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	public void setProveedorType(ProveedorType proveedorType) {
 		this.proveedorType = proveedorType;
 	}
-	
+
 	public String getFotoPerfilUrl() {
 		return fotoPerfilUrl;
 	}
@@ -110,4 +113,13 @@ public class Proveedor extends Usuario implements ProveedorAccessor {
 	public void setFotoPerfilUrl(String fotoPerfilUrl) {
 		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
+
+	public boolean hasWhatsapp() {
+		return hasWhatsapp;
+	}
+
+	public void setHasWhatsapp(boolean hasWhatsapp) {
+		this.hasWhatsapp = hasWhatsapp;
+	}
+
 }

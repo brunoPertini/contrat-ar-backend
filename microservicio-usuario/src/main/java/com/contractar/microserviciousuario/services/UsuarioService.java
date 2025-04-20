@@ -344,6 +344,10 @@ public class UsuarioService {
 		if (Optional.ofNullable(newInfo.getEmail()).isPresent()) {
 			proveedor.setAccountVerified(false);
 		}
+		
+		if (Optional.ofNullable(newInfo.hasWhatsapp()).isPresent()) {
+			proveedor.setHasWhatsapp(newInfo.hasWhatsapp());
+		}
 
 		saveProveedorUpdateChange(newInfo);
 

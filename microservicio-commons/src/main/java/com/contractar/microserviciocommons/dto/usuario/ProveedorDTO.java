@@ -30,6 +30,8 @@ public class ProveedorDTO extends UsuarioDTO {
 	
 	private String fotoPerfilUrl;
 	
+	private boolean hasWhatsapp;
+	
 	public ProveedorDTO() {
 	}
 
@@ -50,9 +52,12 @@ public class ProveedorDTO extends UsuarioDTO {
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
 		this.dni = proveedor.getDni();
+
 		Optional.ofNullable(proveedor.getSuscripcion()).ifPresent(subscription -> {
 			this.setSubscription(subscription, null);
 		});
+		
+		this.hasWhatsapp = proveedor.hasWhatsapp();
 	}
 	
 	public ProveedorDTO(ProveedorAccessor proveedor, @Nullable String subscriptionDatePattern) {
@@ -117,6 +122,15 @@ public class ProveedorDTO extends UsuarioDTO {
 	public void setFotoPerfilUrl(String fotoPerfilUrl) {
 		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
+	
+	public boolean hasWhatsapp() {
+		return hasWhatsapp;
+	}
+
+	public void setHasWhatsapp(boolean hasWhatsapp) {
+		this.hasWhatsapp = hasWhatsapp;
+	}
+
 	
 	@Override
 	public boolean equals(Object obj) {

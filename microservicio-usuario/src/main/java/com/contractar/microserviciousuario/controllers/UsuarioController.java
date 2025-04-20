@@ -130,6 +130,7 @@ public class UsuarioController {
 			ProveedorDTO proveedorDTO = dtoHelper.toProveedorDTO(proveedor, formatType);
 			proveedorDTO.setRole(proveedor.getRole());
 			proveedorDTO.setIs2FaValid(is2FaValid);
+			proveedorDTO.setHasWhatsapp(proveedor.hasWhatsapp());
 			return new ResponseEntity<>(proveedorDTO, HttpStatus.OK);
 		}
 		UsuarioDTO usuarioDTO = DtoHelper.toUsuarioDTO(user);
