@@ -52,8 +52,7 @@ public class SecurityConfig {
 		
 		final String [] onlyAdminUrls = { AdminControllerUrls.ADMIN_USUARIOS_BY_ID,
 				AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID,
-				AdminControllerUrls.CHANGE_REQUEST_BY_ID,
-				AdminControllerUrls.ADMIN_USUARIOS_ACTIVE};
+				AdminControllerUrls.CHANGE_REQUEST_BY_ID};
 		
 		http.cors().configurationSource(request -> {
 			CorsConfiguration corsConfiguration = new CorsConfiguration();
@@ -76,9 +75,9 @@ public class SecurityConfig {
 				.authorizeHttpRequests(
 						authorize -> authorize.requestMatchers(HttpMethod.POST, AdminControllerUrls.USUARIOS_BASE_URL)
 								.hasAuthority(adminRole)
-								.requestMatchers(HttpMethod.PUT, onlyAdminUrls)
-								.hasAuthority(adminRole)
 								.requestMatchers(HttpMethod.PATCH, onlyAdminUrls)
+								.hasAuthority(adminRole)
+								.requestMatchers(HttpMethod.PUT, AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
 								.hasAuthority(adminRole)
 								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
 								.hasAuthority(adminRole)
