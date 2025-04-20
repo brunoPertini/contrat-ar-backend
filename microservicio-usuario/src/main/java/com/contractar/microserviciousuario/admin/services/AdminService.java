@@ -59,6 +59,7 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 
 @Service
 public class AdminService {
@@ -451,6 +452,14 @@ public class AdminService {
 		ReflectionHelper.applySetterFromExistingFields(newInfo, entity, proveedorDtoClassFullName, entityClassFullName);
 		proveedorRepository.save(entity);
 
+	}
+	
+	@Transactional
+	public void changeIsUserActive(UsuarioActiveDTO dto) {
+		usuarioRepository.findById(dto.getUserId()).ifPresent(user -> {
+			user.setActive(dto.isActive());
+			usuarioRepository.save(user);
+		});
 	}
 
 	public void deleteUser(Long userId) throws UserNotFoundException {

@@ -50,10 +50,11 @@ public class SecurityConfig {
 		String proveedorProductoRole = RolesValues.PROVEEDOR_PRODUCTOS.name();
 		String proveedorServicioRole = RolesValues.PROVEEDOR_SERVICIOS.name();
 		
-		final String [] personalDataUrls = { AdminControllerUrls.ADMIN_USUARIOS_BY_ID,
+		final String [] onlyAdminUrls = { AdminControllerUrls.ADMIN_USUARIOS_BY_ID,
 				AdminControllerUrls.ADMIN_PROVEEDORES_BY_ID,
-				AdminControllerUrls.CHANGE_REQUEST_BY_ID};
-
+				AdminControllerUrls.CHANGE_REQUEST_BY_ID,
+				AdminControllerUrls.ADMIN_USUARIOS_ACTIVE};
+		
 		http.cors().configurationSource(request -> {
 			CorsConfiguration corsConfiguration = new CorsConfiguration();
 			corsConfiguration.setAllowedOrigins(Arrays.asList(allowedDevOrigins));
@@ -75,7 +76,9 @@ public class SecurityConfig {
 				.authorizeHttpRequests(
 						authorize -> authorize.requestMatchers(HttpMethod.POST, AdminControllerUrls.USUARIOS_BASE_URL)
 								.hasAuthority(adminRole)
-								.requestMatchers(HttpMethod.PATCH, personalDataUrls)
+								.requestMatchers(HttpMethod.PUT, onlyAdminUrls)
+								.hasAuthority(adminRole)
+								.requestMatchers(HttpMethod.PATCH, onlyAdminUrls)
 								.hasAuthority(adminRole)
 								.requestMatchers(HttpMethod.DELETE, AdminControllerUrls.ADMIN_USUARIOS_BY_ID)
 								.hasAuthority(adminRole)
