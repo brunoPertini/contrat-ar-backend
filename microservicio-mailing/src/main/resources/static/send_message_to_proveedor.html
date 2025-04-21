@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Contract-ar</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+			background-color: #f4f4f4;
+		}
+
+		.email-container {
+			width: 100%;
+			max-width: 600px;
+			margin: 0 auto;
+			background-color: #ffffff;
+			padding: 20px;
+		}
+
+		h1,
+		h2,
+		h3,
+		p {
+			margin: 0 0 15px 0;
+		}
+
+		a {
+			color: #007BFF;
+			text-decoration: none;
+		}
+
+		.plan {
+			font-weight: bold;
+		}
+
+		.footer {
+			font-style: italic;
+			font-size: 12px;
+			color: #777;
+			text-align: center;
+			margin-top: 20px;
+		}
+
+		title {
+			margin-bottom: 10px;
+		}
+
+		img {
+			margin-top: 10px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="email-container">
+		<h3 class="title">¡Hola! Te contactaron por una publicación en la plataforma.</h3>
+		<p>Mail del contactante: <b>${clienteMail}</b></p>
+		<hr>
+		<p>Nombre del producto o servicio: <b>${vendibleName}</b></p>
+		<hr>
+		<h5>Texto del mensaje:</h5>
+		<p>${message}</p>
+		<p>Podés responderle en este mismo mail. Gracias.</p>
+		<img src="${cdnUrl}/logo.png" alt="Contract-ar logo">
+	</div>
+</body>
+
+</html>

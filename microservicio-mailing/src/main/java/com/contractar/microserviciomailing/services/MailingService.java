@@ -14,6 +14,7 @@ import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
+import com.contractar.microserviciocommons.mailing.ProveedorMessageBody;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.TokenInfoPayload;
 import com.contractar.microserviciocommons.dto.TokenType;
@@ -250,6 +251,16 @@ public class MailingService {
 				.replaceAll("\\$\\{requestId\\}", mailInfo.getChangeRequestId().toString());
 		
 		this.sendEmail(mailInfo.getToAddress() , getMessageTag("mails.admin.notification.changeRequest.title"), emailContent, true, null);
+	}
+	
+	public void sendMessageToProveedor(ProveedorMessageBody body) throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/send_message_to_proveedor.html")
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{clienteMail\\}", body.getClienteMail())
+				.replaceAll("\\$\\{vendibleName\\}", body.getVendibleName())
+				.replaceAll("\\$\\{message\\}", body.getMessage());
+		
+		this.sendEmail(body.getToAddress(), getMessageTag("mails.proveedorMessage.title"), emailContent, true, body.getClienteMail());
 	}
 
 }

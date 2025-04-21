@@ -17,10 +17,12 @@ import jakarta.validation.Valid;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
+import com.contractar.microserviciocommons.mailing.ProveedorMessageBody;
 import com.contractar.microserviciocommons.mailing.AdminChangeRequestInfo;
 import com.contractar.microserviciocommons.mailing.ContactFormBody;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
@@ -99,6 +101,12 @@ public class MailingController {
 	@PostMapping(AdminControllerUrls.ADMIN_SEND_NEW_CHANGE_REQUEST_EMAIL)
 	ResponseEntity<Void> sendChangeRequestEmail(@RequestBody @Valid AdminChangeRequestInfo mailInfo) throws IOException, MessagingException {
 		service.sendAdminChangeRequestInfo(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(ProveedorControllerUrls.PROVEEDOR_SEND_MESSAGE)
+	ResponseEntity<Void> sendMessageToProveedor(@RequestBody @Valid ProveedorMessageBody mailInfo) throws IOException, MessagingException {
+		service.sendMessageToProveedor(mailInfo);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }
