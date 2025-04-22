@@ -163,7 +163,8 @@ public class SuscriptionPaymentService {
 
 		Month currentMonth = YearMonth.now().getMonth();
 
-		boolean wasPaymentDoneAtExpectedMonth = paymentMonth.equals(currentMonth)
+		boolean wasPaymentDoneAtExpectedMonth = paymentMonth.equals(currentMonth) 
+				|| paymentMonth.equals(currentMonth.plus(1))
 				|| (paymentMonth.equals(currentMonth.minus(1))
 						&& payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
 
