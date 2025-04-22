@@ -1,7 +1,7 @@
 package com.contractar.microserviciousuario.controllers;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -31,8 +31,8 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyB
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
-import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
+import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
@@ -130,6 +130,7 @@ public class UsuarioController {
 			ProveedorDTO proveedorDTO = dtoHelper.toProveedorDTO(proveedor, formatType);
 			proveedorDTO.setRole(proveedor.getRole());
 			proveedorDTO.setIs2FaValid(is2FaValid);
+			proveedorDTO.setHasWhatsapp(proveedor.hasWhatsapp());
 			return new ResponseEntity<>(proveedorDTO, HttpStatus.OK);
 		}
 		UsuarioDTO usuarioDTO = DtoHelper.toUsuarioDTO(user);
@@ -140,7 +141,7 @@ public class UsuarioController {
 	}
 
 	@GetMapping(UsersControllerUrls.GET_USUARIO_FIELD)
-	public ResponseEntity<Object> getUsuarioFields(@PathVariable("userId") Long userId,
+	public ResponseEntity<Object> getUsuarioFields(@PathVariable Long userId,
 			@PathVariable("fieldName") String field) throws UserNotFoundException, IllegalAccessException {
 		Object fieldValue = usuarioService.getUsuarioField(field, userId);
 		return fieldValue != null ? new ResponseEntity<>(fieldValue, HttpStatus.OK)
@@ -173,13 +174,13 @@ public class UsuarioController {
 	}
 
 	@PutMapping(UsersControllerUrls.PROVEEDOR_VENDIBLE)
-	public ResponseEntity<?> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
+	public ResponseEntity<Void> updateVendible(@PathVariable Long vendibleId, @PathVariable Long proveedorId,
 			@Valid @RequestBody ProveedorVendibleUpdateDTO body, HttpServletRequest request)
-			throws VendibleNotFoundException, VendibleUpdateException, InvocationTargetException,
-			IllegalAccessException, ClassNotFoundException {
+			throws VendibleNotFoundException, VendibleUpdateException,
+			IllegalAccessException {
 
 		proveedorVendibleService.updateVendible(vendibleId, proveedorId, body, request);
-		return new ResponseEntity<Void>(HttpStatusCode.valueOf(200));
+		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 
 	@GetMapping(GeoControllersUrls.TRANSLATE_COORDINATES)

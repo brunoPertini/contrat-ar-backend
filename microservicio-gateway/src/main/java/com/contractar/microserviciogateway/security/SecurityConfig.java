@@ -62,6 +62,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	private final String[] passwordEmailUrls = {"/mail/password/forgot", "/security/token"};
 	
+	private final String[] emailServicePublicUrls = {"/mail/contact"};
+	
+	private final String[] staticContentPublicUrls = {"/static/document/**"};
+	
 	private final String[] publicPayUrls = {"/pay/**"};
 	
 	private final String webHookUrl = "/pay/notification/**";
@@ -135,8 +139,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		
 		http.csrf().disable();
 		http.authorizeRequests().antMatchers("/actuator/**", "/error", "/geo/**", webHookUrl).permitAll()
+				.antMatchers(emailServicePublicUrls).permitAll()
 				.antMatchers(HttpMethod.GET, "/plan").permitAll()
-				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", signupEmailUrls[0], signupEmailUrls[1])
+				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", signupEmailUrls[0], signupEmailUrls[1], staticContentPublicUrls[0])
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**", ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL) // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")
@@ -160,7 +165,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
 				.antMatchers(publicPayUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
 				.antMatchers(HttpMethod.GET, passwordEmailUrls[1]).access("@securityUtils.tokenContainsType(request) and @securityUtils.hasValidClientId(request)")
-				.antMatchers(HttpMethod.GET, UsersControllerUrls.GET_USUARIO_INFO).access("@securityUtils.userIdsMatch(request, \"usuarios\")")
+				.antMatchers(HttpMethod.GET, UsersControllerUrls.GET_USUARIO_INFO).access("@securityUtils.isAdminUser(request) or @securityUtils.userIdsMatch(request, \"usuarios\")")
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 

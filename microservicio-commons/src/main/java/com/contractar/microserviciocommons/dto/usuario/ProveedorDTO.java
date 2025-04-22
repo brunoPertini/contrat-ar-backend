@@ -12,6 +12,7 @@ import com.contractar.microservicioadapter.enums.Proveedor;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
@@ -30,6 +31,8 @@ public class ProveedorDTO extends UsuarioDTO {
 	
 	private String fotoPerfilUrl;
 	
+	private boolean hasWhatsapp;
+	
 	public ProveedorDTO() {
 	}
 
@@ -45,14 +48,16 @@ public class ProveedorDTO extends UsuarioDTO {
 	public ProveedorDTO(ProveedorAccessor proveedor) {
 		super(proveedor.getId(), proveedor.getName(), proveedor.getSurname(), proveedor.getEmail(), proveedor.isActive(),
 				proveedor.getBirthDate(), proveedor.getLocation(), proveedor.getPhone());
-		SuscripcionAccesor suscripcionAccesor = proveedor.getSuscripcion();
 		this.fotoPerfilUrl = proveedor.getFotoPerfilUrl();
 		this.proveedorType = proveedor.getProveedorType();
 		Optional.ofNullable(proveedor.getId()).ifPresent(this::setId);
 		this.dni = proveedor.getDni();
+
 		Optional.ofNullable(proveedor.getSuscripcion()).ifPresent(subscription -> {
 			this.setSubscription(subscription, null);
 		});
+		
+		this.hasWhatsapp = proveedor.hasWhatsapp();
 	}
 	
 	public ProveedorDTO(ProveedorAccessor proveedor, @Nullable String subscriptionDatePattern) {
@@ -117,6 +122,16 @@ public class ProveedorDTO extends UsuarioDTO {
 	public void setFotoPerfilUrl(String fotoPerfilUrl) {
 		this.fotoPerfilUrl = fotoPerfilUrl;
 	}
+	
+	@JsonProperty("hasWhatsapp")
+	public boolean hasWhatsapp() {
+		return hasWhatsapp;
+	}
+
+	public void setHasWhatsapp(boolean hasWhatsapp) {
+		this.hasWhatsapp = hasWhatsapp;
+	}
+
 	
 	@Override
 	public boolean equals(Object obj) {

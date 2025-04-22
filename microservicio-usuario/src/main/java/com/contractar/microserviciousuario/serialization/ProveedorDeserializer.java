@@ -30,9 +30,15 @@ public class ProveedorDeserializer extends UserDeserializer {
 		Role chosenRole = proveedorType.equals(ProveedorType.PRODUCTOS)
 				? new Role(RolesValues.PROVEEDOR_PRODUCTOS.toString())
 				: new Role(RolesValues.PROVEEDOR_SERVICIOS.toString());
-
-		return new Proveedor(name, surname, email, false, location, dni, password, null, null, birthDate,
+		
+		boolean hasWhatsapp = node.get("hasWhatsapp").asBoolean();
+		
+		Proveedor proveedor = new Proveedor(name, surname, email, false, location, dni, password, null, null, birthDate,
 				grantedAuthorities, chosenRole, proveedorType, fotoPerfilUrl, phone);
+		
+		proveedor.setHasWhatsapp(hasWhatsapp);
+		
+		return proveedor;
 
 	}
 }

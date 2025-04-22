@@ -37,7 +37,6 @@ import com.contractar.microserviciousuario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
-import com.contractar.microserviciocommons.constants.RolesNames;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
@@ -59,7 +58,6 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleAlreadyBindedException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleBindingException;
 import com.contractar.microserviciocommons.infra.ExceptionFactory;
-import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
@@ -130,7 +128,7 @@ public class UsuarioService {
 	private void requestUsuarioActiveFlag(Long userId) throws UserCreationException {
 		String url = microservicioUsuarioUrl + AdminControllerUrls.ADMIN_USUARIOS_ACTIVE;
 		try {
-			httpClient.put(url, new UsuarioActiveDTO(userId, true));
+			httpClient.postForEntity(url, new UsuarioActiveDTO(userId, true), Void.class);
 		} catch (RestClientException e) {
 			throw new UserCreationException();
 		}
@@ -238,6 +236,10 @@ public class UsuarioService {
 		}
 
 		Cliente cliente = clienteOpt.get();
+		
+		Map<String, Object> tokenPayload = this.getUserPayloadFromToken(jwt);
+		
+		String loguedUserRole = (String) tokenPayload.get("role");
 
 		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
 				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
@@ -245,12 +247,10 @@ public class UsuarioService {
 		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
 
 		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(cliente.getResetPasswordToken());
+		
+		boolean isNoAdmin = !loguedUserRole.equals(RolesValues.ADMIN.name());
 
-		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
-			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
-		}
-
-		if (!isResetPasswordToken && !this.isTwoFactorCodeValid(jwt)) {
+		if (isNoAdmin && cantUpdateBy2Fa || cantUpdateByResetPassword) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
 
@@ -300,15 +300,21 @@ public class UsuarioService {
 		}
 
 		Proveedor proveedor = proveedorOpt.get();
+		
+		Map<String, Object> tokenPayload = this.getUserPayloadFromToken(jwt);
+		
+		String loguedUserRole = (String) tokenPayload.get("role");
+		
+		boolean isNotAdmin = !loguedUserRole.equals(RolesValues.ADMIN.name());
 
-		boolean isResetPasswordToken = Optional.ofNullable(this.getUserPayloadFromToken(jwt).get("type"))
+		boolean isResetPasswordToken = Optional.ofNullable(tokenPayload.get("type"))
 				.map(typeField -> typeField.equals(TokenType.reset_password.name())).orElse(false);
 
 		boolean cantUpdateBy2Fa = !isResetPasswordToken && !this.isTwoFactorCodeValid(jwt);
 
 		boolean cantUpdateByResetPassword = isResetPasswordToken && !jwt.equals(proveedor.getResetPasswordToken());
 
-		if (cantUpdateBy2Fa || cantUpdateByResetPassword) {
+		if (isNotAdmin && (cantUpdateBy2Fa || cantUpdateByResetPassword)) {
 			throw new CantUpdateUserException(getMessageTag("exceptions.user.cantUpdate"));
 		}
 
@@ -337,6 +343,10 @@ public class UsuarioService {
 
 		if (Optional.ofNullable(newInfo.getEmail()).isPresent()) {
 			proveedor.setAccountVerified(false);
+		}
+		
+		if (Optional.ofNullable(newInfo.hasWhatsapp()).isPresent()) {
+			proveedor.setHasWhatsapp(newInfo.hasWhatsapp());
 		}
 
 		saveProveedorUpdateChange(newInfo);
@@ -525,10 +535,6 @@ public class UsuarioService {
 		foundUser.setAccountVerified(true);
 		foundUser.setAccountVerificationToken("");
 		usuarioRepository.save(foundUser);
-
-		httpClient.postForEntity(mailingServiceUrl + UsersControllerUrls.SIGNUP_OK_EMAIL, new MailInfo(email),
-				Void.class);
-
 	}
 
 	@Transactional

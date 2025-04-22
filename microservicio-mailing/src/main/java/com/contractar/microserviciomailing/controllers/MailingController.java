@@ -16,13 +16,20 @@ import jakarta.validation.Valid;
 
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
+import com.contractar.microserviciocommons.mailing.ProveedorMessageBody;
+import com.contractar.microserviciocommons.mailing.AdminChangeRequestInfo;
+import com.contractar.microserviciocommons.mailing.ContactFormBody;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
 import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
+import com.contractar.microserviciocommons.mailing.VendibleModificationNotification;
 
 @RestController
 public class MailingController {
@@ -70,6 +77,36 @@ public class MailingController {
 	@PostMapping(UsersControllerUrls.PAYMENT_LINK_EMAIL)
 	ResponseEntity<Void> sendPaymentLinkEmil(@RequestBody @Valid PaymentLinkMailInfo mailInfo) throws IOException, MessagingException {
 		service.sendPaymentLinkEmail(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(UsersControllerUrls.SIGNUP_RESULT_NOTIFICATION)
+	ResponseEntity<Void> sendSignupResultMail(@RequestBody @Valid MailNotificationResultBody mailInfo) throws IOException, MessagingException {
+		service.sendSignupResultNotification(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(UsersControllerUrls.POST_RESULT_NOTIFICATION)
+	ResponseEntity<Void> sendPostUpdateResultMail(@RequestBody @Valid VendibleModificationNotification mailInfo) throws IOException, MessagingException {
+		service.sendPostUpdateResultNotification(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(UsersControllerUrls.CONTACT_FORM_EMAIL)
+	ResponseEntity<Void> sendContactFormEmail(@RequestBody @Valid ContactFormBody mailInfo) throws IOException, MessagingException {
+		service.sendContactFormEmail(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(AdminControllerUrls.ADMIN_SEND_NEW_CHANGE_REQUEST_EMAIL)
+	ResponseEntity<Void> sendChangeRequestEmail(@RequestBody @Valid AdminChangeRequestInfo mailInfo) throws IOException, MessagingException {
+		service.sendAdminChangeRequestInfo(mailInfo);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping(ProveedorControllerUrls.PROVEEDOR_SEND_MESSAGE)
+	ResponseEntity<Void> sendMessageToProveedor(@RequestBody @Valid ProveedorMessageBody mailInfo) throws IOException, MessagingException {
+		service.sendMessageToProveedor(mailInfo);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }

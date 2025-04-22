@@ -41,8 +41,7 @@ public class ServicioController {
 	@PostMapping(VendiblesControllersUrls.SAVE_SERVICE)
 	public ResponseEntity<ServicioDTO> save(@RequestBody @Valid Servicio servicio,
 			@RequestParam(required = false) Long proveedorId,
-			HttpServletRequest request) throws VendibleAlreadyExistsException,
-	UserNotFoundException, CantCreateException, CouldntChangeStateException {
+			HttpServletRequest request) throws 	UserNotFoundException, CantCreateException, CouldntChangeStateException {
 		Servicio addedServicio = (Servicio) vendibleService.save(servicio, vendibleType, proveedorId, request);
 		ServicioDTO servicioDTO = new ServicioDTO(addedServicio.getNombre());
 		return new ResponseEntity<ServicioDTO>(servicioDTO, HttpStatus.CREATED);

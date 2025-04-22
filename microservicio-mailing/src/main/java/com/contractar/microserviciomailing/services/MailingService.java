@@ -1,25 +1,33 @@
 package com.contractar.microserviciomailing.services;
 
 import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.mailing.MailInfo;
+import com.contractar.microserviciocommons.mailing.MailNotificationResultBody;
 import com.contractar.microserviciocommons.mailing.PaymentLinkMailInfo;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
+import com.contractar.microserviciocommons.mailing.ProveedorMessageBody;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 import com.contractar.microserviciocommons.dto.TokenInfoPayload;
 import com.contractar.microserviciocommons.dto.TokenType;
+import com.contractar.microserviciocommons.mailing.AdminChangeRequestInfo;
+import com.contractar.microserviciocommons.mailing.ContactFormBody;
 import com.contractar.microserviciocommons.mailing.ForgotPasswordMailInfo;
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.TwoFactorAuthMailInfo;
 import com.contractar.microserviciocommons.mailing.UserDataChangedMailInfo;
+import com.contractar.microserviciocommons.mailing.VendibleModificationNotification;
 import com.contractar.microserviciomailing.utils.FileReader;
 
+import jakarta.annotation.Nullable;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
@@ -41,6 +49,15 @@ public class MailingService {
 	@Value("${site.changePassword.url}")
 	private String resetPasswordLink;
 
+	@Value("${mail.contactus}")
+	private String contactMail;
+	
+	@Value("${mail.noReply}")
+	private String noReplyEmail;
+
+	@Value("${site.termsAndConditions.link}")
+	private String termsAndConditionsUrl;
+
 	private String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
@@ -52,8 +69,8 @@ public class MailingService {
 		this.httpClient = httpClient;
 	}
 
-	public void sendEmail(String mailAddress, String title, String bodyMessage, boolean isMultiPart)
-			throws MessagingException {
+	public void sendEmail(String mailAddress, String title, String bodyMessage, boolean isMultiPart,
+			@Nullable String replyTo) throws MessagingException {
 		MimeMessage message = mailSender.createMimeMessage();
 
 		MimeMessageHelper helper = new MimeMessageHelper(message, isMultiPart, "UTF-8");
@@ -63,6 +80,10 @@ public class MailingService {
 		helper.setSubject(title);
 
 		helper.setText(bodyMessage, isMultiPart);
+
+		if (replyTo != null) {
+			helper.setReplyTo(replyTo);
+		}
 
 		mailSender.send(message);
 	}
@@ -85,7 +106,8 @@ public class MailingService {
 					.replaceAll("\\$\\{registrationLink\\}", accountConfirmationUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
-			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.success.title"), emailContent, true);
+			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.success.title"), emailContent, true,
+					null);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
@@ -99,8 +121,8 @@ public class MailingService {
 					.replaceAll("\\$\\{siteLink\\}", signinUrl)
 					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
-			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.confirm.success.title"), emailContent,
-					true);
+			this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.signup.result.title"), emailContent, true,
+					null);
 		} catch (IOException | MessagingException e) {
 			System.out.println(e.getMessage());
 		}
@@ -116,7 +138,7 @@ public class MailingService {
 				.replaceAll("\\$\\{changePasswordLink\\}", env.getProperty("site.changePassword.url"))
 				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
 
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.2fa.title"), emailContent, true);
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.2fa.title"), emailContent, true, null);
 	}
 
 	public void sendForgotPasswordEmail(ForgotPasswordMailInfo mailInfo) throws IOException, MessagingException {
@@ -127,7 +149,7 @@ public class MailingService {
 				.replaceAll("\\$\\{expiresInMinutes\\}", String.valueOf(mailInfo.getExpiresInMinutes()))
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true);
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true, null);
 	}
 
 	public String sendUserDataChangeSuccessEmail(UserDataChangedMailInfo mailInfo)
@@ -149,7 +171,7 @@ public class MailingService {
 				.replaceAll("\\$\\{changePasswordLink\\}", parsedChangePasswordUrl)
 				.replaceAll("\\$\\{contactUsLink\\}", env.getProperty("site.contactUs.link"));
 
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true);
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.forgotPassword.title"), emailContent, true, null);
 
 		return backupToken;
 	}
@@ -161,16 +183,84 @@ public class MailingService {
 				.replaceAll("\\$\\{currentPlan\\}", mailInfo.getDestinyPlan())
 				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.changePlan.title"), emailContent, true);
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.changePlan.title"), emailContent, true, null);
 	}
 
 	public void sendPaymentLinkEmail(PaymentLinkMailInfo mailInfo) throws IOException, MessagingException {
 		String emailContent = new FileReader().readFile("/static/payment_started.html")
-				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName() != null ?  (" "+ mailInfo.getUserName()) : "")
-				.replaceAll("\\$\\{paymentLink\\}", mailInfo.getPaymentLink());
+				.replaceAll("\\$\\{userName\\}", mailInfo.getUserName() != null ? (" " + mailInfo.getUserName()) : "")
+				.replaceAll("\\$\\{paymentLink\\}", mailInfo.getPaymentLink())
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"));
 
-		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.paymentStarted.title"), emailContent, true);
+		this.sendEmail(mailInfo.getToAddress(), getMessageTag("mails.paymentStarted.title"), emailContent, true, null);
 
+	}
+
+	public void sendSignupResultNotification(MailNotificationResultBody body) throws IOException, MessagingException {
+
+		if (body.isResult()) {
+			this.sendWelcomeEmail(body);
+		} else {
+			String emailContent = new FileReader().readFile("/static/signup_result_notification.html")
+					.replaceAll("\\$\\{userName\\}", body.getUserName())
+					.replaceAll("\\$\\{resultVerb\\}", getMessageTag("mails.signup.result.error"))
+					.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+					.replaceAll("\\$\\{contactMail\\}", "mailto:" + contactMail);
+
+			this.sendEmail(body.getToAddress(), getMessageTag("mails.signup.result.title"), emailContent, true, null);
+		}
+	}
+
+	public void sendPostUpdateResultNotification(VendibleModificationNotification body)
+			throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/post-state-change-notification.html")
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{userName\\}", body.getUserName())
+				.replaceAll("\\$\\{vendibleName\\}", body.getVendibleName())
+				.replaceAll("\\$\\{result\\}",
+						body.isResult() ? getMessageTag("mails.signup.result.success")
+								: getMessageTag("mails.signup.result.error"))
+				.replaceAll("\\$\\{termsAndConditionsLink\\}", termsAndConditionsUrl);
+
+		this.sendEmail(body.getToAddress(), getMessageTag("mails.post.result.title"), emailContent, true, null);
+
+	}
+
+	public void sendContactFormEmail(ContactFormBody body) throws IOException, MessagingException {
+		String phoneText = "";
+
+		if (body.getPhoneField() != null && StringUtils.hasLength(body.getPhoneField())) {
+
+			phoneText += "<p>Teléfono de contacto: <b>" + body.getPhoneField() + "</b></p>";
+		}
+
+		String emailContent = new FileReader().readFile("/static/contact_form_mail.html")
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{fromName\\}", body.getFromName())
+				.replaceAll("\\$\\{fromEmail\\}", body.getFromEmail()).replaceAll("\\$\\{telOptionalText\\}", phoneText)
+				.replaceAll("\\$\\{messageText\\}", body.getMessage());
+
+		this.sendEmail(contactMail, getMessageTag("mails.contactForm.title"), emailContent, true, body.getFromEmail());
+
+	}
+	
+	public void sendAdminChangeRequestInfo(AdminChangeRequestInfo mailInfo) throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/admin_notification_mail.html")
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{requestEntity\\}", mailInfo.getRequestEntity())
+				.replaceAll("\\$\\{requestId\\}", mailInfo.getChangeRequestId().toString());
+		
+		this.sendEmail(mailInfo.getToAddress() , getMessageTag("mails.admin.notification.changeRequest.title"), emailContent, true, null);
+	}
+	
+	public void sendMessageToProveedor(ProveedorMessageBody body) throws IOException, MessagingException {
+		String emailContent = new FileReader().readFile("/static/send_message_to_proveedor.html")
+				.replaceAll("\\$\\{cdnUrl\\}", env.getProperty("cdn.url"))
+				.replaceAll("\\$\\{clienteMail\\}", body.getClienteMail())
+				.replaceAll("\\$\\{vendibleName\\}", body.getVendibleName())
+				.replaceAll("\\$\\{message\\}", body.getMessage());
+		
+		this.sendEmail(body.getToAddress(), getMessageTag("mails.proveedorMessage.title"), emailContent, true, body.getClienteMail());
 	}
 
 }

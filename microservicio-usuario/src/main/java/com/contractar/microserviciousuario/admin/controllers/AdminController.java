@@ -121,9 +121,15 @@ public class AdminController {
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 	
-	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
-	public ResponseEntity<Void> changeUserActive(@RequestBody @Valid UsuarioActiveDTO body) throws ChangeAlreadyRequestedException {
+	@PostMapping(AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
+	public ResponseEntity<Void> requestUserActive(@RequestBody @Valid UsuarioActiveDTO body) throws ChangeAlreadyRequestedException {
 		adminService.addChangeRequestEntry(body);
+		return new ResponseEntity<>(HttpStatusCode.valueOf(201));
+	}
+	
+	@PutMapping(AdminControllerUrls.ADMIN_USUARIOS_ACTIVE)
+	public ResponseEntity<Void> changeUserActive(@RequestBody @Valid UsuarioActiveDTO body) {
+		adminService.changeIsUserActive(body);
 		return new ResponseEntity<>(HttpStatusCode.valueOf(200));
 	}
 

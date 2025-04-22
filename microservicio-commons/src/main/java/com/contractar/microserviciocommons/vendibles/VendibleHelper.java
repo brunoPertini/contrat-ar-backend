@@ -16,7 +16,6 @@ import com.contractar.microservicioadapter.entities.VendibleAccesor;
 import com.contractar.microservicioadapter.entities.VendibleCategoryAccesor;
 import com.contractar.microservicioadapter.enums.PostState;
 import com.contractar.microserviciocommons.dto.proveedorvendible.SimplifiedProveedorVendibleDTO;
-import com.contractar.microserviciocommons.dto.usuario.ProveedorDTO;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableObject;
 import com.contractar.microserviciocommons.dto.vendibles.CategorizableVendiblesResponse;
 import com.contractar.microserviciocommons.dto.vendibles.VendiblesResponseDTO;
@@ -26,6 +25,8 @@ import com.contractar.microserviciocommons.dto.vendibles.category.VendibleCatego
 public final class VendibleHelper {
 	private static VendibleCategoryDTO nextArrayCategory;
 	private static CategoryHierarchy currentHierarchy;
+	
+	private VendibleHelper () {}
 
 	/**
 	 * 
@@ -185,7 +186,6 @@ public final class VendibleHelper {
 				proveedorVendible.getDescripcion(), proveedorVendible.getPrecio(), proveedorVendible.getTipoPrecio(),
 				proveedorVendible.getOffersDelivery(), proveedorVendible.getOffersInCustomAddress(), proveedorVendible.getImagenUrl(),
 				proveedorVendible.getStock(), proveedorVendible.getCategory().getId());
-			response.getProveedores().add(new ProveedorDTO(proveedor));
 
 			return proveedorVendibleDTO;
 		}).collect(Collectors.toSet());

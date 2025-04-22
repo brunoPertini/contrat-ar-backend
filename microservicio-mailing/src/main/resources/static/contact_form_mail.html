@@ -33,12 +33,20 @@
 			text-decoration: none;
 		}
 
+		.plan {
+			font-weight: bold;
+		}
+
 		.footer {
 			font-style: italic;
 			font-size: 12px;
 			color: #777;
 			text-align: center;
 			margin-top: 20px;
+		}
+
+		title {
+			margin-bottom: 10px;
 		}
 
 		img {
@@ -49,15 +57,16 @@
 
 <body>
 	<div class="email-container">
-		<h1>¡Hola! ${userName}</h1>
-		<p>Te enviamos el código que solicitaste para poder realizar la acción solicitada en el sitio: ${code}</p>
-		<p>¡El código vence en ${expiresInMinutes} minutos!</p>
-		<p>Si no fuiste vos,<a href="${changePasswordLink}"> cambiá la contraseña</a> urgente o <a
-				href="${contactUsLink}">contactanos</a></p>
-		<p>Gracias</p>
-		<footer>
-			<p class="footer">Este es un mail generado automáticamente, por favor no lo respondas.</p>
-		</footer>
+		<h1 class="title">¡Hola! Esta es una consulta enviada por el formulario de contacto de la página web</h1>
+		<p>Envía el mensaje: <b>${fromName}</b></p>
+		<p>Mail del remitente: <b>${fromEmail}</b></p>
+		${telOptionalText}
+		<hr>
+		<h5>Texto del mensaje:</h5>
+		<p>
+			${messageText}
+		</p>
+		<p>Podés responderle en este mismo mail. Gracias.</p>
 		<img src="${cdnUrl}/logo.png" alt="Contract-ar logo">
 	</div>
 </body>

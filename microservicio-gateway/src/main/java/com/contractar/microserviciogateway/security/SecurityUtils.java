@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
 
 @Component("securityUtils")
@@ -33,6 +34,12 @@ public class SecurityUtils {
 
 	@Autowired
 	private RestTemplate restTemplate;
+	
+	public boolean isAdminUser(HttpServletRequest request) {
+		HashMap<String, Object> payload = getJwtPayload(request);
+		
+		return payload.get("role").equals(RolesValues.ADMIN.name());
+	}
 
 	public boolean hasValidClientId(HttpServletRequest request) {
 		String clientId = request.getHeader("client-id");
