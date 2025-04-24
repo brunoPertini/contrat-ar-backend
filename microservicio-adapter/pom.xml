@@ -10,12 +10,23 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-adapter</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>microservicio-adapter</name>
 	<description>Its goal is to bring connection between microservicio-commons and the other microservices</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+	<profiles>
+	  <profile>
+	    <id>prod</id>
+	    <distributionManagement>
+	      <repository>
+	        <id>artifact-registry</id>
+	        <url>artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+	      </repository>
+	    </distributionManagement>
+	  </profile>
+	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -32,14 +43,13 @@
             <version>1.2.10</version>
         </dependency>
 	</dependencies>
-
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
+	  <extensions>
+	    <extension>
+	      <groupId>com.google.cloud.artifactregistry</groupId>
+	      <artifactId>artifactregistry-maven-wagon</artifactId>
+	      <version>2.1.1</version>
+	    </extension>
+	  </extensions>
 	</build>
-
 </project>
