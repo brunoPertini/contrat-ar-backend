@@ -1,0 +1,23 @@
+services:
+  microservicio-config:
+    image: microservicio-config:latest
+    container_name: microservicio-config
+    ports:
+      - "8005:8005"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+    networks:
+      - contratar-network
+
+  microservicio-commons:
+    image: microservicio-commons:latest
+    container_name: microservicio-commons
+    depends_on:
+      - microservicio-config
+
+    networks:
+      - contratar-network
+
+networks:
+  contratar-network:
+    driver: bridge
