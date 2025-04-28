@@ -1,4 +1,20 @@
 services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: contract_ar
+
+    ports:
+      - "3306:3306"
+    networks:
+      - contratar-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+
   microservicio-config:
     image: microservicio-config:latest
     container_name: microservicio-config
@@ -6,18 +22,47 @@ services:
       - "8005:8005"
     environment:
       - SPRING_PROFILES_ACTIVE=native
+      - ENCRYPT_KEY=${ENCRYPT_KEY}
     networks:
       - contratar-network
 
   microservicio-commons:
     image: microservicio-commons:latest
     container_name: microservicio-commons
+    ports:
+      - "8004:8004"
     depends_on:
       - microservicio-config
-
     networks:
       - contratar-network
+
+  #microservicio-oauth:
+   # image: microservicio-oauth:latest
+    #container_name: microservicio-oauth
+    #ports:
+    #  - "8081:8081"
+    #volumes:
+     # - ./microservicio-oauth/src/main/resources:/app/resources
+    #networks:
+      #- contratar-network
+    #depends_on:
+     # - microservicio-config
+      #- microservicio-commons
+
+  #microservicio-usuario:
+   # image: microservicio-usuario:latest
+    #container_name: microservicio-usuario
+    #ports:
+     # - "8002:8002"
+    #networks:
+      #- contratar-network
+    #depends_on:
+     # - microservicio-config
+      #- microservicio-commons
 
 networks:
   contratar-network:
     driver: bridge
+
+volumes:
+  mysql-data:

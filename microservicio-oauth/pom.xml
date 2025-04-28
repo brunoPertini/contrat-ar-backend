@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-oauth</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>microservicio-oauth</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
@@ -18,6 +18,20 @@
 		<spring-security.version>6.1.0</spring-security.version>
 		<spring-cloud.version>2022.0.3</spring-cloud.version>
 	</properties>
+	<distributionManagement>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -64,12 +78,12 @@
     	<dependency>
 			<groupId>com.contractar</groupId>
 			<artifactId>microservicio-commons</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 		<dependency>
             <groupId>com.contractar</groupId>
             <artifactId>microservicio-usuario</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
 		    <groupId>org.springframework.cloud</groupId>
@@ -88,6 +102,13 @@
         </dependencies>
     </dependencyManagement>
 	<build>
+		<extensions>
+			<extension>
+				<groupId>com.google.cloud.artifactregistry</groupId>
+				<artifactId>artifactregistry-maven-wagon</artifactId>
+				<version>2.1.1</version>
+			</extension>
+		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

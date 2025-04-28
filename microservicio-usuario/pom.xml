@@ -10,20 +10,62 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-usuario</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
+	<packaging>jar</packaging>
 	<name>microservicio-usuario</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>17</java.version>
 		 <spring-cloud.version>2022.0.5</spring-cloud.version>
 	</properties>
+	<distributionManagement>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</repositories>
+	<profiles>
+		<profile>
+			<id>executable</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<properties>
+				<skip.repackage>false</skip.repackage>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>repackage</goal>
+								</goals>
+								<configuration>
+									<skip>false</skip>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 	<dependencies>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -32,7 +74,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -74,12 +115,12 @@
 	   <dependency>
     	  	<groupId>com.contractar</groupId>
     	  	<artifactId>microservicio-adapter</artifactId>
-    	  	<version>0.0.1-SNAPSHOT</version>
+    	  	<version>0.0.1</version>
 	   </dependency>
 	    <dependency>
             <groupId>com.contractar</groupId>
             <artifactId>microservicio-commons</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
        </dependency>
        <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -98,11 +139,12 @@
 		</dependencies>
 	</dependencyManagement>
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
+		<extensions>
+			<extension>
+				<groupId>com.google.cloud.artifactregistry</groupId>
+				<artifactId>artifactregistry-maven-wagon</artifactId>
+				<version>2.1.1</version>
+			</extension>
+		</extensions>
 	</build>
 </project>
