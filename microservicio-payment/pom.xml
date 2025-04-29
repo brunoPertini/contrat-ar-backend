@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-payment</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>microservicio-payment</name>
 	<description>Provides functionality to manage payment, using registered payment providers</description>
 	<url/>
@@ -30,6 +30,20 @@
 		<java.version>17</java.version>
 		<spring-cloud.version>2022.0.5</spring-cloud.version>
 	</properties>
+	<distributionManagement>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -54,7 +68,7 @@
 		<dependency>
             <groupId>com.contractar</groupId>
             <artifactId>microservicio-usuario</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
             <exclusions>
         <exclusion>
             <groupId>org.springframework.boot</groupId>
@@ -69,11 +83,18 @@
         <dependency>
         	<groupId>com.contractar</groupId>
 	    	<artifactId>microservicio-commons</artifactId>
-	    	<version>0.0.1-SNAPSHOT</version>
+	    	<version>0.0.1</version>
         </dependency>
 	</dependencies>
 
 	<build>
+		<extensions>
+			<extension>
+				<groupId>com.google.cloud.artifactregistry</groupId>
+				<artifactId>artifactregistry-maven-wagon</artifactId>
+				<version>2.1.1</version>
+			</extension>
+		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

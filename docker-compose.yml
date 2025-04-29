@@ -36,29 +36,71 @@ services:
     networks:
       - contratar-network
 
-  #microservicio-oauth:
-   # image: microservicio-oauth:latest
-    #container_name: microservicio-oauth
-    #ports:
-    #  - "8081:8081"
-    #volumes:
-     # - ./microservicio-oauth/src/main/resources:/app/resources
-    #networks:
-      #- contratar-network
-    #depends_on:
-     # - microservicio-config
-      #- microservicio-commons
+  microservicio-oauth:
+    image: microservicio-oauth:latest
+    container_name: microservicio-oauth
+    ports:
+      - "8081:8081"
+    volumes:
+     - ./microservicio-oauth/src/main/resources:/app/resources
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-commons
 
-  #microservicio-usuario:
-   # image: microservicio-usuario:latest
-    #container_name: microservicio-usuario
-    #ports:
-     # - "8002:8002"
-    #networks:
-      #- contratar-network
-    #depends_on:
-     # - microservicio-config
-      #- microservicio-commons
+  microservicio-usuario:
+    image: microservicio-usuario:latest
+    container_name: microservicio-usuario
+    ports:
+      - "8002:8002"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
+
+  microservicio-vendible:
+    image: microservicio-vendible:latest
+    container_name: microservicio-vendible
+    ports:
+      - "8003:8003"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+
+  microservicio-payment:
+    image: microservicio-payment:latest
+    container_name: microservicio-payment
+    ports:
+      - "8013:8013"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
+
+  microservicio-imagenes:
+    image: microservicio-imagenes:latest
+    container_name: microservicio-imagenes
+    ports:
+      - "8009:8009"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+
+  microservicio-mailing:
+    image: microservicio-mailing:latest
+    container_name: microservicio-mailing
+    ports:
+      - "8006:8006"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
 
 networks:
   contratar-network:
