@@ -29,7 +29,7 @@ public class SecurityUtils {
 	@Value("${spring.security.oauth2.client.secret}")
 	private String clientSecret;
 
-	@Value("${zuul.routes.microservicio-oauth.url}")
+	@Value("${securityServiceUrl}")
 	private String SERVICIO_SECURITY_URL;
 
 	@Autowired

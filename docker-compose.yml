@@ -101,6 +101,17 @@ services:
     depends_on:
       - microservicio-config
       - microservicio-oauth
+  
+  microservicio-gateway:
+    image: microservicio-gateway:latest
+    container_name: microservicio-gateway
+    ports:
+      - "8090:8090"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
 
 networks:
   contratar-network:
