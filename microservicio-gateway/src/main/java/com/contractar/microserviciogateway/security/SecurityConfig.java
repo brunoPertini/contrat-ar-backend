@@ -3,6 +3,7 @@ package com.contractar.microserviciogateway.security;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +42,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Autowired
 	private OAuth2WebSecurityExpressionHandler expressionHandler;
 	
-	private final Map<String,String> acceptedOrigins = Map.of(
-			"dev",
-			"http://localhost:3000",
-			"prod", 
-			 ""
-			);
+	private final List<String> acceptedOrigins = List.of("http://contractar-frontend:3000", "https://contratar.com.ar");
 	
 	private final String[] vendiblesUrls = {"/vendible/**", "/usuarios/proveedor/**/vendible/**"};
 	
@@ -111,13 +107,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.cors().configurationSource(request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            corsConfiguration.addAllowedOrigin(acceptedOrigins.get("dev"));
-            
-            // TODO: AGREGAR CHEQUEO DE AMBIENTE DEV
-            String origin = request.getHeader("Origin");
-            if (origin != null && origin.contains("ngrok-free.app")) {
-                corsConfiguration.addAllowedOrigin(origin);
-            }
+            acceptedOrigins.stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
             
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");

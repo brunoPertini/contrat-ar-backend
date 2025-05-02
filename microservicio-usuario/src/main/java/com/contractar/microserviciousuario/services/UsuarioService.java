@@ -348,6 +348,8 @@ public class UsuarioService {
 		if (Optional.ofNullable(newInfo.hasWhatsapp()).isPresent()) {
 			proveedor.setHasWhatsapp(newInfo.hasWhatsapp());
 		}
+		
+		newInfo.setUserId(proveedor.getId());
 
 		saveProveedorUpdateChange(newInfo);
 
