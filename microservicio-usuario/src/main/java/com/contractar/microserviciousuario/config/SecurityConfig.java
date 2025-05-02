@@ -25,7 +25,10 @@ import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 @EnableMethodSecurity()
 public class SecurityConfig {
 	
-	private final String[] allowedDevOrigins = {"http://contractar-frontend:3000", "https://contratar.com.ar", "http://microservicio-gateway:8090"};
+	private final String[] allowedDevOrigins = {"http://contractar-frontend:3000",
+			"https://contratar.com.ar",
+			"http://microservicio-gateway:8090",
+			"http://localhost:3000"};
 
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {

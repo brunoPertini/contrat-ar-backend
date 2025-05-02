@@ -93,3 +93,5 @@ microservicio-payment/target/classes/META-INF/maven/com.contractar/microservicio
 /microservicio-payment/target/classes/META-INF
 /microservicio-payment/target/classes/META-INF
 /microservicio-payment/target
+microservicio-commons/.env
+.env

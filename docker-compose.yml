@@ -35,6 +35,8 @@ services:
       - microservicio-config
     networks:
       - contratar-network
+    environment:
+    - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
 
   microservicio-oauth:
     image: microservicio-oauth:latest
