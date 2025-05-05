@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-config</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-RELEASE</version>
 	<name>microservicio-config</name>
 	<description>Its goal is to centralize config  and i18n specs</description>
 	<url/>
@@ -30,6 +30,21 @@
 		<java.version>17</java.version>
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
 	</properties>
+	<distributionManagement>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>artifact-registry</id>
+			<url>
+				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -75,6 +90,13 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>com.google.cloud.artifactregistry</groupId>
+				<artifactId>artifactregistry-maven-wagon</artifactId>
+				<version>2.1.1</version>
+			</extension>
+		</extensions>
 	</build>
 
 </project>

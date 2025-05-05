@@ -27,7 +27,7 @@ public class ImageService {
 	@Autowired
 	private RestTemplate httpClient;
 
-	@Value("${cdn.location.dev}")
+	@Value("${cdn.location}")
 	private String cdnBaseUrl;
 
 	@Value("${cdn.dir.dev}")

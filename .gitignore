@@ -95,3 +95,8 @@ microservicio-payment/target/classes/META-INF/maven/com.contractar/microservicio
 /microservicio-payment/target
 microservicio-commons/.env
 .env
+.env.dev
+.env.prod
+microservicio-config/pom.xml.versionsBackup
+*.MF
+*.MF
