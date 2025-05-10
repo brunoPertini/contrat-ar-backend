@@ -30,7 +30,7 @@ public class ImageService {
 	@Value("${cdn.location}")
 	private String cdnBaseUrl;
 
-	@Value("${cdn.dir.dev}")
+	@Value("${cdn.dir}")
 	private String cdnDir;
 
 	private final String[] acceptedFormats = { "jpg", "jpeg", "png" };
