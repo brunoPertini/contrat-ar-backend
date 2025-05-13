@@ -27,7 +27,7 @@ import jakarta.transaction.Transactional;
 @Component
 public class Uala
 		implements OutsitePaymentProvider<CheckoutBody, OutsitePaymentProviderImpl, UalaAuthResponse, WebhookBody> {
-	private static final String keysPrefix = "provider.uala.prod";
+	private static final String keysPrefix = "provider.uala";
 
 	@Value("${" + keysPrefix + ".username}")
 	private String username;

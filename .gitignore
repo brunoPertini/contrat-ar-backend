@@ -101,3 +101,4 @@ microservicio-config/pom.xml.versionsBackup
 *.MF
 *.MF
 microservicio-payment/target/classes/META-INF/MANIFEST.MF
+.env.api
