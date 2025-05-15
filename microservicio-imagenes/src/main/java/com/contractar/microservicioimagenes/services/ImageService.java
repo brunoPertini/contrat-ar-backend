@@ -20,6 +20,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.contractar.microservicioimagenes.exceptions.ImageUploadException;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 @Service
 public class ImageService {
@@ -32,8 +35,17 @@ public class ImageService {
 
 	@Value("${cdn.dir}")
 	private String cdnDir;
+	
+	@Value("${spring.profiles.active}")
+	private String activeProfile;
 
 	private final String[] acceptedFormats = { "jpg", "jpeg", "png" };
+	
+	private final Storage storage;
+	
+	public ImageService() {
+		this.storage = StorageOptions.getDefaultInstance().getService();
+	}
 
 	private String findImageType(String input) {
 		int lastSlashIndex = input.lastIndexOf('/');
@@ -90,6 +102,19 @@ public class ImageService {
 
 	}
 	
+	private void uploadImageToCdn(String filePath, byte[] imageBytes, String fileContentType) {
+		File toUploadFile = new File(filePath);
+		final String BUCKET_NAME = "contract-ar-cdn";
+		
+		if (activeProfile.equals("prod")) {
+			BlobInfo blobInfo = BlobInfo.newBuilder(BUCKET_NAME, filePath)
+	                .setContentType(fileContentType)
+	                .build();
+
+	        storage.create(blobInfo, imageBytes);
+		}
+	}
+	
 	private String saveImageFile(MultipartFile file, String uploadDirTemplate) throws IOException, ImageUploadException {
 		byte[] bytes = file.getBytes();
 
@@ -104,8 +129,13 @@ public class ImageService {
 		byte[] croppedBytes = cropToSquare(bytes, imageFileType);
 
 		String fileName = file.getOriginalFilename();
+		
+		if (!activeProfile.equals("prod")) {
+			saveImageToFile(croppedBytes, fileName, cdnDir + File.separator + uploadDirTemplate);
+		} else {
+			uploadImageToCdn(uploadDirTemplate + File.separator + fileName, bytes, imageFileType);
+		}
 
-		saveImageToFile(croppedBytes, fileName, cdnDir + File.separator + uploadDirTemplate);
 
 		return cdnBaseUrl + File.separator + uploadDirTemplate + File.separator + fileName;
 	}

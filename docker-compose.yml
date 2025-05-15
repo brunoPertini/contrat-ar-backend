@@ -92,6 +92,8 @@ services:
       - contratar-network
     depends_on:
       - microservicio-config
+    environment:
+    - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
 
   microservicio-mailing:
     image: microservicio-mailing:latest

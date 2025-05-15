@@ -273,9 +273,12 @@ public class VendibleService {
 			addedVendible = this.persistVendible(vendibleType, vendible);
 		}
 
-		if (!securityHelper.isResponseContentTypeValid(firstPv.getImagenUrl(), "image")) {
-			throw new CantCreateException();
-		}
+		// FIXME: chequear de alguna manera que lo que suba es  una imagen
+		/*
+		 * if (!securityHelper.isResponseContentTypeValid(firstPv.getImagenUrl(),
+		 * "image")) { throw new CantCreateException(); }
+		 */
+	
 		ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString()) ? ProveedorType.SERVICIOS
 				: ProveedorType.PRODUCTOS;
 

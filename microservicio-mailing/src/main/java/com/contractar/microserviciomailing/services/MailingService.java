@@ -1,6 +1,7 @@
 package com.contractar.microserviciomailing.services;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -72,6 +73,14 @@ public class MailingService {
 	public void sendEmail(String mailAddress, String title, String bodyMessage, boolean isMultiPart,
 			@Nullable String replyTo) throws MessagingException {
 		MimeMessage message = mailSender.createMimeMessage();
+		
+        String messageId = "<" + UUID.randomUUID() + "@contratar.com.ar>";
+        message.setHeader("Message-ID", messageId);
+
+        message.setHeader("Precedence", "bulk");
+        message.setHeader("X-Auto-Response-Suppress", "All");
+        message.setHeader("X-Priority", "3");
+        message.setHeader("X-Mailer", "Contrat-Ar System Mailer");
 
 		MimeMessageHelper helper = new MimeMessageHelper(message, isMultiPart, "UTF-8");
 
