@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-oauth</artifactId>
-	<version>0.0.1</version>
+	<version>1.0.0-RELEASE</version>
 	<name>microservicio-oauth</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>

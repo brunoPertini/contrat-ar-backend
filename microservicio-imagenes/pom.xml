@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-imagenes</artifactId>
-	<version>0.0.1</version>
+	<version>1.0.0-RELEASE</version>
 	<name>microservicio-imagenes</name>
 	<description>Responsible of image handling, with tasks as uploading or
 		retrieving from platform cdn</description>

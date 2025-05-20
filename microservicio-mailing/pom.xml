@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-mailing</artifactId>
-	<version>0.0.1</version>
+	<version>1.0.0-RELEASE</version>
 	<name>microservicio-mailing</name>
 	<description>Exposes mailing functionality by using some of its integrations to mailing services</description>
 	<url/>

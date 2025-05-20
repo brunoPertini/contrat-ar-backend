@@ -23,6 +23,8 @@ services:
     environment:
       - PROFILE=dev
       - ENCRYPT_KEY=${ENCRYPT_KEY}
+      - INTERNAL_KEY=${INTERNAL_KEY}
+
     networks:
       - contratar-network
 
@@ -37,6 +39,7 @@ services:
       - contratar-network
     environment:
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
+    - INTERNAL_KEY=${INTERNAL_KEY}
 
   microservicio-oauth:
     image: microservicio-oauth:latest
@@ -50,6 +53,13 @@ services:
     depends_on:
       - microservicio-config
       - microservicio-commons
+    environment:
+      - INTERNAL_KEY=${INTERNAL_KEY}
+      - KESTORE_ALIAS=${KESTORE_ALIAS}
+      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+      - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
+      - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
 
   microservicio-usuario:
     image: microservicio-usuario:latest
@@ -61,6 +71,8 @@ services:
     depends_on:
       - microservicio-config
       - microservicio-oauth
+    environment:
+      - INTERNAL_KEY=${INTERNAL_KEY}
 
   microservicio-vendible:
     image: microservicio-vendible:latest
@@ -71,6 +83,8 @@ services:
       - contratar-network
     depends_on:
       - microservicio-config
+    environment:
+      - INTERNAL_KEY=${INTERNAL_KEY}
 
   microservicio-payment:
     image: microservicio-payment:latest
@@ -82,6 +96,8 @@ services:
     depends_on:
       - microservicio-config
       - microservicio-oauth
+    environment:
+      - INTERNAL_KEY=${INTERNAL_KEY}
 
   microservicio-imagenes:
     image: microservicio-imagenes:latest
@@ -94,6 +110,7 @@ services:
       - microservicio-config
     environment:
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
+    - INTERNAL_KEY=${INTERNAL_KEY}
 
   microservicio-mailing:
     image: microservicio-mailing:latest
@@ -105,6 +122,8 @@ services:
     depends_on:
       - microservicio-config
       - microservicio-oauth
+    environment:
+      - INTERNAL_KEY=${INTERNAL_KEY}
   
   microservicio-gateway:
     image: microservicio-gateway:latest
@@ -116,6 +135,14 @@ services:
     depends_on:
       - microservicio-config
       - microservicio-oauth
+    environment:
+    - INTERNAL_KEY=${INTERNAL_KEY}
+    - KESTORE_ALIAS=${KESTORE_ALIAS}
+    - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+    - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+    - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
+    - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
+    - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
 
 networks:
   contratar-network:
