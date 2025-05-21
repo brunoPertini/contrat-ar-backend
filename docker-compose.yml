@@ -40,6 +40,7 @@ services:
     environment:
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
     - INTERNAL_KEY=${INTERNAL_KEY}
+    - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-oauth:
     image: microservicio-oauth:latest
@@ -57,9 +58,9 @@ services:
       - INTERNAL_KEY=${INTERNAL_KEY}
       - KESTORE_ALIAS=${KESTORE_ALIAS}
       - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
-      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
       - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
       - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-usuario:
     image: microservicio-usuario:latest
@@ -73,6 +74,7 @@ services:
       - microservicio-oauth
     environment:
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-vendible:
     image: microservicio-vendible:latest
@@ -85,6 +87,7 @@ services:
       - microservicio-config
     environment:
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-payment:
     image: microservicio-payment:latest
@@ -98,6 +101,7 @@ services:
       - microservicio-oauth
     environment:
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-imagenes:
     image: microservicio-imagenes:latest
@@ -111,6 +115,7 @@ services:
     environment:
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
     - INTERNAL_KEY=${INTERNAL_KEY}
+    - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-mailing:
     image: microservicio-mailing:latest
@@ -124,6 +129,7 @@ services:
       - microservicio-oauth
     environment:
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
   
   microservicio-gateway:
     image: microservicio-gateway:latest
@@ -138,7 +144,6 @@ services:
     environment:
     - INTERNAL_KEY=${INTERNAL_KEY}
     - KESTORE_ALIAS=${KESTORE_ALIAS}
-    - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
     - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
     - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
     - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
