@@ -21,9 +21,10 @@ services:
     ports:
       - "8005:8005"
     environment:
-      - PROFILE=dev
       - ENCRYPT_KEY=${ENCRYPT_KEY}
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
 
     networks:
       - contratar-network
@@ -38,8 +39,11 @@ services:
     networks:
       - contratar-network
     environment:
+    - SPRING_PROFILES_ACTIVE=dev
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
     - INTERNAL_KEY=${INTERNAL_KEY}
+    - USER=${USER}
+    - PASS=${PASS}
     - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-oauth:
@@ -55,12 +59,18 @@ services:
       - microservicio-config
       - microservicio-commons
     environment:
+      - SPRING_PROFILES_ACTIVE=dev
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
       - KESTORE_ALIAS=${KESTORE_ALIAS}
       - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
       - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
       - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
 
   microservicio-usuario:
     image: microservicio-usuario:latest
@@ -73,8 +83,19 @@ services:
       - microservicio-config
       - microservicio-oauth
     environment:
+      - SPRING_PROFILES_ACTIVE=dev
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+      - MICROSERVICIO_VENDIBLE_URL=${MICROSERVICIO_VENDIBLE_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+      - MICROSERVICIO_IMAGENES_URL=${MICROSERVICIO_IMAGENES_URL}
+      - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
+      - MICROSERVICIO_COMMONS_URL=${MICROSERVICIO_COMMONS_URL}
+      - MICROSERVICIO_PAYMENT_URL=${MICROSERVICIO_PAYMENT_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
 
   microservicio-vendible:
     image: microservicio-vendible:latest
@@ -86,8 +107,14 @@ services:
     depends_on:
       - microservicio-config
     environment:
+      - SPRING_PROFILES_ACTIVE=dev
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
 
   microservicio-payment:
     image: microservicio-payment:latest
@@ -100,8 +127,15 @@ services:
       - microservicio-config
       - microservicio-oauth
     environment:
+      - SPRING_PROFILES_ACTIVE=dev
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+      - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
 
   microservicio-imagenes:
     image: microservicio-imagenes:latest
@@ -113,8 +147,11 @@ services:
     depends_on:
       - microservicio-config
     environment:
+    - SPRING_PROFILES_ACTIVE=dev
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
     - INTERNAL_KEY=${INTERNAL_KEY}
+    - USER=${USER}
+    - PASS=${PASS}
     - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-mailing:
@@ -128,8 +165,12 @@ services:
       - microservicio-config
       - microservicio-oauth
     environment:
+      - SPRING_PROFILES_ACTIVE=dev
       - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
   
   microservicio-gateway:
     image: microservicio-gateway:latest
@@ -148,6 +189,8 @@ services:
     - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
     - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
     - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+    - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+    - MICROSERVICIO_VENDIBLE_URL=${MICROSERVICIO_VENDIBLE_URL}
 
 networks:
   contratar-network:

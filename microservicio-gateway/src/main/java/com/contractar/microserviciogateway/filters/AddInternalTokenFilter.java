@@ -7,15 +7,17 @@ import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
 
+// TODO: come back and apply a reliable strategy for securing microservices network
 @Component
+@Deprecated()
 public class AddInternalTokenFilter extends ZuulFilter {
 	
-	@Value("${INTERNAL_KEY}")
+	@Value("${INTERNAL_KEY: xxx}")
 	private String internalKey;
 	
 	@Override
 	public boolean shouldFilter() {
-		return true;
+		return false;
 	}
 
 	@Override
