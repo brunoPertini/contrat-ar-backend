@@ -95,6 +95,8 @@ public class ImageService {
 		}
 
 		String filePath = uploadDir + File.separator + fileName;
+		
+		System.out.println("PATH IMAGEN: " + filePath);
 
 		try (ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes)) {
 			Files.copy(inputStream, new File(filePath).toPath(), StandardCopyOption.REPLACE_EXISTING);
