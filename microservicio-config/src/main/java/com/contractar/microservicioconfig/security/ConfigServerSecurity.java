@@ -12,7 +12,8 @@ public class ConfigServerSecurity {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+            .authorizeHttpRequests(auth -> auth.requestMatchers("/i18n/**").permitAll()
+            		.anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable());
         return http.build();

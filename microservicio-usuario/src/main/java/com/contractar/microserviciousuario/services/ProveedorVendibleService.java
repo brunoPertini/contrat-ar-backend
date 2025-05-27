@@ -89,9 +89,6 @@ public class ProveedorVendibleService {
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
 
-	@Value("${microservicio-config.url}")
-	private String serviceConfigUrl;
-
 	private static int SLIDER_MIN_PRICE;
 	private static int SLIDER_MAX_PRICE;
 

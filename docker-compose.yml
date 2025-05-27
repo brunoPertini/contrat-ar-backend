@@ -1,4 +1,14 @@
 services:
+  cdn-mock:
+    build: ../cdn-mock
+    container_name: cdn-mock
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../cdn-mock/images:/app/images
+    networks:
+      - contratar-network
+
   mysql-db:
     image: mysql:8.0
     container_name: mysql-db
@@ -146,6 +156,7 @@ services:
       - contratar-network
     depends_on:
       - microservicio-config
+      - cdn-mock
     environment:
     - SPRING_PROFILES_ACTIVE=dev
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
