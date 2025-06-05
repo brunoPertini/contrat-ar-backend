@@ -20,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -113,11 +115,11 @@ public class ImageService {
 		body.add("file", resource);
 
 		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-		ResponseEntity<String> response = httpClient.postForEntity(fullUploadUrl, requestEntity, String.class);
-
-		if (!response.getStatusCode().is2xxSuccessful()) {
-			throw new ImageUploadException("Upload failed: " + response.getStatusCode());
+		
+		try {
+			ResponseEntity<String> response = httpClient.postForEntity(fullUploadUrl, requestEntity, String.class);
+		} catch (HttpServerErrorException e) {
+			throw new ImageUploadException("Upload failed: " + 409);
 		}
 
 		return cdnPublicUrl + "/" + uploadDirTemplate + "/" + file.getOriginalFilename();
