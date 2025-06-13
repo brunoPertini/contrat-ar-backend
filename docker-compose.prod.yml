@@ -1,0 +1,217 @@
+services:
+  cdn-mock:
+    build: ../cdn-mock
+    container_name: cdn-mock
+    ports:
+      - "8000:8000"
+    volumes:
+      - /root/cdn-mock/images:/app/images
+    networks:
+      - contratar-network
+
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: contract_ar
+
+    ports:
+      - "3306:3306"
+    networks:
+      - contratar-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  microservicio-config:
+    image: brunopertini/contrat-ar-images:microservicio-config
+    container_name: microservicio-config
+    ports:
+      - "8005:8005"
+    environment:
+      - ENCRYPT_KEY=${ENCRYPT_KEY}
+      - INTERNAL_KEY=${INTERNAL_KEY}
+      - CONFIG_SEARCH_LOCATIONS=${CONFIG_SEARCH_LOCATIONS}
+      - USER=${USER}
+      - PASS=${PASS}
+
+    networks:
+      - contratar-network
+
+  microservicio-commons:
+    image: brunopertini/contrat-ar-images:microservicio-commons
+    container_name: microservicio-commons
+    ports:
+      - "8004:8004"
+    depends_on:
+      - microservicio-config
+    networks:
+      - contratar-network
+    environment:
+    - SPRING_PROFILES_ACTIVE=dev
+    - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
+    - INTERNAL_KEY=${INTERNAL_KEY}
+    - USER=${USER}
+    - PASS=${PASS}
+    - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+
+  microservicio-oauth:
+    image: brunopertini/contrat-ar-images:microservicio-oauth
+    container_name: microservicio-oauth
+    ports:
+      - "8081:8081"
+    volumes:
+    - ./microservicio-oauth/src/main/resources:/app/resources
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-commons
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
+      - KESTORE_ALIAS=${KESTORE_ALIAS}
+      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+      - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
+      - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
+
+  microservicio-usuario:
+    image: brunopertini/contrat-ar-images:microservicio-usuario
+    container_name: microservicio-usuario
+    ports:
+      - "8002:8002"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+      - MICROSERVICIO_VENDIBLE_URL=${MICROSERVICIO_VENDIBLE_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+      - MICROSERVICIO_IMAGENES_URL=${MICROSERVICIO_IMAGENES_URL}
+      - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
+      - MICROSERVICIO_COMMONS_URL=${MICROSERVICIO_COMMONS_URL}
+      - MICROSERVICIO_PAYMENT_URL=${MICROSERVICIO_PAYMENT_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
+
+  microservicio-vendible:
+    image: brunopertini/contrat-ar-images:microservicio-vendible
+    container_name: microservicio-vendible
+    ports:
+      - "8003:8003"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
+
+  microservicio-payment:
+    image: brunopertini/contrat-ar-images:microservicio-payment
+    container_name: microservicio-payment
+    ports:
+      - "8013:8013"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+      - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
+      - DDBB_SERVICE_URL=mysql-db:3306
+
+  microservicio-imagenes:
+    image: brunopertini/contrat-ar-images:microservicio-imagenes
+    container_name: microservicio-imagenes
+    ports:
+      - "8009:8009"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - cdn-mock
+    environment:
+    - SPRING_PROFILES_ACTIVE=dev
+    - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
+    - INTERNAL_KEY=${INTERNAL_KEY}
+    - USER=${USER}
+    - PASS=${PASS}
+    - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+
+  microservicio-mailing:
+    image: brunopertini/contrat-ar-images:microservicio-mailing
+    container_name: microservicio-mailing
+    ports:
+      - "8006:8006"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - INTERNAL_KEY=${INTERNAL_KEY}
+      - USER=${USER}
+      - PASS=${PASS}
+      - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+      - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+
+  microservicio-gateway:
+    image: brunopertini/contrat-ar-images:microservicio-gateway
+    container_name: microservicio-gateway
+    ports:
+      - "8090:8090"
+    networks:
+      - contratar-network
+    depends_on:
+      - microservicio-config
+      - microservicio-oauth
+    environment:
+    - INTERNAL_KEY=${INTERNAL_KEY}
+    - KESTORE_ALIAS=${KESTORE_ALIAS}
+    - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+    - HEADERS_CLIENT_ID=${HEADERS_CLIENT_ID}
+    - HEADERS_CLIENT_SECRET=${HEADERS_CLIENT_SECRET}
+    - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+    - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
+    - MICROSERVICIO_VENDIBLE_URL=${MICROSERVICIO_VENDIBLE_URL}
+    - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
+    - MICROSERVICIO_PAYMENT_URL=${MICROSERVICIO_PAYMENT_URL}
+    - MICROSERVICIO_VENDIBLE_URL=${MICROSERVICIO_VENDIBLE_URL}
+    - MICROSERVICIO_IMAGES_URL=${MICROSERVICIO_IMAGENES_URL}
+    - MICROSERVICIO_COMMONS_URL=${MICROSERVICIO_COMMONS_URL}
+
+networks:
+  contratar-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
