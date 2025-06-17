@@ -164,6 +164,7 @@ services:
     - USER=${USER}
     - PASS=${PASS}
     - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
+    - CDN_URL=${CDN_URL}
 
   microservicio-mailing:
     image: microservicio-mailing:latest

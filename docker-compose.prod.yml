@@ -10,20 +10,18 @@ services:
       - contratar-network
 
   mysql-db:
-    image: mysql:8.0
-    container_name: mysql-db
-    restart: always
-
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: contract_ar
-
-    ports:
-      - "3306:3306"
-    networks:
-      - contratar-network
-    volumes:
-      - mysql-data:/var/lib/mysql
+      image: mysql:8.0
+      container_name: mysql-db
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: ${DDBB_PASSWORD}
+      ports:
+        - "3306:3306"
+      volumes:
+        - mysql-data:/var/lib/mysql
+        - ./init-database-scripts:/docker-entrypoint-initdb.d
+      networks:
+        - contratar-network
 
   microservicio-config:
     image: brunopertini/contrat-ar-images:microservicio-config
@@ -70,7 +68,7 @@ services:
       - microservicio-config
       - microservicio-commons
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
       - USER=${USER}
       - PASS=${PASS}
@@ -94,7 +92,7 @@ services:
       - microservicio-config
       - microservicio-oauth
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
       - USER=${USER}
       - PASS=${PASS}
@@ -118,7 +116,7 @@ services:
     depends_on:
       - microservicio-config
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
       - USER=${USER}
       - PASS=${PASS}
@@ -138,10 +136,11 @@ services:
       - microservicio-config
       - microservicio-oauth
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
       - USER=${USER}
       - PASS=${PASS}
+      - CDN_URL=${CDN_URL}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
       - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
       - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
@@ -159,11 +158,11 @@ services:
       - microservicio-config
       - cdn-mock
     environment:
-    - SPRING_PROFILES_ACTIVE=dev
     - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
     - INTERNAL_KEY=${INTERNAL_KEY}
     - USER=${USER}
     - PASS=${PASS}
+    - CDN_URL=${CDN_URL}
     - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
 
   microservicio-mailing:
@@ -177,7 +176,6 @@ services:
       - microservicio-config
       - microservicio-oauth
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
       - INTERNAL_KEY=${INTERNAL_KEY}
       - USER=${USER}
       - PASS=${PASS}
