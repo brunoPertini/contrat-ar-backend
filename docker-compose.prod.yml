@@ -1,6 +1,6 @@
 services:
   cdn-mock:
-    build: ../cdn-mock
+    build: ./cdn-mock
     container_name: cdn-mock
     ports:
       - "8000:8000"
@@ -22,6 +22,11 @@ services:
         - ./init-database-scripts:/docker-entrypoint-initdb.d
       networks:
         - contratar-network
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DDBB_PASSWORD}"]
+        interval: 10s
+        timeout: 5s
+        retries: 10
 
   microservicio-config:
     image: brunopertini/contrat-ar-images:microservicio-config
@@ -65,8 +70,10 @@ services:
     networks:
       - contratar-network
     depends_on:
-      - microservicio-config
-      - microservicio-commons
+      microservicio-config:
+        condition: service_started
+      mysql-db:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
@@ -79,7 +86,9 @@ services:
       - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
       - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
-      - DDBB_SERVICE_URL=mysql-db:3306
+      - DDBB_SERVICE_URL=mysql-db
+      - DATASOURCE_USERNAME=root
+      - DATASOURCE_PASSWORD=${DDBB_PASSWORD}
 
   microservicio-usuario:
     image: brunopertini/contrat-ar-images:microservicio-usuario
@@ -89,8 +98,12 @@ services:
     networks:
       - contratar-network
     depends_on:
-      - microservicio-config
-      - microservicio-oauth
+      microservicio-config:
+        condition: service_started
+      microservicio-oauth:
+        condition: service_started
+      mysql-db:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
@@ -104,7 +117,9 @@ services:
       - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
       - MICROSERVICIO_COMMONS_URL=${MICROSERVICIO_COMMONS_URL}
       - MICROSERVICIO_PAYMENT_URL=${MICROSERVICIO_PAYMENT_URL}
-      - DDBB_SERVICE_URL=mysql-db:3306
+      - DDBB_SERVICE_URL=mysql-db
+      - DATASOURCE_USERNAME=root
+      - DATASOURCE_PASSWORD=${DDBB_PASSWORD}
 
   microservicio-vendible:
     image: brunopertini/contrat-ar-images:microservicio-vendible
@@ -114,7 +129,10 @@ services:
     networks:
       - contratar-network
     depends_on:
-      - microservicio-config
+      microservicio-config:
+        condition: service_started
+      mysql-db:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
@@ -123,7 +141,9 @@ services:
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
       - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
       - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
-      - DDBB_SERVICE_URL=mysql-db:3306
+      - DDBB_SERVICE_URL=mysql-db
+      - DATASOURCE_USERNAME=root
+      - DATASOURCE_PASSWORD=${DDBB_PASSWORD}
 
   microservicio-payment:
     image: brunopertini/contrat-ar-images:microservicio-payment
@@ -133,8 +153,12 @@ services:
     networks:
       - contratar-network
     depends_on:
-      - microservicio-config
-      - microservicio-oauth
+      microservicio-config:
+        condition: service_started
+      microservicio-oauth:
+        condition: service_started
+      mysql-db:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - INTERNAL_KEY=${INTERNAL_KEY}
@@ -145,7 +169,9 @@ services:
       - MICROSERVICIO_USUARIO_URL=${MICROSERVICIO_USUARIO_URL}
       - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
       - MICROSERVICIO_MAILING_URL=${MICROSERVICIO_MAILING_URL}
-      - DDBB_SERVICE_URL=mysql-db:3306
+      - DDBB_SERVICE_URL=mysql-db
+      - DATASOURCE_USERNAME=root
+      - DATASOURCE_PASSWORD=${DDBB_PASSWORD}
 
   microservicio-imagenes:
     image: brunopertini/contrat-ar-images:microservicio-imagenes
