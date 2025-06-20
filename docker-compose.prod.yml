@@ -172,6 +172,8 @@ services:
       - DDBB_SERVICE_URL=mysql-db
       - DATASOURCE_USERNAME=root
       - DATASOURCE_PASSWORD=${DDBB_PASSWORD}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - MICROSERVICIO_GATEWAY_URL=${MICROSERVICIO_GATEWAY_URL}
 
   microservicio-imagenes:
     image: brunopertini/contrat-ar-images:microservicio-imagenes
@@ -207,6 +209,7 @@ services:
       - PASS=${PASS}
       - MICROSERVICIO_CONFIG_URL=${MICROSERVICIO_CONFIG_URL}
       - MICROSERVICIO_OAUTH_URL=${MICROSERVICIO_OAUTH_URL}
+      - CDN_URL=${CDN_URL}
 
   microservicio-gateway:
     image: brunopertini/contrat-ar-images:microservicio-gateway
