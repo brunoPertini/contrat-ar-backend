@@ -65,6 +65,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] publicPayUrls = {"/pay/**"};
 	
 	private final String webHookUrl = "/pay/notification/**";
+	
+	private final String promotionBaseUrl = "/promotion";
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -157,6 +159,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(publicPayUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
 				.antMatchers(HttpMethod.GET, passwordEmailUrls[1]).access("@securityUtils.tokenContainsType(request) and @securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.GET, UsersControllerUrls.GET_USUARIO_INFO).access("@securityUtils.isAdminUser(request) or @securityUtils.userIdsMatch(request, \"usuarios\")")
+				.antMatchers(HttpMethod.GET, promotionBaseUrl).permitAll()
 				.anyRequest()
 				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
