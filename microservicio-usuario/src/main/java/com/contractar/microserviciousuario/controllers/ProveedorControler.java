@@ -61,7 +61,7 @@ public class ProveedorControler {
 
 	@GetMapping(ProveedorControllerUrls.INTERNAL_PLAN_BASE_URL)
 	public ResponseEntity<?> getAllPlans() {
-		return new ResponseEntity<>(proveedorService.findAll(), HttpStatus.OK);
+		return new ResponseEntity<>(proveedorService.findAllPlans(), HttpStatus.OK);
 	}
 	
 	@GetMapping(ProveedorControllerUrls.GET_SUSCRIPCION)

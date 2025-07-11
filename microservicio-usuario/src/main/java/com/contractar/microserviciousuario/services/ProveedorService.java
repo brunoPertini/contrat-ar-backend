@@ -1,8 +1,11 @@
 package com.contractar.microserviciousuario.services;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import com.contractar.microserviciocommons.constants.controllers.PaymentControll
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
+import com.contractar.microserviciocommons.dto.PlanDTO;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
 import com.contractar.microserviciocommons.dto.SuscriptionValidityDTO;
@@ -27,6 +31,7 @@ import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNot
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.Plan;
+import com.contractar.microserviciousuario.models.PromotionType;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.repository.PlanRepository;
@@ -46,6 +51,8 @@ public class ProveedorService {
 
 	private AdminService adminService;
 
+	private PromotionService promotionService;
+
 	private RestTemplate httpClient;
 
 	@Value("${microservicio-commons.url}")
@@ -61,12 +68,14 @@ public class ProveedorService {
 	private String mailingServiceUrl;
 
 	public ProveedorService(PlanRepository planRepository, ProveedorRepository proveedorRepository,
-			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService) {
+			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService,
+			PromotionService promotionService) {
 		this.planRepository = planRepository;
 		this.proveedorRepository = proveedorRepository;
 		this.suscripcionRepository = suscripcionRepository;
 		this.httpClient = httpClient;
 		this.adminService = adminService;
+		this.promotionService = promotionService;
 	}
 
 	private String fetchDatePattern() {
@@ -88,8 +97,24 @@ public class ProveedorService {
 				.orElseThrow(UserNotFoundException::new);
 	}
 
-	public List<Plan> findAll() {
-		return planRepository.findAll();
+	public List<PlanDTO> findAllPlans() {
+		return planRepository.findAll().stream().map(p -> {
+			int discountPrice = 0;
+			// Promotion priority: for life, for months
+			if (p.getType().equals(PlanType.PAID)
+					&& promotionService.isPromotionApplicable(PromotionType.FULL_DISCOUNT_FOREVER)) {
+				BigDecimal discountPercentage = promotionService.findByType(PromotionType.FULL_DISCOUNT_FOREVER)
+						.getDiscountPercentage();
+				BigDecimal discountPriceDecimal = BigDecimal.valueOf(p.getPrice()).subtract((BigDecimal.valueOf(p.getPrice()).multiply(discountPercentage)));
+						
+
+				discountPrice = discountPriceDecimal.setScale(0, RoundingMode.DOWN).intValue();
+
+			}
+
+			return new PlanDTO(p.getId(), p.getDescripcion(), p.getType(), p.getPrice(), discountPrice);
+
+		}).collect(Collectors.toList());
 	}
 
 	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {
@@ -101,7 +126,6 @@ public class ProveedorService {
 		return httpClient.getForObject(microservicioPaymentUrl + PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL
 				.replace("{suscriptionId}", String.valueOf(suscriptionId)), PaymentInfoDTO.class);
 	}
-
 
 	private void notifyPlanChange(String email, String name, String destinyPlan) {
 		String destinyPlanTranslated = getMessageTag("plan." + destinyPlan);
@@ -115,21 +139,21 @@ public class ProveedorService {
 			System.out.println(e.getMessage());
 		}
 	}
-	
+
 	@Transactional
 	private Suscripcion createPaidPlanSuscription(Proveedor proveedor) {
 		Plan paidPlan = planRepository.findByType(PlanType.PAID).get();
 		Suscripcion suscripcion = new Suscripcion(true, proveedor, paidPlan, LocalDate.now());
-		
+
 		boolean isSignupContext = proveedor.getSuscripcion() == null;
 
 		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
-		
+
 		if (isSignupContext) {
 			proveedor.setSuscripcion(createdSuscripcion);
 			proveedorRepository.save(proveedor);
 		}
-		
+
 		return createdSuscripcion;
 
 	}
@@ -164,7 +188,6 @@ public class ProveedorService {
 			proveedor.setSuscripcion(createdSuscripcion);
 			proveedorRepository.save(proveedor);
 		}
-
 
 		return createdSuscripcion;
 
@@ -254,8 +277,7 @@ public class ProveedorService {
 				if (dto.isActive()) {
 					proveedor.setSuscripcion(subscription);
 					proveedorRepository.save(proveedor);
-					notifyPlanChange(proveedor.getEmail(), proveedor.getName(),
-							PlanType.PAID.name());
+					notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.PAID.name());
 				}
 
 			});
