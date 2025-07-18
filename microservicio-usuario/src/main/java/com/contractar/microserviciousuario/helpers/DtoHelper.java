@@ -21,7 +21,7 @@ import com.contractar.microserviciousuario.admin.dtos.UsuarioAdminDTO;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.models.Usuario;
-import com.contractar.microserviciousuario.services.ProveedorService;
+import com.contractar.microserviciousuario.services.SuscriptionService;
 
 @Component
 public final class DtoHelper {	
@@ -29,7 +29,7 @@ public final class DtoHelper {
 	private RestTemplate httpClient;
 	
 	@Autowired
-	private ProveedorService proveedorService;
+	private SuscriptionService suscriptionService;
 	
 	@Value("${microservicio-commons.url}")
 	private String microservicioCommonsUrl;
@@ -61,7 +61,7 @@ public final class DtoHelper {
 		 
 		String datePattern = httpClient.getForObject(uriBuilder.toUriString(), String.class);
 		ProveedorDTO proveedorDTO = new ProveedorDTO(proveedor, datePattern);
-		proveedorDTO.setSuscripcion(proveedorService.getSuscripcion(proveedor.getId()));
+		proveedorDTO.setSuscripcion(suscriptionService.getSuscripcion(proveedor.getId()));
 		
 		return proveedorDTO;
 	}

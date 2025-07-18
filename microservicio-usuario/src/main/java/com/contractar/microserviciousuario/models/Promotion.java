@@ -1,6 +1,9 @@
 package com.contractar.microserviciousuario.models;
 
 import java.math.BigDecimal;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 
 @Entity
 public class Promotion {
@@ -27,6 +31,15 @@ public class Promotion {
 	
 	@Enumerated(EnumType.STRING)
 	private PromotionType type;
+	
+	@Transient
+	@JsonIgnore
+	private static final Map<PromotionType, Integer> expirationMonthResolver= Map.of(PromotionType.FULL_DISCOUNT_FOREVER,
+			-1,
+			PromotionType.FULL_DISCOUNT_MONTHS,
+			6);
+	
+	private boolean isEnabled;
 
 	public Promotion() {
 	}
@@ -35,6 +48,7 @@ public class Promotion {
 		this.text = text;
 		this.disclaimer = disclaimer;
 		this.discountPercentage = discountPercentage;
+		this.isEnabled = true;
 	}
 
 	public Long getId() {
@@ -75,6 +89,22 @@ public class Promotion {
 
 	public void setType(PromotionType type) {
 		this.type = type;
+	}
+	
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+	
+	/**
+	 * 
+	 * @return duration in months for this promotion to expire
+	 */
+	public  int getExpirationMonths() {
+		return expirationMonthResolver.get(this.type);
 	}
 
 }

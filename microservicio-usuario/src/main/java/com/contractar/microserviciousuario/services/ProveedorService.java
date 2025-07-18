@@ -13,7 +13,6 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.DateControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
@@ -23,11 +22,9 @@ import com.contractar.microserviciocommons.date.enums.DateOperationType;
 import com.contractar.microserviciocommons.dto.PlanDTO;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
-import com.contractar.microserviciocommons.dto.SuscriptionValidityDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
 import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
-import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.Plan;
@@ -86,7 +83,7 @@ public class ProveedorService {
 		return httpClient.getForObject(uriBuilder.toUriString(), String.class);
 	}
 
-	private String getMessageTag(String tagId) {
+	public String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
 	}
@@ -105,8 +102,8 @@ public class ProveedorService {
 					&& promotionService.isPromotionApplicable(PromotionType.FULL_DISCOUNT_FOREVER)) {
 				BigDecimal discountPercentage = promotionService.findByType(PromotionType.FULL_DISCOUNT_FOREVER)
 						.getDiscountPercentage();
-				BigDecimal discountPriceDecimal = BigDecimal.valueOf(p.getPrice()).subtract((BigDecimal.valueOf(p.getPrice()).multiply(discountPercentage)));
-						
+				BigDecimal discountPriceDecimal = BigDecimal.valueOf(p.getPrice())
+						.subtract((BigDecimal.valueOf(p.getPrice()).multiply(discountPercentage)));
 
 				discountPrice = discountPriceDecimal.setScale(0, RoundingMode.DOWN).intValue();
 
@@ -115,10 +112,6 @@ public class ProveedorService {
 			return new PlanDTO(p.getId(), p.getDescripcion(), p.getType(), p.getPrice(), discountPrice);
 
 		}).collect(Collectors.toList());
-	}
-
-	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {
-		return this.suscripcionRepository.findById(id).map(s -> s).orElseThrow(() -> new SuscriptionNotFound(""));
 	}
 
 	private PaymentInfoDTO fetchLastSuccessfulPaymentInfo(Long suscriptionId) {
@@ -217,53 +210,6 @@ public class ProveedorService {
 
 	}
 
-	public SuscripcionDTO getSuscripcion(Long proveedorId) {
-		try {
-			Proveedor proveedor = this.findById(proveedorId);
-			SuscripcionAccesor suscription = proveedor.getSuscripcion();
-
-			String datePattern = this.fetchDatePattern();
-
-			SuscripcionDTO responseDTO = new SuscripcionDTO(suscription.getId(), suscription.isActive(), proveedorId,
-					suscription.getPlan().getId(), suscription.getCreatedDate(), datePattern);
-
-			Boolean isSuscriptionValid = httpClient
-					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
-							.replace("{suscriptionId}", String.valueOf(suscription.getId())), Boolean.class);
-
-			PaymentInfoDTO lastPaymentInfo = this.fetchLastSuccessfulPaymentInfo(suscription.getId());
-
-			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> Optional
-					.ofNullable(optPaymentInfo.getDate()).map(expDate -> expDate.plusMonths(1)).orElse(null))
-					.orElse(null);
-
-			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);
-
-			boolean canBePayed = httpClient
-					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE
-							.replace("{suscriptionId}", suscription.getId().toString()), Boolean.class);
-			validity.setCanBePayed(canBePayed);
-
-			boolean hasFreePlan = proveedor.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
-
-			if (!validity.isValid() && !hasFreePlan) {
-				Plan freePlan = planRepository.findById(1L).map(p -> p).orElse(null);
-				proveedor.getSuscripcion().setPlan(freePlan);
-				proveedorRepository.save(proveedor);
-
-				responseDTO.setPlanId(freePlan.getId());
-				responseDTO.setPlanPrice(freePlan.getPrice());
-			}
-
-			responseDTO.setValidity(validity);
-
-			return responseDTO;
-
-		} catch (UserNotFoundException e) {
-			return null;
-		}
-
-	}
 
 	@Transactional
 	public void updateLinkedSubscription(Long userId, SuscriptionActiveUpdateDTO dto) {

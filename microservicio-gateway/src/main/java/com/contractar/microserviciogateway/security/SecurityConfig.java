@@ -160,8 +160,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.GET, passwordEmailUrls[1]).access("@securityUtils.tokenContainsType(request) and @securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.GET, UsersControllerUrls.GET_USUARIO_INFO).access("@securityUtils.isAdminUser(request) or @securityUtils.userIdsMatch(request, \"usuarios\")")
 				.antMatchers(HttpMethod.GET, promotionBaseUrl).permitAll()
-				.anyRequest()
-				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
+				.antMatchers(HttpMethod.POST, promotionBaseUrl).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
+				.anyRequest().access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
 
 		http.oauth2ResourceServer(oauth2 -> {
 	        oauth2.jwt()

@@ -40,6 +40,7 @@ import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.services.ProveedorService;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
+import com.contractar.microserviciousuario.services.SuscriptionService;
 import com.contractar.microserviciousuario.services.UsuarioService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -56,6 +57,9 @@ public class ProveedorControler {
 
 	@Autowired
 	private ProveedorService proveedorService;
+	
+	@Autowired
+	private SuscriptionService suscriptionService;
 
 	private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -64,12 +68,17 @@ public class ProveedorControler {
 		return new ResponseEntity<>(proveedorService.findAllPlans(), HttpStatus.OK);
 	}
 	
+	@GetMapping(ProveedorControllerUrls.PROVEEDOR_BASE_URL)
+	public ResponseEntity<Proveedor> getProveedorEntity(@PathVariable Long proveedorId) throws UserNotFoundException {
+		return new ResponseEntity<>(proveedorService.findById(proveedorId), HttpStatus.OK);
+	}
+	
 	@GetMapping(ProveedorControllerUrls.GET_SUSCRIPCION)
 	public ResponseEntity<?> getSuscripcionById(@PathVariable Long suscriptionId,
 			@RequestParam(defaultValue = "false") String getAsEntity) throws SuscriptionNotFound {
 		
 		// TODO: add access control to ensure this endpoint can only be accesed by admin and by the proveedor that matches with subscription
-		Suscripcion suscripcion = this.proveedorService.findSuscripcionById(suscriptionId);
+		Suscripcion suscripcion = suscriptionService.findSuscripcionById(suscriptionId);
 		
 		boolean getAsEntityBool = Boolean.parseBoolean(getAsEntity);
 		
