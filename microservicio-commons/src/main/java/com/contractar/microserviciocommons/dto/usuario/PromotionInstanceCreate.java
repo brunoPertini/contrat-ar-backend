@@ -8,6 +8,8 @@ public class PromotionInstanceCreate {
 	private Long suscriptionId;
 	@NotNull
 	private Long promotionId;
+	
+	public PromotionInstanceCreate() {}
 
 	public PromotionInstanceCreate(Long suscriptionId, Long promotionId) {
 		this.suscriptionId = suscriptionId;

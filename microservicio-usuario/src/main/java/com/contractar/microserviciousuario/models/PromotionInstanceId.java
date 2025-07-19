@@ -10,6 +10,8 @@ public class PromotionInstanceId implements Serializable {
 
 	private Long suscriptionId;
 	private Long promotionId;
+	
+	public PromotionInstanceId() {}
 
 	public PromotionInstanceId(Long suscriptionId, Long promotionId) {
 		this.suscriptionId = suscriptionId;

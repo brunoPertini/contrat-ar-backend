@@ -70,7 +70,7 @@ public class PromotionService {
 	}
 	
 	public PromotionInstance createPromotionInstance(PromotionInstanceCreate dto) throws CantCreatePromotion {
-		SuscripcionDTO suscription = suscriptionService.getSuscripcion(dto.getSuscriptionId());
+		SuscripcionDTO suscription = suscriptionService.getSuscripcionById(dto.getSuscriptionId());
 		
 		if (!suscription.isActive() || !suscription.getValidity().isValid()) {
 			throw new CantCreatePromotion(getMessageTag("exceptions.promotions.cantCreate"));
@@ -88,7 +88,10 @@ public class PromotionService {
 		
 		LocalDate expirationDate = LocalDate.now().plusMonths(linkedPromotion.getExpirationMonths());
 		
-		return promotionInstanceRepository.save(new PromotionInstance(new PromotionInstanceId(dto.getSuscriptionId(), dto.getPromotionId()), expirationDate));
+		PromotionInstance promotionInstance = new PromotionInstance(new PromotionInstanceId(dto.getSuscriptionId(), dto.getPromotionId()), expirationDate);
+		promotionInstance.setPromotion(linkedPromotion);
+		
+		return promotionInstanceRepository.save(promotionInstance);
 	}
 	
 }

@@ -43,6 +43,9 @@ public class SuscriptionService {
 	@Value("${microservicio-payment.url}")
 	private String microservicioPaymentUrl;
 	
+	@Value("${microservicio-usuario.url}")
+	private String microservicioUsuarioUrl;
+	
 	public SuscriptionService(RestTemplate httpClient,
 			PlanRepository planRepository,
 			ProveedorRepository proveedorRepository,
@@ -69,7 +72,7 @@ public class SuscriptionService {
 	
 	private Optional<Proveedor> getProveedor(Long id) {
 		try {
-			String url = ProveedorControllerUrls.PROVEEDOR_BASE_URL.replace("{proveedorId}", id.toString());
+			String url = microservicioUsuarioUrl + ProveedorControllerUrls.PROVEEDOR_BASE_URL.replace("{proveedorId}", id.toString());
 			
 			return  Optional.of(httpClient.getForObject(url, Proveedor.class));
 		} catch (Exception e) {
@@ -125,19 +128,17 @@ public class SuscriptionService {
 	public SuscripcionDTO getSuscripcionById(Long suscriptionId) {
 		try {
 			Suscripcion suscription = this.findSuscripcionById(suscriptionId);
-			
-			Proveedor proveedor = getProveedor(suscription.getUsuario().getId()).map(p -> p).orElseThrow(() -> new  UserNotFoundException());
-			
-			return this.getSuscripcionDTO(proveedor, suscription);
+						
+			return this.getSuscripcionDTO((Proveedor)suscription.getUsuario(), suscription);
 
-		} catch (SuscriptionNotFound | UserNotFoundException e) {
+		} catch (SuscriptionNotFound e) {
 			return null;
 		}
 	}
 
 	public SuscripcionDTO getSuscripcion(Long proveedorId) {
 		try {
-			Proveedor proveedor = getProveedor(proveedorId).map(p -> p).orElseThrow(() -> new  UserNotFoundException());
+			Proveedor proveedor = getProveedor(proveedorId).map(p -> p).orElseThrow(UserNotFoundException::new);			
 			Suscripcion suscription = this.findSuscripcionById(proveedor.getSuscripcion().getId());
 			return this.getSuscripcionDTO(proveedor, suscription);
 		} catch (SuscriptionNotFound | UserNotFoundException e) {

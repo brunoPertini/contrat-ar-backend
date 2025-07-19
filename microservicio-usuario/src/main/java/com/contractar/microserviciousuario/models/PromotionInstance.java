@@ -36,6 +36,8 @@ public class PromotionInstance {
 	public void setExpirationDate(LocalDate expirationDate) {
 		this.expirationDate = expirationDate;
 	}
+	
+	public PromotionInstance() {}
 
 	public PromotionInstance(PromotionInstanceId id, LocalDate expirationDate) {
 		this.id = id;
