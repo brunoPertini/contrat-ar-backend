@@ -7,16 +7,23 @@ public class PlanDTO {
 	private String descripcion;
 	private PlanType type;
 	private int price;
-	private double priceWithDiscount;
+
+	private Long applicablePromotion;
+	private Double priceWithDiscount;
 
 	public PlanDTO() {
 	}
-
-	public PlanDTO(Long id, String descripcion, PlanType type, int price, double priceWithDiscount) {
+	
+	public PlanDTO(Long id, String descripcion, PlanType type, int price) {
 		this.id = id;
 		this.descripcion = descripcion;
 		this.type = type;
 		this.price = price;
+	}
+
+
+	public PlanDTO(Long id, String descripcion, PlanType type, int price, double priceWithDiscount) {
+		this(id, descripcion, type, price);
 		this.priceWithDiscount = priceWithDiscount;
 	}
 
@@ -52,12 +59,20 @@ public class PlanDTO {
 		this.price = price;
 	}
 
-	public double getPriceWithDiscount() {
+	public Double getPriceWithDiscount() {
 		return priceWithDiscount;
 	}
 
-	public void setPriceWithDiscount(double priceWithDiscount) {
+	public void setPriceWithDiscount(Double priceWithDiscount) {
 		this.priceWithDiscount = priceWithDiscount;
+	}
+
+	public Long getApplicablePromotion() {
+		return applicablePromotion;
+	}
+
+	public void setApplicablePromotion(Long applicablePromotion) {
+		this.applicablePromotion = applicablePromotion;
 	}
 
 }

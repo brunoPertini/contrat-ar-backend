@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
+import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.services.PromotionService;
 
 import jakarta.validation.Valid;
@@ -25,7 +26,7 @@ public class PromotionsController {
 	}
 	
 	@PostMapping(PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL)
-	public ResponseEntity<?> createPromotionInstance(@RequestBody @Valid PromotionInstanceCreate createDTO) throws CantCreatePromotion {
+	public ResponseEntity<PromotionInstance> createPromotionInstance(@RequestBody @Valid PromotionInstanceCreate createDTO) throws CantCreatePromotion {
 		return new ResponseEntity<>(this.service.createPromotionInstance(createDTO), HttpStatus.CREATED);
 	}
 		

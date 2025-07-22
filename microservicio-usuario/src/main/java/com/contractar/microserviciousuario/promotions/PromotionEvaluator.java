@@ -5,6 +5,8 @@ import com.contractar.microserviciousuario.repository.PromotionInstanceRepositor
 public abstract class PromotionEvaluator {
 	protected PromotionInstanceRepository promotionInstanceRepository;
 	
+	protected PromotionEvaluator() {}
+	
 	protected PromotionEvaluator(PromotionInstanceRepository promotionInstanceRepository) {
 		this.promotionInstanceRepository = promotionInstanceRepository;
 	}

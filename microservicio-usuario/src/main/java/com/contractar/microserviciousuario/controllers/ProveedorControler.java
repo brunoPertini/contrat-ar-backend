@@ -108,9 +108,11 @@ public class ProveedorControler {
 	}
 	
 	@PostMapping(ProveedorControllerUrls.POST_PROVEEDOR_SUSCRIPCION)
-	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable Long proveedorId, @PathVariable Long planId) throws UserNotFoundException,
+	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable Long proveedorId,
+			@PathVariable Long planId,
+			@RequestParam Optional<Long> promotionId) throws UserNotFoundException,
 	CantCreateSuscription {
-		return new ResponseEntity<SuscripcionDTO>(proveedorService.createSuscripcion(proveedorId, planId), HttpStatus.CREATED);
+		return new ResponseEntity<SuscripcionDTO>(proveedorService.createSuscripcion(proveedorId, planId, promotionId), HttpStatus.CREATED);
 	}
 
 	@Deprecated(forRemoval = true)

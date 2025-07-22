@@ -1,16 +1,17 @@
 package com.contractar.microserviciousuario.promotions;
 
-import com.contractar.microserviciousuario.repository.PromotionInstanceRepository;
-
 public class FullDiscountMonthsEvaluator extends PromotionEvaluator {
+	
+	private FullDiscountForeverEvaluator foreverEvaluator;
 
-	public FullDiscountMonthsEvaluator(PromotionInstanceRepository promotionInstanceRepository) {
-		super(promotionInstanceRepository);
+	public FullDiscountMonthsEvaluator(FullDiscountForeverEvaluator foreverEvaluator) {
+		super();
+		this.foreverEvaluator = foreverEvaluator;
 	}
 
 	@Override
 	public boolean canPromotionBeApllied() {
-		return true;
+		return !foreverEvaluator.canPromotionBeApllied();
 	}
 
 }

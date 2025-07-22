@@ -17,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.http.HttpMethod;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 
@@ -88,6 +89,8 @@ public class SecurityConfig {
 								.hasAnyAuthority(adminRole, proveedorProductoRole, proveedorServicioRole)
 								.requestMatchers(HttpMethod.GET, AdminControllerUrls.ADMIN_USUARIOS_SENSIBLE_INFO)
 								.hasAuthority(adminRole)
+								.requestMatchers(HttpMethod.POST, PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL)
+								.hasAnyAuthority(adminRole, proveedorProductoRole, proveedorServicioRole)
 								.anyRequest().permitAll())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt());
 

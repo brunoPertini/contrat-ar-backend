@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
@@ -19,6 +20,7 @@ import com.contractar.microserviciousuario.models.PromotionType;
 import com.contractar.microserviciousuario.promotions.FullDiscountForeverEvaluator;
 import com.contractar.microserviciousuario.promotions.FullDiscountMonthsEvaluator;
 import com.contractar.microserviciousuario.promotions.PromotionEvaluator;
+import com.contractar.microserviciousuario.repository.PlanRepository;
 import com.contractar.microserviciousuario.repository.PromotionInstanceRepository;
 import com.contractar.microserviciousuario.repository.PromotionRepository;
 
@@ -36,17 +38,23 @@ public class PromotionService {
 	private final Map<PromotionType, PromotionEvaluator> evaluatorFactory;
 	
 	private SuscriptionService suscriptionService;
+	
+	private PlanRepository planRepository;
 
 	public PromotionService(PromotionRepository repository, PromotionInstanceRepository promotionInstanceRepository,
-			SuscriptionService suscriptionService,
-			 RestTemplate httpClient) {
+			SuscriptionService suscriptionService, PlanRepository planRepository, RestTemplate httpClient) {
 		this.repository = repository;
 		this.promotionInstanceRepository = promotionInstanceRepository;
+		this.planRepository = planRepository;
+		
 		this.suscriptionService = suscriptionService;
 		
+		FullDiscountForeverEvaluator foreverEvaluator = new FullDiscountForeverEvaluator(this.promotionInstanceRepository);
+		
 		this.evaluatorFactory = Map.of(PromotionType.FULL_DISCOUNT_FOREVER,
-				new FullDiscountForeverEvaluator(this.promotionInstanceRepository),
-				PromotionType.FULL_DISCOUNT_MONTHS, new FullDiscountMonthsEvaluator(this.promotionInstanceRepository));
+				foreverEvaluator,
+				PromotionType.FULL_DISCOUNT_MONTHS,
+				new FullDiscountMonthsEvaluator(foreverEvaluator));
 		
 		this.httpClient = httpClient;
 	}
@@ -69,10 +77,20 @@ public class PromotionService {
 		return httpClient.getForObject(fullUrl, String.class);
 	}
 	
+	public Promotion findCurrentApplicable() {
+		return repository.findAll().stream().filter(promotion -> {
+			return isPromotionApplicable(promotion.getType());
+		}).findFirst().map(p ->p).orElse(null);
+	}
+	
 	public PromotionInstance createPromotionInstance(PromotionInstanceCreate dto) throws CantCreatePromotion {
-		SuscripcionDTO suscription = suscriptionService.getSuscripcionById(dto.getSuscriptionId());
+		SuscripcionDTO suscription = suscriptionService.getSuscripcionById(dto.getSuscriptionId(), false);
 		
-		if (!suscription.isActive() || !suscription.getValidity().isValid()) {
+		boolean isApplyingForCorrectPlan = planRepository.findById(suscription.getPlanId())
+				.map(p -> p.getType().equals(PlanType.PAID))
+				.orElse(false);
+		
+		if (!suscription.isActive() || !isApplyingForCorrectPlan) {
 			throw new CantCreatePromotion(getMessageTag("exceptions.promotions.cantCreate"));
 		}
 		
@@ -86,7 +104,11 @@ public class PromotionService {
 		
 		Promotion linkedPromotion = repository.findById(dto.getPromotionId()).map(p -> p).orElseThrow(() -> new CantCreatePromotion("exceptions.promotions.cantCreate"));
 		
-		LocalDate expirationDate = LocalDate.now().plusMonths(linkedPromotion.getExpirationMonths());
+		if (!linkedPromotion.isEnabled()) {
+			throw new CantCreatePromotion("exceptions.promotions.cantCreate");
+		}
+				
+		LocalDate expirationDate = linkedPromotion.getExpirationMonths() != -1 ? LocalDate.now().plusMonths(linkedPromotion.getExpirationMonths()) : null;
 		
 		PromotionInstance promotionInstance = new PromotionInstance(new PromotionInstanceId(dto.getSuscriptionId(), dto.getPromotionId()), expirationDate);
 		promotionInstance.setPromotion(linkedPromotion);

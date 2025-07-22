@@ -8,14 +8,22 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.constants.controllers.DateControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
@@ -23,12 +31,13 @@ import com.contractar.microserviciocommons.dto.PlanDTO;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
+import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.Plan;
-import com.contractar.microserviciousuario.models.PromotionType;
+import com.contractar.microserviciousuario.models.Promotion;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.repository.PlanRepository;
@@ -63,6 +72,9 @@ public class ProveedorService {
 
 	@Value("${microservicio-mailing.url}")
 	private String mailingServiceUrl;
+	
+	@Value("${microservicio-usuario.url}")
+	private String microservicioUsuarioUrl;
 
 	public ProveedorService(PlanRepository planRepository, ProveedorRepository proveedorRepository,
 			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService,
@@ -82,6 +94,16 @@ public class ProveedorService {
 
 		return httpClient.getForObject(uriBuilder.toUriString(), String.class);
 	}
+	
+	private HttpHeaders getCurrentRequestHeaders() {
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		 
+	    HttpHeaders headers = new HttpHeaders();
+	    
+	    headers.setBasicAuth(requestAttributes.getRequest().getHeader("Authorization"));
+	    
+	    return headers;
+	}
 
 	public String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
@@ -96,20 +118,20 @@ public class ProveedorService {
 
 	public List<PlanDTO> findAllPlans() {
 		return planRepository.findAll().stream().map(p -> {
-			int discountPrice = 0;
-			// Promotion priority: for life, for months
-			if (p.getType().equals(PlanType.PAID)
-					&& promotionService.isPromotionApplicable(PromotionType.FULL_DISCOUNT_FOREVER)) {
-				BigDecimal discountPercentage = promotionService.findByType(PromotionType.FULL_DISCOUNT_FOREVER)
-						.getDiscountPercentage();
+			PlanDTO planDTO = new PlanDTO(p.getId(), p.getDescripcion(), p.getType(), p.getPrice());
+			if (p.getType().equals(PlanType.PAID)) {
+				Promotion applicablePromotion = promotionService.findCurrentApplicable();
+				BigDecimal discountPercentage = applicablePromotion.getDiscountPercentage();
 				BigDecimal discountPriceDecimal = BigDecimal.valueOf(p.getPrice())
 						.subtract((BigDecimal.valueOf(p.getPrice()).multiply(discountPercentage)));
 
-				discountPrice = discountPriceDecimal.setScale(0, RoundingMode.DOWN).intValue();
+				double discountPrice = discountPriceDecimal.setScale(0, RoundingMode.DOWN).intValue();
+				planDTO.setPriceWithDiscount(discountPrice);
+				planDTO.setApplicablePromotion(applicablePromotion.getId());
 
 			}
 
-			return new PlanDTO(p.getId(), p.getDescripcion(), p.getType(), p.getPrice(), discountPrice);
+			return planDTO;
 
 		}).collect(Collectors.toList());
 	}
@@ -186,7 +208,7 @@ public class ProveedorService {
 
 	}
 
-	public SuscripcionDTO createSuscripcion(Long proveedorId, Long planId)
+	public SuscripcionDTO createSuscripcion(Long proveedorId, Long planId, Optional<Long> promotionIdOpt)
 			throws UserNotFoundException, CantCreateSuscription {
 		Proveedor proveedor = this.findById(proveedorId);
 
@@ -196,14 +218,32 @@ public class ProveedorService {
 		boolean isSignupContext = proveedor.getSuscripcion() == null;
 
 		boolean isTheSamePlan = !isSignupContext && plan.getId().equals(proveedor.getSuscripcion().getPlan().getId());
-
+		
+		boolean isPaidPlan = plan.getType().equals(PlanType.PAID);
+				
 		if (isTheSamePlan) {
 			throw new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate"));
 		}
 
-		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID)
+		Suscripcion temporalCreatedSuscription = isPaidPlan
 				? createPaidPlanSuscription(proveedor)
 				: createFreePlanSuscription(proveedor);
+		
+		if (isPaidPlan && promotionIdOpt.isPresent()) {
+			
+				try {
+					HttpHeaders headers = getCurrentRequestHeaders();
+				    
+				    String url = microservicioUsuarioUrl + PromotionControllerUrls.PROMOTION_BASE_URL + PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL; 
+				    
+					HttpEntity<PromotionInstanceCreate> entity = new HttpEntity<>(
+							new PromotionInstanceCreate(temporalCreatedSuscription.getId(), promotionIdOpt.get()), headers);
+
+					httpClient.exchange(url, HttpMethod.POST, entity, Void.class);
+				} catch (HttpClientErrorException | HttpServerErrorException e) {
+					System.out.println("Could not create promotion for suscription: " +  temporalCreatedSuscription.getId());
+				}
+		}
 
 		return new SuscripcionDTO(temporalCreatedSuscription.getId(), temporalCreatedSuscription.isActive(),
 				proveedorId, planId, temporalCreatedSuscription.getCreatedDate(), fetchDatePattern());
