@@ -68,15 +68,7 @@ public class SuscriptionService {
 	}
 
 	private Optional<Proveedor> getProveedor(Long id) {
-		try {
-			String url = microservicioUsuarioUrl
-					+ ProveedorControllerUrls.PROVEEDOR_BASE_URL.replace("{proveedorId}", id.toString());
-
-			return Optional.of(httpClient.getForObject(url, Proveedor.class));
-		} catch (Exception e) {
-			return Optional.empty();
-		}
-
+		return proveedorRepository.findById(id);
 	}
 
 	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {

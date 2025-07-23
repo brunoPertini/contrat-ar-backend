@@ -131,7 +131,14 @@ public class ProveedorDTO extends UsuarioDTO {
 	public void setHasWhatsapp(boolean hasWhatsapp) {
 		this.hasWhatsapp = hasWhatsapp;
 	}
+	
+	public boolean isHasWhatsapp() {
+		return hasWhatsapp;
+	}
 
+	public void setProveedorType(Proveedor proveedorType) {
+		this.proveedorType = proveedorType;
+	}
 	
 	@Override
 	public boolean equals(Object obj) {

@@ -17,6 +17,8 @@ public class SuscripcionDTO extends WithDatePatternDTO {
 
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate createdDate;
+	
+	private UserPromotionDTO promotionInfo;
 
 	public SuscripcionDTO() {
 	}
@@ -104,6 +106,14 @@ public class SuscripcionDTO extends WithDatePatternDTO {
 
 	public void setValidity(SuscriptionValidityDTO validity) {
 		this.validity = validity;
+	}
+	
+	public UserPromotionDTO getPromotionInfo() {
+		return promotionInfo;
+	}
+
+	public void setPromotionInfo(UserPromotionDTO promotionInfo) {
+		this.promotionInfo = promotionInfo;
 	}
 
 }

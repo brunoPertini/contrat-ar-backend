@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microservicioadapter.enums.PlanType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
+import com.contractar.microserviciocommons.dto.UserPromotionDTO;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
 import com.contractar.microserviciousuario.models.Promotion;
@@ -57,6 +58,12 @@ public class PromotionService {
 				new FullDiscountMonthsEvaluator(foreverEvaluator));
 		
 		this.httpClient = httpClient;
+	}
+	
+	public UserPromotionDTO findUserPromotion(Long suscriptionId) {
+		return promotionInstanceRepository.findByIdSuscriptionId(suscriptionId)
+				.map(instance -> new UserPromotionDTO(instance.getPromotion().getText(), instance.getExpirationDate()))
+				.orElse(null);
 	}
 
 	public List<Promotion> findAll() {
