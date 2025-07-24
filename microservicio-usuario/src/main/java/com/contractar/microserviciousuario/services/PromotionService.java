@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microservicioadapter.enums.PromotionType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.UserPromotionDTO;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
@@ -17,7 +18,6 @@ import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
 import com.contractar.microserviciousuario.models.Promotion;
 import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.models.PromotionInstanceId;
-import com.contractar.microserviciousuario.models.PromotionType;
 import com.contractar.microserviciousuario.promotions.FullDiscountForeverEvaluator;
 import com.contractar.microserviciousuario.promotions.FullDiscountMonthsEvaluator;
 import com.contractar.microserviciousuario.promotions.PromotionEvaluator;
@@ -62,7 +62,9 @@ public class PromotionService {
 	
 	public UserPromotionDTO findUserPromotion(Long suscriptionId) {
 		return promotionInstanceRepository.findByIdSuscriptionId(suscriptionId)
-				.map(instance -> new UserPromotionDTO(instance.getPromotion().getText(), instance.getExpirationDate()))
+				.map(instance -> new UserPromotionDTO(instance.getPromotion().getText(),
+						instance.getExpirationDate(),
+						instance.getPromotion().getType()))
 				.orElse(null);
 	}
 

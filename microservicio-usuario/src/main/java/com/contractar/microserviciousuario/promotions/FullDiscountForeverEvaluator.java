@@ -1,6 +1,6 @@
 package com.contractar.microserviciousuario.promotions;
 
-import com.contractar.microserviciousuario.models.PromotionType;
+import com.contractar.microservicioadapter.enums.PromotionType;
 import com.contractar.microserviciousuario.repository.PromotionInstanceRepository;
 
 public class FullDiscountForeverEvaluator extends PromotionEvaluator {

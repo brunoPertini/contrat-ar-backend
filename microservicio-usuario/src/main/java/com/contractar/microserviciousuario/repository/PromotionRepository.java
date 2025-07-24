@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
+import com.contractar.microservicioadapter.enums.PromotionType;
 import com.contractar.microserviciousuario.models.Promotion;
-import com.contractar.microserviciousuario.models.PromotionType;
 
 public interface PromotionRepository extends CrudRepository<Promotion, Long> {
 	public List<Promotion> findAll();

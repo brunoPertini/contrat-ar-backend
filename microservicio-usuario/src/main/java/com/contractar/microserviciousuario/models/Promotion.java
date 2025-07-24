@@ -3,6 +3,7 @@ package com.contractar.microserviciousuario.models;
 import java.math.BigDecimal;
 import java.util.Map;
 
+import com.contractar.microservicioadapter.enums.PromotionType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;

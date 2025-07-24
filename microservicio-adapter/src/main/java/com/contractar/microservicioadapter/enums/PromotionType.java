@@ -1,4 +1,4 @@
-package com.contractar.microserviciousuario.models;
+package com.contractar.microservicioadapter.enums;
 
 public enum PromotionType {
 	FULL_DISCOUNT_FOREVER,

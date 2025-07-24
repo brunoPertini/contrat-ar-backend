@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
+import com.contractar.microservicioadapter.enums.PromotionType;
 import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.models.PromotionInstanceId;
-import com.contractar.microserviciousuario.models.PromotionType;
 
 public interface PromotionInstanceRepository extends CrudRepository<PromotionInstance, PromotionInstanceId> {
 	@SuppressWarnings("unchecked")

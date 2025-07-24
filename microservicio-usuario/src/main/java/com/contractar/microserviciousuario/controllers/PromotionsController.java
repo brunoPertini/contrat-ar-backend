@@ -39,7 +39,7 @@ public class PromotionsController {
 	}
 	
 	@GetMapping(PromotionControllerUrls.PROMOTION_INSTANCE_BY_ID)
-	public ResponseEntity<?> getInstanceById(@PathVariable  Long suscriptionId) {
+	public ResponseEntity<UserPromotionDTO> getInstanceById(@PathVariable  Long suscriptionId) {
 		UserPromotionDTO response = service.findUserPromotion(suscriptionId);
 		
 		return response != null ? new ResponseEntity<>(response, HttpStatus.OK) : new ResponseEntity<>(HttpStatusCode.valueOf(404));

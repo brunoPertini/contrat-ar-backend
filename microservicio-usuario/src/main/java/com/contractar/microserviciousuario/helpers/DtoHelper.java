@@ -44,9 +44,9 @@ public final class DtoHelper {
 
 	public ProveedorDTO toProveedorDTO(Proveedor proveedor) {
 		ProveedorDTO proveedorDTO = new ProveedorDTO(proveedor);
-		proveedorDTO.setSuscripcion(suscriptionService.getSuscripcion(proveedor.getId()));
+		UserPromotionDTO promotionInfo = promotionService.findUserPromotion(proveedor.getSuscripcion().getId());
+		proveedorDTO.setSuscripcion(suscriptionService.getSuscripcion(proveedor.getId(), promotionInfo));
 		
-		UserPromotionDTO promotionInfo = promotionService.findUserPromotion(proveedorDTO.getSuscripcion().getId());
 		proveedorDTO.getSuscripcion().setPromotionInfo(promotionInfo);
 		
 		return proveedorDTO;
