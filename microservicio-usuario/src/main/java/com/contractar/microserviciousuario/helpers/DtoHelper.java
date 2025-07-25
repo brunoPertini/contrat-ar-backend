@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario.helpers;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -21,17 +23,18 @@ import com.contractar.microserviciousuario.services.PromotionService;
 import com.contractar.microserviciousuario.services.SuscriptionService;
 
 @Component
-public final class DtoHelper {	
+public final class DtoHelper {
 	private RestTemplate httpClient;
-	
+
 	private SuscriptionService suscriptionService;
-	
+
 	private PromotionService promotionService;
-	
+
 	@Value("${microservicio-commons.url}")
 	private String microservicioCommonsUrl;
-	
-	public DtoHelper(RestTemplate httpClient, SuscriptionService suscriptionService, PromotionService promotionService) {
+
+	public DtoHelper(RestTemplate httpClient, SuscriptionService suscriptionService,
+			PromotionService promotionService) {
 		this.httpClient = httpClient;
 		this.suscriptionService = suscriptionService;
 		this.promotionService = promotionService;
@@ -44,24 +47,25 @@ public final class DtoHelper {
 
 	public ProveedorDTO toProveedorDTO(Proveedor proveedor) {
 		ProveedorDTO proveedorDTO = new ProveedorDTO(proveedor);
-		UserPromotionDTO promotionInfo = promotionService.findUserPromotion(proveedor.getSuscripcion().getId());
-		proveedorDTO.setSuscripcion(suscriptionService.getSuscripcion(proveedor.getId(), promotionInfo));
-		
-		proveedorDTO.getSuscripcion().setPromotionInfo(promotionInfo);
-		
+		Optional.ofNullable(proveedor.getSuscripcion()).ifPresent(suscription -> {
+			UserPromotionDTO promotionInfo = promotionService.findUserPromotion(suscription.getId());
+			proveedorDTO.setSuscripcion(suscriptionService.getSuscripcion(proveedor.getId(), promotionInfo));
+
+			proveedorDTO.getSuscripcion().setPromotionInfo(promotionInfo);
+		});
+
 		return proveedorDTO;
 	}
 
 	public ProveedorDTO toProveedorDTO(Proveedor proveedor, DateFormatType dateFormat) {
-		 UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(microservicioCommonsUrl)
-				 	.path(DateControllerUrls.DATES_BASE_URL)
-	                .queryParam("operation", DateOperationType.FORMAT)
-	                .queryParam("format", dateFormat != null ? dateFormat : DateFormatType.FULL);
-		 
+		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(microservicioCommonsUrl)
+				.path(DateControllerUrls.DATES_BASE_URL).queryParam("operation", DateOperationType.FORMAT)
+				.queryParam("format", dateFormat != null ? dateFormat : DateFormatType.FULL);
+
 		String datePattern = httpClient.getForObject(uriBuilder.toUriString(), String.class);
 		ProveedorDTO proveedorDTO = toProveedorDTO(proveedor);
 		proveedorDTO.getSuscripcion().setDatePattern(datePattern);
-		
+
 		return proveedorDTO;
 	}
 

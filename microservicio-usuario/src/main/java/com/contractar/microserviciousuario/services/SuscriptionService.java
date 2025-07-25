@@ -3,8 +3,7 @@ package com.contractar.microserviciousuario.services;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
-
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -48,12 +47,32 @@ public class SuscriptionService {
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
 
+	private final Map<PromotionType, Function<UserPromotionDTO, Boolean>> byPromotionSuscriptionValidityResolver;
+
+	private final Map<PromotionType, Function<UserPromotionDTO, LocalDate>> byPromotionSuscriptionExpirationDateResolver;
+
+	private final Map<PromotionType, Function<UserPromotionDTO, Boolean>> byPromotionCanBePayedResolver;
+
 	public SuscriptionService(RestTemplate httpClient, PlanRepository planRepository,
 			ProveedorRepository proveedorRepository, SuscripcionRepository suscripcionRepository) {
 		this.httpClient = httpClient;
 		this.planRepository = planRepository;
 		this.proveedorRepository = proveedorRepository;
 		this.suscripcionRepository = suscripcionRepository;
+
+		this.byPromotionSuscriptionValidityResolver = Map.of(PromotionType.FULL_DISCOUNT_FOREVER, p -> true,
+				PromotionType.FULL_DISCOUNT_MONTHS,
+				promotionInfo -> promotionInfo.getExpirationDate().isAfter(LocalDate.now()));
+
+		this.byPromotionSuscriptionExpirationDateResolver = Map.of(PromotionType.FULL_DISCOUNT_FOREVER, p -> null,
+				PromotionType.FULL_DISCOUNT_MONTHS, promotionInfo -> promotionInfo.getExpirationDate());
+
+		this.byPromotionCanBePayedResolver = Map.of(PromotionType.FULL_DISCOUNT_FOREVER, p -> false,
+				PromotionType.FULL_DISCOUNT_MONTHS, promotionInfo -> {
+					LocalDate minimalDate = promotionInfo.getExpirationDate().minusDays(10);
+					return LocalDate.now().isAfter(minimalDate);
+				});
+
 	}
 
 	private PaymentInfoDTO fetchLastSuccessfulPaymentInfo(Long suscriptionId) {
@@ -75,12 +94,8 @@ public class SuscriptionService {
 	}
 
 	private boolean resolveSuscriptionValidity(Long suscriptionId, UserPromotionDTO promotionInfo) {
-		final Map<PromotionType, Boolean> byPromotionValidityResolvers = Map.of(PromotionType.FULL_DISCOUNT_FOREVER,
-				true, PromotionType.FULL_DISCOUNT_MONTHS, promotionInfo.getExpirationDate().isAfter(LocalDate.now()));
-
-		return Optional
-				.ofNullable(promotionInfo).map(
-						p -> byPromotionValidityResolvers.get(p.getPromotionType()))
+		return Optional.ofNullable(promotionInfo)
+				.map(p -> byPromotionSuscriptionValidityResolver.get(p.getPromotionType()).apply(promotionInfo))
 				.orElseGet(
 						() -> httpClient
 								.getForObject(
@@ -91,9 +106,9 @@ public class SuscriptionService {
 	}
 
 	private LocalDate resolveSuscriptionExpirationDate(Long suscriptionId, UserPromotionDTO promotionInfo) {
-		final Map<PromotionType, LocalDate> byPromotionResolvers = Map.of(PromotionType.FULL_DISCOUNT_FOREVER, null,
-				PromotionType.FULL_DISCOUNT_MONTHS, promotionInfo.getExpirationDate());
-		return Optional.ofNullable(promotionInfo).map(p -> byPromotionResolvers.get(p.getPromotionType()))
+
+		return Optional.ofNullable(promotionInfo)
+				.map(p -> byPromotionSuscriptionExpirationDateResolver.get(p.getPromotionType()).apply(promotionInfo))
 				.orElseGet(() -> {
 					PaymentInfoDTO lastPaymentInfo = this.fetchLastSuccessfulPaymentInfo(suscriptionId);
 					return Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> Optional
@@ -103,18 +118,12 @@ public class SuscriptionService {
 	}
 
 	private boolean resolveCanSubscriptionBePayed(Long suscriptionId, UserPromotionDTO promotionInfo) {
-		final Map<PromotionType, Supplier<Boolean>> byPromotionResolvers = Map.of(PromotionType.FULL_DISCOUNT_FOREVER,
-				() -> false, PromotionType.FULL_DISCOUNT_MONTHS, () -> {
-					LocalDate minimalDate = promotionInfo.getExpirationDate().minusDays(10);
-					return LocalDate.now().isAfter(minimalDate);
-				});
-
-		return Optional.ofNullable(promotionInfo).map(p -> byPromotionResolvers.get(p.getPromotionType()).get())
-				.orElseGet(() -> {
-					return httpClient
-							.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE
-									.replace("{suscriptionId}", suscriptionId.toString()), Boolean.class);
-				});
+		return Optional.ofNullable(promotionInfo)
+				.map(p -> byPromotionCanBePayedResolver.get(p.getPromotionType())
+						.apply(promotionInfo))
+				.orElseGet(() -> httpClient
+						.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE
+								.replace("{suscriptionId}", suscriptionId.toString()), Boolean.class));
 	}
 
 	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {
@@ -138,8 +147,7 @@ public class SuscriptionService {
 
 			boolean canBePayed = resolveCanSubscriptionBePayed(suscription.getId(), promotionInfo);
 			validity.setCanBePayed(canBePayed);
-			
-					
+
 			boolean hasFreePlan = proveedor.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
 
 			if (!validity.isValid() && !hasFreePlan) {
