@@ -17,7 +17,7 @@ public interface PromotionInstanceRepository extends CrudRepository<PromotionIns
 
 	public int countByPromotionType(PromotionType type);
 	
-	Optional<PromotionInstance> findByIdSuscriptionId(Long suscriptionId);
+	Optional<PromotionInstance> findByIdSuscriptionIdAndExpirationDateAfter(Long suscriptionId, LocalDate fecha);
 
 	Optional<PromotionInstance> findByIdPromotionIdAndIdSuscriptionId(Long promotionId, Long suscriptionId);
 

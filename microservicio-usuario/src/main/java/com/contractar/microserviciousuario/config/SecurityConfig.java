@@ -29,7 +29,8 @@ public class SecurityConfig {
 	private final String[] allowedDevOrigins = {"http://contractar-frontend:3000",
 			"https://contratar.com.ar",
 			"http://microservicio-gateway:8090",
-			"http://localhost:3000"};
+			"http://localhost:3000",
+			"https://a5412afb6b59.ngrok-free.app"};
 
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {

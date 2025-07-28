@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -94,14 +96,17 @@ public class SuscriptionService {
 	}
 
 	private boolean resolveSuscriptionValidity(Long suscriptionId, UserPromotionDTO promotionInfo) {
+		Supplier<Boolean> isSuscriptionValidSupplier = () -> httpClient
+				.getForObject(
+						microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
+								.replace("{suscriptionId}", String.valueOf(suscriptionId)),
+						Boolean.class);
+
 		return Optional.ofNullable(promotionInfo)
-				.map(p -> byPromotionSuscriptionValidityResolver.get(p.getPromotionType()).apply(promotionInfo))
-				.orElseGet(
-						() -> httpClient
-								.getForObject(
-										microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
-												.replace("{suscriptionId}", String.valueOf(suscriptionId)),
-										Boolean.class));
+				.map(p -> {
+					boolean byPromotionResult = byPromotionSuscriptionValidityResolver.get(p.getPromotionType()).apply(promotionInfo);
+					return byPromotionResult || isSuscriptionValidSupplier.get();
+				}).orElseGet(isSuscriptionValidSupplier);
 
 	}
 

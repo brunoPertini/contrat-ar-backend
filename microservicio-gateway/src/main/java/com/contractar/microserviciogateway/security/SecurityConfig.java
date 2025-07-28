@@ -42,7 +42,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Autowired
 	private OAuth2WebSecurityExpressionHandler expressionHandler;
 	
-	private final List<String> acceptedOrigins = List.of("http://contractar-frontend:3000", "https://contratar.com.ar", "http://localhost:3000");
+	private final List<String> acceptedOrigins = List.of("http://contractar-frontend:3000", "https://contratar.com.ar", "http://localhost:3000", "https://a5412afb6b59.ngrok-free.app");
 	
 	private final String[] vendiblesUrls = {"/vendible/**", "/usuarios/proveedor/**/vendible/**"};
 	
