@@ -69,7 +69,20 @@ public class PromotionService {
 	}
 
 	public List<Promotion> findAll() {
-		return repository.findAll();
+		return repository.findAll()
+				.stream()
+				.filter(p -> isPromotionApplicable(p.getType()))
+				.toList();
+	}
+	
+	public List<Promotion> findAllAplicable(Long userId) {
+		// First I get the applicable by the system, then I check if each one is applicable for current subscription
+		List<Promotion> bySystemApplicable = findAll();
+		
+		return bySystemApplicable.stream().filter(promotion -> promotionInstanceRepository
+				.findByPromotionIdAndProveedorId(promotion.getId(), userId).isPresent())
+				.toList();
+		
 	}
 	
 	public Promotion findByType(PromotionType type) {

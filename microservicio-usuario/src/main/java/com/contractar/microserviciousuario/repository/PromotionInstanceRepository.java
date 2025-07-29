@@ -1,6 +1,7 @@
 package com.contractar.microserviciousuario.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
@@ -16,7 +17,23 @@ public interface PromotionInstanceRepository extends CrudRepository<PromotionIns
 	public PromotionInstance save(PromotionInstance save);
 
 	public int countByPromotionType(PromotionType type);
+
 	
+	@Query("""
+		    SELECT pi FROM PromotionInstance pi
+		    WHERE pi.id.promotionId = :promotionId
+		      AND pi.subscription.usuario.id = :proveedorId
+		""")
+		Optional<PromotionInstance> findByPromotionIdAndProveedorId(
+		    @Param("promotionId") Long promotionId,
+		    @Param("proveedorId") Long proveedorId
+		);
+	
+	@Query("""
+		    SELECT pi FROM PromotionInstance pi
+		      WHERE pi.id.suscriptionId = :suscriptionId
+		      AND (pi.expirationDate > :fecha OR pi.expirationDate IS NULL)
+		""")
 	Optional<PromotionInstance> findByIdSuscriptionIdAndExpirationDateAfter(Long suscriptionId, LocalDate fecha);
 
 	Optional<PromotionInstance> findByIdPromotionIdAndIdSuscriptionId(Long promotionId, Long suscriptionId);

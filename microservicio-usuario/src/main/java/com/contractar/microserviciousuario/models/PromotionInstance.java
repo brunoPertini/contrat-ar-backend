@@ -13,11 +13,16 @@ import jakarta.persistence.MapsId;
 public class PromotionInstance {
 	@EmbeddedId
 	private PromotionInstanceId id;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("promotionId")
 	@JoinColumn(name = "promotion_id")
 	private Promotion promotion;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@MapsId("suscriptionId")
+	@JoinColumn(name = "suscription_id")
+	private Suscripcion subscription;
 
 	private LocalDate expirationDate;
 
@@ -36,20 +41,29 @@ public class PromotionInstance {
 	public void setExpirationDate(LocalDate expirationDate) {
 		this.expirationDate = expirationDate;
 	}
-	
-	public PromotionInstance() {}
+
+	public PromotionInstance() {
+	}
 
 	public PromotionInstance(PromotionInstanceId id, LocalDate expirationDate) {
 		this.id = id;
 		this.expirationDate = expirationDate;
 	}
-	
+
 	public Promotion getPromotion() {
 		return promotion;
 	}
 
 	public void setPromotion(Promotion promotion) {
 		this.promotion = promotion;
+	}
+
+	public Suscripcion getSubscription() {
+		return subscription;
+	}
+
+	public void setSubscription(Suscripcion subscription) {
+		this.subscription = subscription;
 	}
 
 }

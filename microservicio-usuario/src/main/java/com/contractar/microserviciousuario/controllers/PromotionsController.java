@@ -1,5 +1,7 @@
 package com.contractar.microserviciousuario.controllers;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import com.contractar.microserviciocommons.constants.controllers.PromotionContro
 import com.contractar.microserviciocommons.dto.UserPromotionDTO;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
+import com.contractar.microserviciousuario.models.Promotion;
 import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.services.PromotionService;
 
@@ -36,6 +39,11 @@ public class PromotionsController {
 	@GetMapping
 	public ResponseEntity<?> getAll() {
 		return new ResponseEntity<>(this.service.findAll(), HttpStatus.OK);
+	}
+	
+	@GetMapping(PromotionControllerUrls.PROMOTION_BY_ID)
+	public ResponseEntity<List<Promotion>> findUserApplicablePromotions(@PathVariable Long userId) {
+		return new ResponseEntity<>(this.service.findAllAplicable(userId), HttpStatus.OK);
 	}
 	
 	@GetMapping(PromotionControllerUrls.PROMOTION_INSTANCE_BY_ID)

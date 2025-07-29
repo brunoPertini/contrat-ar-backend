@@ -96,30 +96,27 @@ public class SuscriptionService {
 	}
 
 	private boolean resolveSuscriptionValidity(Long suscriptionId, UserPromotionDTO promotionInfo) {
-		Supplier<Boolean> isSuscriptionValidSupplier = () -> httpClient
-				.getForObject(
-						microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
-								.replace("{suscriptionId}", String.valueOf(suscriptionId)),
-						Boolean.class);
+		Supplier<Boolean> isSuscriptionValidSupplier = () -> httpClient.getForObject(microservicioPaymentUrl
+				+ PaymentControllerUrls.IS_SUSCRIPTION_VALID.replace("{suscriptionId}", String.valueOf(suscriptionId)),
+				Boolean.class);
 
-		return Optional.ofNullable(promotionInfo)
-				.map(p -> {
-					boolean byPromotionResult = byPromotionSuscriptionValidityResolver.get(p.getPromotionType()).apply(promotionInfo);
-					return byPromotionResult || isSuscriptionValidSupplier.get();
-				}).orElseGet(isSuscriptionValidSupplier);
+		return Optional.ofNullable(promotionInfo).map(p -> {
+			boolean byPromotionResult = byPromotionSuscriptionValidityResolver.get(p.getPromotionType())
+					.apply(promotionInfo);
+			return byPromotionResult || isSuscriptionValidSupplier.get();
+		}).orElseGet(isSuscriptionValidSupplier);
 
 	}
 
 	private LocalDate resolveSuscriptionExpirationDate(Long suscriptionId, UserPromotionDTO promotionInfo) {
 
-		return Optional.ofNullable(promotionInfo)
-				.map(p -> byPromotionSuscriptionExpirationDateResolver.get(p.getPromotionType()).apply(promotionInfo))
-				.orElseGet(() -> {
-					PaymentInfoDTO lastPaymentInfo = this.fetchLastSuccessfulPaymentInfo(suscriptionId);
-					return Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> Optional
-							.ofNullable(optPaymentInfo.getDate()).map(expDate -> expDate.plusMonths(1)).orElse(null))
-							.orElse(null);
-				});
+		if (promotionInfo != null) {
+			return byPromotionSuscriptionExpirationDateResolver.get(promotionInfo.getPromotionType()).apply(promotionInfo);
+		}
+
+		PaymentInfoDTO lastPaymentInfo = this.fetchLastSuccessfulPaymentInfo(suscriptionId);
+		return Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> Optional.ofNullable(optPaymentInfo.getDate())
+				.map(expDate -> expDate.plusMonths(1)).orElse(null)).orElse(null);
 	}
 
 	private boolean resolveCanSubscriptionBePayed(Long suscriptionId, UserPromotionDTO promotionInfo) {
