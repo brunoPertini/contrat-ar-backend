@@ -80,7 +80,7 @@ public class PromotionService {
 		List<Promotion> bySystemApplicable = findAll();
 		
 		return bySystemApplicable.stream().filter(promotion -> promotionInstanceRepository
-				.findByPromotionIdAndProveedorId(promotion.getId(), userId).isPresent())
+				.findByPromotionIdAndProveedorId(promotion.getId(), userId).isEmpty())
 				.toList();
 		
 	}

@@ -4,7 +4,6 @@ import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -27,6 +26,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import com.contractar.microserviciogateway.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.CustomHeaders;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 
@@ -123,6 +123,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		String proveedorServicioRole = RolesValues.PROVEEDOR_SERVICIOS.name();
 		String adminRole = RolesValues.ADMIN.name();
 		
+		final String authenticatedAndWithHeadersAccess = "@securityUtils.hasValidClientId(request) and isAuthenticated()";
+		
+		final String isAdminUserAccess = "@securityUtils.isAdminUser(request)";
+		
 		String vendiblesOperationsAccsesRule = "hasAuthority('" + adminRole+ "') or @securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole +
 				"','" + proveedorServicioRole + "')";
 		
@@ -161,7 +165,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.GET, UsersControllerUrls.GET_USUARIO_INFO).access("@securityUtils.isAdminUser(request) or @securityUtils.userIdsMatch(request, \"usuarios\")")
 				.antMatchers(HttpMethod.GET, promotionBaseUrl).permitAll()
 				.antMatchers(HttpMethod.POST, promotionBaseUrl).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
-				.anyRequest().access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
+				.antMatchers(HttpMethod.GET, PromotionControllerUrls.PROMOTION_INSTANCE_BY_ID).access(authenticatedAndWithHeadersAccess +
+						" and @securityUtils.userIdsMatch(request, \"promotion\") or"
+						+ isAdminUserAccess)
+				.anyRequest().access(authenticatedAndWithHeadersAccess);
 
 		http.oauth2ResourceServer(oauth2 -> {
 	        oauth2.jwt()

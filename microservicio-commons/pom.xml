@@ -13,7 +13,7 @@
 
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-commons</artifactId>
-	<version>1.0.0-RELEASE</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>microservicio-commons</name>
 	<description>Has shared dtos, exceptions and other sort of Symbols used by

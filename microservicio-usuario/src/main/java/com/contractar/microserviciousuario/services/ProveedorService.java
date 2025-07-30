@@ -21,6 +21,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microservicioadapter.enums.PromotionType;
 import com.contractar.microserviciocommons.constants.controllers.DateControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
@@ -38,6 +39,7 @@ import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.Plan;
 import com.contractar.microserviciousuario.models.Promotion;
+import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.repository.PlanRepository;
@@ -72,7 +74,7 @@ public class ProveedorService {
 
 	@Value("${microservicio-mailing.url}")
 	private String mailingServiceUrl;
-	
+
 	@Value("${microservicio-usuario.url}")
 	private String microservicioUsuarioUrl;
 
@@ -94,15 +96,16 @@ public class ProveedorService {
 
 		return httpClient.getForObject(uriBuilder.toUriString(), String.class);
 	}
-	
+
 	private HttpHeaders getCurrentRequestHeaders() {
-		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-		 
-	    HttpHeaders headers = new HttpHeaders();
-	    
-	    headers.setBasicAuth(requestAttributes.getRequest().getHeader("Authorization"));
-	    
-	    return headers;
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder
+				.getRequestAttributes();
+
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.setBasicAuth(requestAttributes.getRequest().getHeader("Authorization"));
+
+		return headers;
 	}
 
 	public String getMessageTag(String tagId) {
@@ -218,38 +221,50 @@ public class ProveedorService {
 		boolean isSignupContext = proveedor.getSuscripcion() == null;
 
 		boolean isTheSamePlan = !isSignupContext && plan.getId().equals(proveedor.getSuscripcion().getPlan().getId());
-		
+
 		boolean isPaidPlan = plan.getType().equals(PlanType.PAID);
-				
+
 		if (isTheSamePlan) {
 			throw new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate"));
 		}
 
-		Suscripcion temporalCreatedSuscription = isPaidPlan
-				? createPaidPlanSuscription(proveedor)
+		Suscripcion temporalCreatedSuscription = isPaidPlan ? createPaidPlanSuscription(proveedor)
 				: createFreePlanSuscription(proveedor);
-		
-		if (isPaidPlan && promotionIdOpt.isPresent()) {
-			
-				try {
-					HttpHeaders headers = getCurrentRequestHeaders();
-				    
-				    String url = microservicioUsuarioUrl + PromotionControllerUrls.PROMOTION_BASE_URL + PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL; 
-				    
-					HttpEntity<PromotionInstanceCreate> entity = new HttpEntity<>(
-							new PromotionInstanceCreate(temporalCreatedSuscription.getId(), promotionIdOpt.get()), headers);
 
-					httpClient.exchange(url, HttpMethod.POST, entity, Void.class);
-				} catch (HttpClientErrorException | HttpServerErrorException e) {
-					System.out.println("Could not create promotion for suscription: " +  temporalCreatedSuscription.getId());
+		if (isPaidPlan && promotionIdOpt.isPresent()) {
+
+			try {
+				HttpHeaders headers = getCurrentRequestHeaders();
+
+				String url = microservicioUsuarioUrl + PromotionControllerUrls.PROMOTION_BASE_URL
+						+ PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL;
+
+				HttpEntity<PromotionInstanceCreate> entity = new HttpEntity<>(
+						new PromotionInstanceCreate(temporalCreatedSuscription.getId(), promotionIdOpt.get()), headers);
+
+				PromotionInstance createdPromotionInstance = httpClient
+						.exchange(url, HttpMethod.POST, entity, PromotionInstance.class).getBody();
+
+				PromotionType createdPromotionType = createdPromotionInstance.getPromotion().getType();
+
+				boolean isAFreeTypePromotion = createdPromotionType.equals(PromotionType.FULL_DISCOUNT_FOREVER)
+						|| createdPromotionType.equals(PromotionType.FULL_DISCOUNT_MONTHS);
+
+				if (isAFreeTypePromotion) {
+					this.updateLinkedSubscription(proveedorId,
+							new SuscriptionActiveUpdateDTO(temporalCreatedSuscription.getId(), true));
+
 				}
+
+			} catch (HttpClientErrorException | HttpServerErrorException e) {
+				System.out.println("Could not create promotion for suscription: " + temporalCreatedSuscription.getId());
+			}
 		}
 
 		return new SuscripcionDTO(temporalCreatedSuscription.getId(), temporalCreatedSuscription.isActive(),
 				proveedorId, planId, temporalCreatedSuscription.getCreatedDate(), fetchDatePattern());
 
 	}
-
 
 	@Transactional
 	public void updateLinkedSubscription(Long userId, SuscriptionActiveUpdateDTO dto) {
