@@ -3,7 +3,7 @@ package com.contractar.microserviciousuario.services;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Optional;import java.util.concurrent.Flow.Subscriber;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +15,7 @@ import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.UserPromotionDTO;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciousuario.models.Promotion;
 import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.models.PromotionInstanceId;
@@ -88,6 +89,10 @@ public class PromotionService {
 	public Promotion findByType(PromotionType type) {
 		return repository.findByType(type);
 	}
+	
+	public Optional<Promotion> findById(Long id) {
+		return repository.findById(id);
+	}
 
 	public boolean isPromotionApplicable(PromotionType promoType) {
 		return Optional.ofNullable(evaluatorFactory.get(promoType)).map(PromotionEvaluator::canPromotionBeApllied)
@@ -105,7 +110,7 @@ public class PromotionService {
 		}).findFirst().map(p ->p).orElse(null);
 	}
 	
-	public PromotionInstance createPromotionInstance(PromotionInstanceCreate dto) throws CantCreatePromotion {
+	public PromotionInstance createPromotionInstance(PromotionInstanceCreate dto) throws CantCreatePromotion, SuscriptionNotFound {
 		SuscripcionDTO suscription = suscriptionService.getSuscripcionById(dto.getSuscriptionId(), false);
 		
 		boolean isApplyingForCorrectPlan = planRepository.findById(suscription.getPlanId())
@@ -134,6 +139,7 @@ public class PromotionService {
 		
 		PromotionInstance promotionInstance = new PromotionInstance(new PromotionInstanceId(dto.getSuscriptionId(), dto.getPromotionId()), expirationDate);
 		promotionInstance.setPromotion(linkedPromotion);
+		promotionInstance.setSubscription(suscriptionService.findSuscripcionById(dto.getSuscriptionId()));
 		
 		return promotionInstanceRepository.save(promotionInstance);
 	}

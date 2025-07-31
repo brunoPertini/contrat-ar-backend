@@ -16,6 +16,7 @@ import com.contractar.microserviciocommons.constants.controllers.PromotionContro
 import com.contractar.microserviciocommons.dto.UserPromotionDTO;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
+import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciousuario.models.Promotion;
 import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.services.PromotionService;
@@ -32,7 +33,7 @@ public class PromotionsController {
 	}
 	
 	@PostMapping(PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL)
-	public ResponseEntity<PromotionInstance> createPromotionInstance(@RequestBody @Valid PromotionInstanceCreate createDTO) throws CantCreatePromotion {
+	public ResponseEntity<PromotionInstance> createPromotionInstance(@RequestBody @Valid PromotionInstanceCreate createDTO) throws CantCreatePromotion, SuscriptionNotFound {
 		return new ResponseEntity<>(this.service.createPromotionInstance(createDTO), HttpStatus.CREATED);
 	}
 		

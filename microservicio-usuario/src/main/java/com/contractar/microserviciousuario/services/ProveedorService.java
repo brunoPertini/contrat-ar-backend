@@ -159,15 +159,24 @@ public class ProveedorService {
 	}
 
 	@Transactional
-	private Suscripcion createPaidPlanSuscription(Proveedor proveedor) {
+	private Suscripcion createPaidPlanSuscription(Proveedor proveedor, Optional<Long> promotionIdOpt)
+			throws CantCreateSuscription {
 		Plan paidPlan = planRepository.findByType(PlanType.PAID).get();
-		Suscripcion suscripcion = new Suscripcion(true, proveedor, paidPlan, LocalDate.now());
+		Optional<PromotionType> promotionTypeOpt = promotionIdOpt
+				.flatMap(promotionId -> promotionService.findById(promotionId).map(p -> p.getType()));
+		
+		boolean isApplyingFullDiscountPromotion = promotionTypeOpt.get().equals(PromotionType.FULL_DISCOUNT_FOREVER)
+				|| promotionTypeOpt.get().equals(PromotionType.FULL_DISCOUNT_MONTHS);
+		
+		boolean isSuscriptionActive = promotionTypeOpt.isEmpty() || isApplyingFullDiscountPromotion; 
+		
+		Suscripcion suscripcion = new Suscripcion(isSuscriptionActive, proveedor, paidPlan, LocalDate.now());
 
 		boolean isSignupContext = proveedor.getSuscripcion() == null;
 
 		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
 
-		if (isSignupContext) {
+		if (isSignupContext || isApplyingFullDiscountPromotion) {
 			proveedor.setSuscripcion(createdSuscripcion);
 			proveedorRepository.save(proveedor);
 		}
@@ -228,7 +237,7 @@ public class ProveedorService {
 			throw new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate"));
 		}
 
-		Suscripcion temporalCreatedSuscription = isPaidPlan ? createPaidPlanSuscription(proveedor)
+		Suscripcion temporalCreatedSuscription = isPaidPlan ? createPaidPlanSuscription(proveedor, promotionIdOpt)
 				: createFreePlanSuscription(proveedor);
 
 		if (isPaidPlan && promotionIdOpt.isPresent()) {
