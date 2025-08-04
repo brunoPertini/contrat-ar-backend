@@ -70,7 +70,7 @@ public class PromotionService {
 	}
 
 	public List<Promotion> findAll() {
-		return repository.findAll()
+		return repository.findAllByIsEnabledTrue()
 				.stream()
 				.filter(p -> isPromotionApplicable(p.getType()))
 				.toList();

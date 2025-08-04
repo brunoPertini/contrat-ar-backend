@@ -15,6 +15,8 @@ import com.contractar.microserviciousuario.models.PromotionInstanceId;
 public interface PromotionInstanceRepository extends CrudRepository<PromotionInstance, PromotionInstanceId> {
 	@SuppressWarnings("unchecked")
 	public PromotionInstance save(PromotionInstance save);
+	
+	public List<PromotionInstance> findAll();
 
 	public int countByPromotionType(PromotionType type);
 

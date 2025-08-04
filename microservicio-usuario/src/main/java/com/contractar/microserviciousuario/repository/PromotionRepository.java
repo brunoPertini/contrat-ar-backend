@@ -11,6 +11,8 @@ import com.contractar.microserviciousuario.models.Promotion;
 public interface PromotionRepository extends CrudRepository<Promotion, Long> {
 	public List<Promotion> findAll();
 	
+	public List<Promotion> findAllByIsEnabledTrue();
+	
 	public Optional<Promotion> findById(Long id);
 	
 	public Promotion findByType(PromotionType type);

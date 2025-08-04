@@ -111,7 +111,8 @@ public class SuscriptionService {
 	private LocalDate resolveSuscriptionExpirationDate(Long suscriptionId, UserPromotionDTO promotionInfo) {
 
 		if (promotionInfo != null) {
-			return byPromotionSuscriptionExpirationDateResolver.get(promotionInfo.getPromotionType()).apply(promotionInfo);
+			return byPromotionSuscriptionExpirationDateResolver.get(promotionInfo.getPromotionType())
+					.apply(promotionInfo);
 		}
 
 		PaymentInfoDTO lastPaymentInfo = this.fetchLastSuccessfulPaymentInfo(suscriptionId);
@@ -120,12 +121,13 @@ public class SuscriptionService {
 	}
 
 	private boolean resolveCanSubscriptionBePayed(Long suscriptionId, UserPromotionDTO promotionInfo) {
-		return Optional.ofNullable(promotionInfo)
-				.map(p -> byPromotionCanBePayedResolver.get(p.getPromotionType())
-						.apply(promotionInfo))
-				.orElseGet(() -> httpClient
-						.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE
-								.replace("{suscriptionId}", suscriptionId.toString()), Boolean.class));
+		boolean canBePayedByPromotion = Optional.ofNullable(promotionInfo)
+				.map(p -> byPromotionCanBePayedResolver.get(p.getPromotionType()).apply(promotionInfo)).orElse(false);
+
+		return canBePayedByPromotion && (httpClient.getForObject(microservicioPaymentUrl
+				+ PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE.replace("{suscriptionId}", suscriptionId.toString()),
+				Boolean.class));
+
 	}
 
 	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {
