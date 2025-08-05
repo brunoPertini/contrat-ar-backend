@@ -121,13 +121,16 @@ public class SuscriptionService {
 	}
 
 	private boolean resolveCanSubscriptionBePayed(Long suscriptionId, UserPromotionDTO promotionInfo) {
-		boolean canBePayedByPromotion = Optional.ofNullable(promotionInfo)
-				.map(p -> byPromotionCanBePayedResolver.get(p.getPromotionType()).apply(promotionInfo)).orElse(false);
+		boolean isPayable = httpClient.getForObject(
+				microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE.replace("{suscriptionId}", suscriptionId.toString()),
+				Boolean.class);
 
-		return canBePayedByPromotion && (httpClient.getForObject(microservicioPaymentUrl
-				+ PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE.replace("{suscriptionId}", suscriptionId.toString()),
-				Boolean.class));
-
+		if (promotionInfo != null) {
+			boolean canBePayedByPromotion = byPromotionCanBePayedResolver.get(promotionInfo.getPromotionType()).apply(promotionInfo);
+			return canBePayedByPromotion && isPayable;
+		}
+		
+		return isPayable;
 	}
 
 	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {

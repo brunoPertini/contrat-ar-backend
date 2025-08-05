@@ -15,7 +15,7 @@ public class FullDiscountForeverEvaluator extends PromotionEvaluator {
 	public boolean canPromotionBeApllied() {
 		int currentCount = this.promotionInstanceRepository
 				.countByPromotionType(PromotionType.FULL_DISCOUNT_FOREVER);
-		return currentCount > 0 && currentCount < MAX_TO_BE_APPLIED;
+		return currentCount >= 0 && currentCount < MAX_TO_BE_APPLIED;
 	}
 
 }

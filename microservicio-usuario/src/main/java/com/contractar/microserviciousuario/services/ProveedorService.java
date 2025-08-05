@@ -120,9 +120,10 @@ public class ProveedorService {
 	}
 
 	public List<PlanDTO> findAllPlans() {
+		boolean areApplicablePromotions = !promotionService.findAll().isEmpty();
 		return planRepository.findAll().stream().map(p -> {
 			PlanDTO planDTO = new PlanDTO(p.getId(), p.getDescripcion(), p.getType(), p.getPrice());
-			if (p.getType().equals(PlanType.PAID)) {
+			if (p.getType().equals(PlanType.PAID) && areApplicablePromotions) {
 				Promotion applicablePromotion = promotionService.findCurrentApplicable();
 				BigDecimal discountPercentage = applicablePromotion.getDiscountPercentage();
 				BigDecimal discountPriceDecimal = BigDecimal.valueOf(p.getPrice())
@@ -164,12 +165,13 @@ public class ProveedorService {
 		Plan paidPlan = planRepository.findByType(PlanType.PAID).get();
 		Optional<PromotionType> promotionTypeOpt = promotionIdOpt
 				.flatMap(promotionId -> promotionService.findById(promotionId).map(p -> p.getType()));
-		
-		boolean isApplyingFullDiscountPromotion = promotionTypeOpt.get().equals(PromotionType.FULL_DISCOUNT_FOREVER)
-				|| promotionTypeOpt.get().equals(PromotionType.FULL_DISCOUNT_MONTHS);
-		
-		boolean isSuscriptionActive = promotionTypeOpt.isEmpty() || isApplyingFullDiscountPromotion; 
-		
+
+		boolean isApplyingFullDiscountPromotion = promotionTypeOpt
+				.map(type -> type.equals(PromotionType.FULL_DISCOUNT_FOREVER) || type.equals(PromotionType.FULL_DISCOUNT_MONTHS))
+				.orElse(false);
+
+		boolean isSuscriptionActive = promotionTypeOpt.isEmpty() || isApplyingFullDiscountPromotion;
+
 		Suscripcion suscripcion = new Suscripcion(isSuscriptionActive, proveedor, paidPlan, LocalDate.now());
 
 		boolean isSignupContext = proveedor.getSuscripcion() == null;
