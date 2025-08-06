@@ -4,6 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -26,11 +27,10 @@ import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 @EnableMethodSecurity()
 public class SecurityConfig {
 	
-	private final String[] allowedDevOrigins = {"http://contractar-frontend:3000",
-			"https://contratar.com.ar",
-			"http://microservicio-gateway:8090",
-			"http://localhost:3000",
-			"https://a5412afb6b59.ngrok-free.app"};
+	@Value("${FRONTEND_URL}")
+	private String frontendUrl;
+	
+	private final String[] allowedDevOrigins = {"http://localhost:3000", frontendUrl};
 
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {

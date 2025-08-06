@@ -10,4 +10,6 @@ public final class PromotionControllerUrls {
 	public static final String PROMOTION_INSTANCE_BASE_URL = "/instance";
 	
 	public static final String PROMOTION_INSTANCE_BY_ID = PROMOTION_INSTANCE_BASE_URL + "/{suscriptionId}";
+	
+	public static final String PROMOTION_INSTANCE_FULL_URL = PROMOTION_INSTANCE_BY_ID + "/{promotionId}";
 }

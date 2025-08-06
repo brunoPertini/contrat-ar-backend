@@ -3,7 +3,7 @@ package com.contractar.microserviciousuario.services;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;import java.util.concurrent.Flow.Subscriber;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,7 @@ import com.contractar.microservicioadapter.enums.PromotionType;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.UserPromotionDTO;
 import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
+import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceDTO;
 import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
 import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciousuario.models.Promotion;
@@ -25,6 +26,7 @@ import com.contractar.microserviciousuario.promotions.PromotionEvaluator;
 import com.contractar.microserviciousuario.repository.PlanRepository;
 import com.contractar.microserviciousuario.repository.PromotionInstanceRepository;
 import com.contractar.microserviciousuario.repository.PromotionRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PromotionService {
@@ -142,6 +144,16 @@ public class PromotionService {
 		promotionInstance.setSubscription(suscriptionService.findSuscripcionById(dto.getSuscriptionId()));
 		
 		return promotionInstanceRepository.save(promotionInstance);
+	}
+	
+	@Transactional
+	public Optional<PromotionInstanceDTO> updatePromotionInstanceExpirationDate(Long promotionId, Long subscriptionId, LocalDate newExpirationDate) {
+		return promotionInstanceRepository.findByIdPromotionIdAndIdSuscriptionId(promotionId, subscriptionId)
+				.map(instance -> {
+					instance.setExpirationDate(newExpirationDate);
+					promotionInstanceRepository.save(instance);
+					return new PromotionInstanceDTO(promotionId, subscriptionId, newExpirationDate);
+				});
 	}
 	
 }

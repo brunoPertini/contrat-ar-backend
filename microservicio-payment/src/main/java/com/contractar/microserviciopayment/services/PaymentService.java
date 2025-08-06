@@ -282,7 +282,7 @@ public class PaymentService {
 	 */
 	@Transactional
 	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source, String returnTab,
-			Long toBindUserId, String userToken) throws SuscriptionNotFound, PaymentCantBeDone {
+			Long toBindUserId, String userToken, Long promotionId) throws SuscriptionNotFound, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
@@ -351,6 +351,8 @@ public class PaymentService {
 				activePaymentProvider, suscriptionId);
 
 		createdPayment.setuserId(toBindUserId);
+		
+		Optional.ofNullable(promotionId).ifPresent(createdPayment::setPromotionId);
 
 		String createdPaymentId = createdPayment.getId().toString();
 

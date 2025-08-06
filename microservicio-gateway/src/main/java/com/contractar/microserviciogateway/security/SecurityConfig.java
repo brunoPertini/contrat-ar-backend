@@ -3,9 +3,11 @@ package com.contractar.microserviciogateway.security;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,8 +44,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Autowired
 	private OAuth2WebSecurityExpressionHandler expressionHandler;
 	
-	private final List<String> acceptedOrigins = List.of("http://contractar-frontend:3000", "https://contratar.com.ar", "http://localhost:3000", "https://a5412afb6b59.ngrok-free.app");
-	
+	@Value("${FRONTEND_URL}")
+	private String frontendUrl;
+		
 	private final String[] vendiblesUrls = {"/vendible/**", "/usuarios/proveedor/**/vendible/**"};
 	
 	private final String[] productosUrls = {"/product/**"};
@@ -109,8 +112,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.cors().configurationSource(request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            acceptedOrigins.stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
-            
+            List.of("http://localhost:3000", frontendUrl).stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
             corsConfiguration.setAllowCredentials(false);

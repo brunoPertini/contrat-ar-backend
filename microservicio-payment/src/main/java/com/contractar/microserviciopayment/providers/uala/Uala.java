@@ -1,6 +1,8 @@
 package com.contractar.microserviciopayment.providers.uala;
 
+import java.time.LocalDate;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -9,8 +11,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceUpdateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.UalaPaymentState;
@@ -70,13 +74,24 @@ public class Uala
 	@Transactional
 	public void handleWebhookNotification(WebhookBody body) {
 		Long paymentId = Long.valueOf(body.getExternalReference());
-		paymentRepository.findById(paymentId).ifPresent(payment -> {
+		suscriptionPaymentRepository.findById(paymentId).ifPresent(payment -> {
 			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus().name()).get();
 
 			payment.setState(newState);
 			payment.setExternalId(body.getUuid());
 
 			paymentRepository.save(payment);
+			
+			Optional.ofNullable(payment.getPromotionId()).ifPresent(promotionId -> {
+				Long subscriptionId = payment.getSuscripcion().getId();
+
+				String updatePromotionUrl = usersServiceUrl + PromotionControllerUrls.PROMOTION_INSTANCE_FULL_URL
+						.replace("{suscriptionId}", subscriptionId.toString())
+						.replace("{promotionId}", promotionId.toString());
+				
+				httpClient.put(updatePromotionUrl, new PromotionInstanceUpdateDTO(LocalDate.now().minusDays(1)));
+			});
+			
 		});
 	}
 
