@@ -82,10 +82,12 @@ public class Uala
 
 			paymentRepository.save(payment);
 			
+			// TODO: extract this either to async or message queue
 			Optional.ofNullable(payment.getPromotionId()).ifPresent(promotionId -> {
 				Long subscriptionId = payment.getSuscripcion().getId();
 
-				String updatePromotionUrl = usersServiceUrl + PromotionControllerUrls.PROMOTION_INSTANCE_FULL_URL
+				String updatePromotionUrl = usersServiceUrl + PromotionControllerUrls.PROMOTION_BASE_URL 
+						+ PromotionControllerUrls.PROMOTION_INSTANCE_FULL_URL
 						.replace("{suscriptionId}", subscriptionId.toString())
 						.replace("{promotionId}", promotionId.toString());
 				

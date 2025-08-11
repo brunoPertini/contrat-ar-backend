@@ -67,7 +67,8 @@ public class PromotionService {
 		return promotionInstanceRepository.findByIdSuscriptionIdAndExpirationDateAfter(suscriptionId, LocalDate.now())
 				.map(instance -> new UserPromotionDTO(instance.getPromotion().getText(),
 						instance.getExpirationDate(),
-						instance.getPromotion().getType()))
+						instance.getPromotion().getType(),
+						instance.getPromotion().getId()))
 				.orElse(null);
 	}
 
