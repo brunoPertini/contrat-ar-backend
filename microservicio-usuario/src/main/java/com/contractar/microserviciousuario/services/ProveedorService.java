@@ -251,7 +251,7 @@ public class ProveedorService {
 						+ PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL;
 
 				HttpEntity<PromotionInstanceCreate> entity = new HttpEntity<>(
-						new PromotionInstanceCreate(temporalCreatedSuscription.getId(), promotionIdOpt.get()), headers);
+						new PromotionInstanceCreate(temporalCreatedSuscription.getId(), promotionIdOpt.get(), proveedorId), headers);
 
 				PromotionInstance createdPromotionInstance = httpClient
 						.exchange(url, HttpMethod.POST, entity, PromotionInstance.class).getBody();

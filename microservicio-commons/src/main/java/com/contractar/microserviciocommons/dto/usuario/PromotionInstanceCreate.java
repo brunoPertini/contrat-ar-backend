@@ -9,11 +9,18 @@ public class PromotionInstanceCreate {
 	@NotNull
 	private Long promotionId;
 	
+	private Long userId;
+	
 	public PromotionInstanceCreate() {}
 
 	public PromotionInstanceCreate(Long suscriptionId, Long promotionId) {
 		this.suscriptionId = suscriptionId;
 		this.promotionId = promotionId;
+	}
+	
+	public PromotionInstanceCreate(Long suscriptionId, Long promotionId, Long userId) {
+		this(suscriptionId, promotionId);
+		this.userId = userId;
 	}
 
 	public Long getSuscriptionId() {
@@ -31,5 +38,14 @@ public class PromotionInstanceCreate {
 	public void setPromotionId(Long promotionId) {
 		this.promotionId = promotionId;
 	}
+	
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
 
 }

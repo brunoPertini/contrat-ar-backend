@@ -13,6 +13,8 @@ import jakarta.persistence.MapsId;
 public class PromotionInstance {
 	@EmbeddedId
 	private PromotionInstanceId id;
+	
+	private Long userId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("promotionId")
@@ -64,6 +66,14 @@ public class PromotionInstance {
 
 	public void setSubscription(Suscripcion subscription) {
 		this.subscription = subscription;
+	}
+	
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 
 }

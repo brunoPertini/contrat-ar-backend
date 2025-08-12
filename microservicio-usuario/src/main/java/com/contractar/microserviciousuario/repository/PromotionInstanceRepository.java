@@ -24,7 +24,7 @@ public interface PromotionInstanceRepository extends CrudRepository<PromotionIns
 	@Query("""
 		    SELECT pi FROM PromotionInstance pi
 		    WHERE pi.id.promotionId = :promotionId
-		      AND pi.subscription.usuario.id = :proveedorId
+		      AND pi.userId = :proveedorId
 		""")
 		Optional<PromotionInstance> findByPromotionIdAndProveedorId(
 		    @Param("promotionId") Long promotionId,
