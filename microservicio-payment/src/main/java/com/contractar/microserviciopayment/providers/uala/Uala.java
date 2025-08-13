@@ -1,16 +1,21 @@
 package com.contractar.microserviciopayment.providers.uala;
 
+import java.time.LocalDate;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.ProveedorControllerUrls;
 import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
+import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceUpdateDTO;
 import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 import com.contractar.microserviciopayment.models.Payment;
 import com.contractar.microserviciopayment.models.UalaPaymentState;
@@ -70,13 +75,26 @@ public class Uala
 	@Transactional
 	public void handleWebhookNotification(WebhookBody body) {
 		Long paymentId = Long.valueOf(body.getExternalReference());
-		paymentRepository.findById(paymentId).ifPresent(payment -> {
+		suscriptionPaymentRepository.findById(paymentId).ifPresent(payment -> {
 			UalaPaymentState newState = ualaPaymentStateRepository.findByState(body.getStatus().name()).get();
 
 			payment.setState(newState);
 			payment.setExternalId(body.getUuid());
 
 			paymentRepository.save(payment);
+			
+			// TODO: extract this either to async or message queue
+			Optional.ofNullable(payment.getPromotionId()).ifPresent(promotionId -> {
+				Long subscriptionId = payment.getSuscripcion().getId();
+
+				String updatePromotionUrl = usersServiceUrl + PromotionControllerUrls.PROMOTION_BASE_URL 
+						+ PromotionControllerUrls.PROMOTION_INSTANCE_FULL_URL
+						.replace("{suscriptionId}", subscriptionId.toString())
+						.replace("{promotionId}", promotionId.toString());
+				
+				httpClient.put(updatePromotionUrl, new PromotionInstanceUpdateDTO(LocalDate.now().minusDays(1)));
+			});
+			
 		});
 	}
 
@@ -101,11 +119,23 @@ public class Uala
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<?> entity = new HttpEntity<>(checkoutBody, headers);
+		Map<String, Object> response;
 
-		Map<String, Object> response = httpClient.postForObject(checkoutUrl, entity, Map.class);
+		try {
+			response = httpClient.postForObject(checkoutUrl, entity, Map.class);
+		} catch (HttpClientErrorException e) {
+			UalaAuthResponse newAuthResponse =  this.auth();
+			String newAuthToken = newAuthResponse.getAccessToken();
+			headers.set("Authorization", "Bearer " + newAuthToken);
+			// TODO: update in DDBB should be async
+			OutsitePaymentProviderImpl ualaProvider = ualaPaymentProviderRepository.findByName("uala");
+			ualaProvider.setToken(newAuthToken);
+			ualaPaymentProviderRepository.save(ualaProvider);
+			response = httpClient.postForObject(checkoutUrl, entity, Map.class);
+			
+		}
 		Map<String, String> links = (Map<String, String>) response.get("links");
 		return links.get("checkout_link");
-
 	}
 
 	@Override

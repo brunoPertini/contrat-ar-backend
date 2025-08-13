@@ -58,7 +58,7 @@ public class Payment implements Serializable {
 	@OneToOne
 	@JoinColumn(name = "payment_provider")
 	@NotNull
-	private PaymentProvider paymentProvider;
+	private PaymentProvider paymentProvider; 
 
 	public Payment() {
 	}

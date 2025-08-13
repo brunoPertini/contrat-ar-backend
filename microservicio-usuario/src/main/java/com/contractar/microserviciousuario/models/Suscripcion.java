@@ -6,7 +6,6 @@ import com.contractar.microservicioadapter.entities.ProveedorAccessor;
 import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanAccesor;
 import com.contractar.microserviciousuario.serialization.PlanDeserializer;
-import com.contractar.microserviciousuario.serialization.ProveedorDeserializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

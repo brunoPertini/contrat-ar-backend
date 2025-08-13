@@ -27,6 +27,17 @@ public class SuscriptionPayment extends Payment {
 	
 	// Used for the cases when a user changes its plan. As its not yet binded in proveedor side, have to persist it to not be lost.
 	private Long userId;
+	
+	// Used to delete logically the promotion instance linked to the subscription.
+	private Long promotionId;
+
+	public Long getPromotionId() {
+		return promotionId;
+	}
+
+	public void setPromotionId(Long promotionId) {
+		this.promotionId = promotionId;
+	}
 
 	public Long getuserId() {
 		return userId;

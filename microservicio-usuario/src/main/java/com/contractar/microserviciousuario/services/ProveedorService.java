@@ -1,32 +1,45 @@
 package com.contractar.microserviciousuario.services;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.contractar.microservicioadapter.entities.SuscripcionAccesor;
 import com.contractar.microservicioadapter.enums.PlanType;
+import com.contractar.microservicioadapter.enums.PromotionType;
 import com.contractar.microserviciocommons.constants.controllers.DateControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.PaymentControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.date.enums.DateFormatType;
 import com.contractar.microserviciocommons.date.enums.DateOperationType;
+import com.contractar.microserviciocommons.dto.PlanDTO;
 import com.contractar.microserviciocommons.dto.SuscripcionDTO;
 import com.contractar.microserviciocommons.dto.SuscriptionActiveUpdateDTO;
-import com.contractar.microserviciocommons.dto.SuscriptionValidityDTO;
 import com.contractar.microserviciocommons.dto.payment.PaymentInfoDTO;
+import com.contractar.microserviciocommons.dto.usuario.PromotionInstanceCreate;
 import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
 import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
-import com.contractar.microserviciocommons.exceptions.proveedores.SuscriptionNotFound;
 import com.contractar.microserviciocommons.mailing.PlanChangeConfirmation;
 import com.contractar.microserviciousuario.admin.services.AdminService;
 import com.contractar.microserviciousuario.models.Plan;
+import com.contractar.microserviciousuario.models.Promotion;
+import com.contractar.microserviciousuario.models.PromotionInstance;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.repository.PlanRepository;
@@ -46,6 +59,8 @@ public class ProveedorService {
 
 	private AdminService adminService;
 
+	private PromotionService promotionService;
+
 	private RestTemplate httpClient;
 
 	@Value("${microservicio-commons.url}")
@@ -60,13 +75,18 @@ public class ProveedorService {
 	@Value("${microservicio-mailing.url}")
 	private String mailingServiceUrl;
 
+	@Value("${microservicio-usuario.url}")
+	private String microservicioUsuarioUrl;
+
 	public ProveedorService(PlanRepository planRepository, ProveedorRepository proveedorRepository,
-			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService) {
+			SuscripcionRepository suscripcionRepository, RestTemplate httpClient, AdminService adminService,
+			PromotionService promotionService) {
 		this.planRepository = planRepository;
 		this.proveedorRepository = proveedorRepository;
 		this.suscripcionRepository = suscripcionRepository;
 		this.httpClient = httpClient;
 		this.adminService = adminService;
+		this.promotionService = promotionService;
 	}
 
 	private String fetchDatePattern() {
@@ -77,7 +97,18 @@ public class ProveedorService {
 		return httpClient.getForObject(uriBuilder.toUriString(), String.class);
 	}
 
-	private String getMessageTag(String tagId) {
+	private HttpHeaders getCurrentRequestHeaders() {
+		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder
+				.getRequestAttributes();
+
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.setBasicAuth(requestAttributes.getRequest().getHeader("Authorization"));
+
+		return headers;
+	}
+
+	public String getMessageTag(String tagId) {
 		final String fullUrl = configServiceUrl + "/i18n/" + tagId;
 		return httpClient.getForObject(fullUrl, String.class);
 	}
@@ -88,12 +119,25 @@ public class ProveedorService {
 				.orElseThrow(UserNotFoundException::new);
 	}
 
-	public List<Plan> findAll() {
-		return planRepository.findAll();
-	}
+	public List<PlanDTO> findAllPlans() {
+		boolean areApplicablePromotions = !promotionService.findAll().isEmpty();
+		return planRepository.findAll().stream().map(p -> {
+			PlanDTO planDTO = new PlanDTO(p.getId(), p.getDescripcion(), p.getType(), p.getPrice());
+			if (p.getType().equals(PlanType.PAID) && areApplicablePromotions) {
+				Promotion applicablePromotion = promotionService.findCurrentApplicable();
+				BigDecimal discountPercentage = applicablePromotion.getDiscountPercentage();
+				BigDecimal discountPriceDecimal = BigDecimal.valueOf(p.getPrice())
+						.subtract((BigDecimal.valueOf(p.getPrice()).multiply(discountPercentage)));
 
-	public Suscripcion findSuscripcionById(Long id) throws SuscriptionNotFound {
-		return this.suscripcionRepository.findById(id).map(s -> s).orElseThrow(() -> new SuscriptionNotFound(""));
+				double discountPrice = discountPriceDecimal.setScale(0, RoundingMode.DOWN).intValue();
+				planDTO.setPriceWithDiscount(discountPrice);
+				planDTO.setApplicablePromotion(applicablePromotion.getId());
+
+			}
+
+			return planDTO;
+
+		}).collect(Collectors.toList());
 	}
 
 	private PaymentInfoDTO fetchLastSuccessfulPaymentInfo(Long suscriptionId) {
@@ -101,7 +145,6 @@ public class ProveedorService {
 		return httpClient.getForObject(microservicioPaymentUrl + PaymentControllerUrls.LAST_SUSCRIPTION_PAYMENT_BASE_URL
 				.replace("{suscriptionId}", String.valueOf(suscriptionId)), PaymentInfoDTO.class);
 	}
-
 
 	private void notifyPlanChange(String email, String name, String destinyPlan) {
 		String destinyPlanTranslated = getMessageTag("plan." + destinyPlan);
@@ -115,21 +158,31 @@ public class ProveedorService {
 			System.out.println(e.getMessage());
 		}
 	}
-	
+
 	@Transactional
-	private Suscripcion createPaidPlanSuscription(Proveedor proveedor) {
+	private Suscripcion createPaidPlanSuscription(Proveedor proveedor, Optional<Long> promotionIdOpt)
+			throws CantCreateSuscription {
 		Plan paidPlan = planRepository.findByType(PlanType.PAID).get();
-		Suscripcion suscripcion = new Suscripcion(true, proveedor, paidPlan, LocalDate.now());
-		
+		Optional<PromotionType> promotionTypeOpt = promotionIdOpt
+				.flatMap(promotionId -> promotionService.findById(promotionId).map(p -> p.getType()));
+
+		boolean isApplyingFullDiscountPromotion = promotionTypeOpt
+				.map(type -> type.equals(PromotionType.FULL_DISCOUNT_FOREVER) || type.equals(PromotionType.FULL_DISCOUNT_MONTHS))
+				.orElse(false);
+
+		boolean isSuscriptionActive = promotionTypeOpt.isEmpty() || isApplyingFullDiscountPromotion;
+
+		Suscripcion suscripcion = new Suscripcion(isSuscriptionActive, proveedor, paidPlan, LocalDate.now());
+
 		boolean isSignupContext = proveedor.getSuscripcion() == null;
 
 		Suscripcion createdSuscripcion = suscripcionRepository.save(suscripcion);
-		
-		if (isSignupContext) {
+
+		if (isSignupContext || isApplyingFullDiscountPromotion) {
 			proveedor.setSuscripcion(createdSuscripcion);
 			proveedorRepository.save(proveedor);
 		}
-		
+
 		return createdSuscripcion;
 
 	}
@@ -165,12 +218,11 @@ public class ProveedorService {
 			proveedorRepository.save(proveedor);
 		}
 
-
 		return createdSuscripcion;
 
 	}
 
-	public SuscripcionDTO createSuscripcion(Long proveedorId, Long planId)
+	public SuscripcionDTO createSuscripcion(Long proveedorId, Long planId, Optional<Long> promotionIdOpt)
 			throws UserNotFoundException, CantCreateSuscription {
 		Proveedor proveedor = this.findById(proveedorId);
 
@@ -181,64 +233,47 @@ public class ProveedorService {
 
 		boolean isTheSamePlan = !isSignupContext && plan.getId().equals(proveedor.getSuscripcion().getPlan().getId());
 
+		boolean isPaidPlan = plan.getType().equals(PlanType.PAID);
+
 		if (isTheSamePlan) {
 			throw new CantCreateSuscription(getMessageTag("exception.suscription.cantCreate"));
 		}
 
-		Suscripcion temporalCreatedSuscription = plan.getType().equals(PlanType.PAID)
-				? createPaidPlanSuscription(proveedor)
+		Suscripcion temporalCreatedSuscription = isPaidPlan ? createPaidPlanSuscription(proveedor, promotionIdOpt)
 				: createFreePlanSuscription(proveedor);
+
+		if (isPaidPlan && promotionIdOpt.isPresent()) {
+
+			try {
+				HttpHeaders headers = getCurrentRequestHeaders();
+
+				String url = microservicioUsuarioUrl + PromotionControllerUrls.PROMOTION_BASE_URL
+						+ PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL;
+
+				HttpEntity<PromotionInstanceCreate> entity = new HttpEntity<>(
+						new PromotionInstanceCreate(temporalCreatedSuscription.getId(), promotionIdOpt.get(), proveedorId), headers);
+
+				PromotionInstance createdPromotionInstance = httpClient
+						.exchange(url, HttpMethod.POST, entity, PromotionInstance.class).getBody();
+
+				PromotionType createdPromotionType = createdPromotionInstance.getPromotion().getType();
+
+				boolean isAFreeTypePromotion = createdPromotionType.equals(PromotionType.FULL_DISCOUNT_FOREVER)
+						|| createdPromotionType.equals(PromotionType.FULL_DISCOUNT_MONTHS);
+
+				if (isAFreeTypePromotion) {
+					this.updateLinkedSubscription(proveedorId,
+							new SuscriptionActiveUpdateDTO(temporalCreatedSuscription.getId(), true));
+
+				}
+
+			} catch (HttpClientErrorException | HttpServerErrorException e) {
+				System.out.println("Could not create promotion for suscription: " + temporalCreatedSuscription.getId());
+			}
+		}
 
 		return new SuscripcionDTO(temporalCreatedSuscription.getId(), temporalCreatedSuscription.isActive(),
 				proveedorId, planId, temporalCreatedSuscription.getCreatedDate(), fetchDatePattern());
-
-	}
-
-	public SuscripcionDTO getSuscripcion(Long proveedorId) {
-		try {
-			Proveedor proveedor = this.findById(proveedorId);
-			SuscripcionAccesor suscription = proveedor.getSuscripcion();
-
-			String datePattern = this.fetchDatePattern();
-
-			SuscripcionDTO responseDTO = new SuscripcionDTO(suscription.getId(), suscription.isActive(), proveedorId,
-					suscription.getPlan().getId(), suscription.getCreatedDate(), datePattern);
-
-			Boolean isSuscriptionValid = httpClient
-					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_VALID
-							.replace("{suscriptionId}", String.valueOf(suscription.getId())), Boolean.class);
-
-			PaymentInfoDTO lastPaymentInfo = this.fetchLastSuccessfulPaymentInfo(suscription.getId());
-
-			LocalDate validityExpirationDate = Optional.ofNullable(lastPaymentInfo).map(optPaymentInfo -> Optional
-					.ofNullable(optPaymentInfo.getDate()).map(expDate -> expDate.plusMonths(1)).orElse(null))
-					.orElse(null);
-
-			SuscriptionValidityDTO validity = new SuscriptionValidityDTO(isSuscriptionValid, validityExpirationDate);
-
-			boolean canBePayed = httpClient
-					.getForObject(microservicioPaymentUrl + PaymentControllerUrls.IS_SUSCRIPTION_PAYABLE
-							.replace("{suscriptionId}", suscription.getId().toString()), Boolean.class);
-			validity.setCanBePayed(canBePayed);
-
-			boolean hasFreePlan = proveedor.getSuscripcion().getPlan().getType().equals(PlanType.FREE);
-
-			if (!validity.isValid() && !hasFreePlan) {
-				Plan freePlan = planRepository.findById(1L).map(p -> p).orElse(null);
-				proveedor.getSuscripcion().setPlan(freePlan);
-				proveedorRepository.save(proveedor);
-
-				responseDTO.setPlanId(freePlan.getId());
-				responseDTO.setPlanPrice(freePlan.getPrice());
-			}
-
-			responseDTO.setValidity(validity);
-
-			return responseDTO;
-
-		} catch (UserNotFoundException e) {
-			return null;
-		}
 
 	}
 
@@ -254,8 +289,7 @@ public class ProveedorService {
 				if (dto.isActive()) {
 					proveedor.setSuscripcion(subscription);
 					proveedorRepository.save(proveedor);
-					notifyPlanChange(proveedor.getEmail(), proveedor.getName(),
-							PlanType.PAID.name());
+					notifyPlanChange(proveedor.getEmail(), proveedor.getName(), PlanType.PAID.name());
 				}
 
 			});

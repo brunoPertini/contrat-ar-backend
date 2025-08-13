@@ -102,3 +102,10 @@ microservicio-config/pom.xml.versionsBackup
 *.MF
 microservicio-payment/target/classes/META-INF/MANIFEST.MF
 .env.api
+microservicio-imagenes/pom.xml.versionsBackup
+microservicio-mailing/pom.xml.versionsBackup
+microservicio-payment/pom.xml.versionsBackup
+microservicio-usuario/pom.xml.versionsBackup
+microservicio-vendible/pom.xml.versionsBackup
+microservicio-oauth/pom.xml.versionsBackup
+microservicio-commons/pom.xml.versionsBackup

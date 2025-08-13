@@ -101,7 +101,7 @@ public class SuscriptionPaymentService {
 		}
 	}
 
-	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId)
+	public SuscriptionPayment createPayment(PaymentCreateDTO dto, PaymentProvider currentProvider, Long suscripcionId, Long promotionId)
 			throws SuscriptionNotFound {
 		if (currentProvider == null) {
 			throw new RuntimeException("Payment provider not set");
@@ -124,6 +124,7 @@ public class SuscriptionPaymentService {
 		newPayment.setSuscripcion(suscription);
 
 		paymentProviderImpl.setPaymentAsPending(newPayment);
+		Optional.ofNullable(promotionId).ifPresent(newPayment::setPromotionId);
 		return repository.save(newPayment);
 	}
 
@@ -168,7 +169,7 @@ public class SuscriptionPaymentService {
 				|| (paymentMonth.equals(currentMonth.minus(1))
 						&& payment.getDate().plusMonths(1).isAfter(LocalDate.now()));
 
-		return wasPaymentDoneAtExpectedMonth && currentProviderImpl.wasPaymentAccepted(payment);
+		return wasPaymentDoneAtExpectedMonth && (currentProviderImpl.wasPaymentAccepted(payment) || currentProviderImpl.isPaymentProcessed(payment));
 	}
 
 	public boolean canSuscriptionBePayed(Long suscriptionId) throws SuscriptionNotFound {

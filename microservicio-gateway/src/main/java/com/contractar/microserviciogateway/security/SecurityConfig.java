@@ -3,10 +3,11 @@ package com.contractar.microserviciogateway.security;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import com.contractar.microserviciogateway.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.CustomHeaders;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.VendiblesControllersUrls;
 
@@ -42,8 +44,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Autowired
 	private OAuth2WebSecurityExpressionHandler expressionHandler;
 	
-	private final List<String> acceptedOrigins = List.of("http://contractar-frontend:3000", "https://contratar.com.ar", "http://localhost:3000");
-	
+	@Value("${FRONTEND_URL}")
+	private String frontendUrl;
+		
 	private final String[] vendiblesUrls = {"/vendible/**", "/usuarios/proveedor/**/vendible/**"};
 	
 	private final String[] productosUrls = {"/product/**"};
@@ -65,6 +68,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String[] publicPayUrls = {"/pay/**"};
 	
 	private final String webHookUrl = "/pay/notification/**";
+	
+	private final String promotionBaseUrl = "/promotion";
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -107,8 +112,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.cors().configurationSource(request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            acceptedOrigins.stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
-            
+            List.of("http://localhost:3000", frontendUrl).stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
             corsConfiguration.setAllowCredentials(false);
@@ -120,6 +124,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		String clienteRole = RolesValues.CLIENTE.name();
 		String proveedorServicioRole = RolesValues.PROVEEDOR_SERVICIOS.name();
 		String adminRole = RolesValues.ADMIN.name();
+		
+		final String authenticatedAndWithHeadersAccess = "@securityUtils.hasValidClientId(request) and isAuthenticated()";
+		
+		final String isAdminUserAccess = "@securityUtils.isAdminUser(request)";
 		
 		String vendiblesOperationsAccsesRule = "hasAuthority('" + adminRole+ "') or @securityUtils.userIdsMatch(request, \"proveedor\") and hasAnyAuthority('" + proveedorProductoRole +
 				"','" + proveedorServicioRole + "')";
@@ -153,11 +161,16 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers(HttpMethod.PUT, clientesUrls).access(clientesOperationsAccsesRule)
 				.antMatchers(proveedorUrls).access(vendiblesOperationsAccsesRule)
 				.antMatchers(HttpMethod.GET, productosUrls[0]).hasAnyAuthority(proveedorProductoRole, clienteRole, adminRole)
+				.antMatchers(HttpMethod.GET, publicPayUrls[0]).permitAll() // This is to let pass payment check in signup stage. TODO: do it through a better approach
 				.antMatchers(publicPayUrls).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
 				.antMatchers(HttpMethod.GET, passwordEmailUrls[1]).access("@securityUtils.tokenContainsType(request) and @securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.GET, UsersControllerUrls.GET_USUARIO_INFO).access("@securityUtils.isAdminUser(request) or @securityUtils.userIdsMatch(request, \"usuarios\")")
-				.anyRequest()
-				.access("@securityUtils.hasValidClientId(request) and isAuthenticated()");
+				.antMatchers(HttpMethod.GET, promotionBaseUrl).permitAll()
+				.antMatchers(HttpMethod.POST, promotionBaseUrl).hasAnyAuthority(proveedorProductoRole, proveedorServicioRole, adminRole)
+				.antMatchers(HttpMethod.GET, PromotionControllerUrls.PROMOTION_INSTANCE_BY_ID).access(authenticatedAndWithHeadersAccess +
+						" and @securityUtils.userIdsMatch(request, \"promotion\") or"
+						+ isAdminUserAccess)
+				.anyRequest().access(authenticatedAndWithHeadersAccess);
 
 		http.oauth2ResourceServer(oauth2 -> {
 	        oauth2.jwt()

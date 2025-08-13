@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.contractar</groupId>
 	<artifactId>microservicio-oauth</artifactId>
-	<version>0.0.1</version>
+	<version>1.0.0-RELEASE</version>
 	<name>microservicio-oauth</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
@@ -77,25 +77,14 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.google.cloud.sql</groupId>
-			<artifactId>mysql-socket-factory-connector-j-8</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-		<!-- Conector oficial de MySQL -->
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.33</version>
-		</dependency>
-		<dependency>
 			<groupId>com.contractar</groupId>
 			<artifactId>microservicio-commons</artifactId>
-			<version>0.0.1</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.contractar</groupId>
 			<artifactId>microservicio-usuario</artifactId>
-			<version>0.0.1</version>
+			<version>1.0.0-RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
