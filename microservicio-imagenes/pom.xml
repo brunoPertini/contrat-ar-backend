@@ -19,20 +19,6 @@
 		<java.version>17</java.version>
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
 	</properties>
-	<distributionManagement>
-		<repository>
-			<id>artifact-registry</id>
-			<url>
-				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
-		</repository>
-	</distributionManagement>
-	<repositories>
-		<repository>
-			<id>artifact-registry</id>
-			<url>
-				artifactregistry://us-east1-maven.pkg.dev/contract-ar/contract-ar-backend-repository</url>
-		</repository>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -67,13 +53,6 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<extensions>
-			<extension>
-				<groupId>com.google.cloud.artifactregistry</groupId>
-				<artifactId>artifactregistry-maven-wagon</artifactId>
-				<version>2.1.1</version>
-			</extension>
-		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
