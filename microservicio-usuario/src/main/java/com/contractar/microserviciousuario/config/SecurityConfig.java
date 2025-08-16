@@ -30,7 +30,7 @@ public class SecurityConfig {
 	@Value("${FRONTEND_URL}")
 	private String frontendUrl;
 	
-	private final String[] allowedDevOrigins = {"http://localhost:3000", frontendUrl};
+	private final String[] allowedDevOrigins = {"http://localhost:3000", "https://contratar.com.ar", frontendUrl};
 
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {

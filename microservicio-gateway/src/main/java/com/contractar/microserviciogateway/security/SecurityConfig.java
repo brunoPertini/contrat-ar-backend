@@ -112,7 +112,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.cors().configurationSource(request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            List.of("http://localhost:3000", frontendUrl).stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
+            List.of("http://localhost:3000", "https://contratar.com.ar", frontendUrl).stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
             corsConfiguration.setAllowCredentials(false);
