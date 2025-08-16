@@ -40,6 +40,7 @@ import com.contractar.microserviciousuario.models.ProveedorVendibleId;
 import com.contractar.microserviciousuario.models.Suscripcion;
 import com.contractar.microserviciousuario.services.ProveedorService;
 import com.contractar.microserviciousuario.services.ProveedorVendibleService;
+import com.contractar.microserviciousuario.services.SuscriptionService;
 import com.contractar.microserviciousuario.services.UsuarioService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -56,12 +57,20 @@ public class ProveedorControler {
 
 	@Autowired
 	private ProveedorService proveedorService;
+	
+	@Autowired
+	private SuscriptionService suscriptionService;
 
 	private static final int DEFAULT_PAGE_SIZE = 10;
 
 	@GetMapping(ProveedorControllerUrls.INTERNAL_PLAN_BASE_URL)
 	public ResponseEntity<?> getAllPlans() {
-		return new ResponseEntity<>(proveedorService.findAll(), HttpStatus.OK);
+		return new ResponseEntity<>(proveedorService.findAllPlans(), HttpStatus.OK);
+	}
+	
+	@GetMapping(ProveedorControllerUrls.PROVEEDOR_BASE_URL)
+	public ResponseEntity<Proveedor> getProveedorEntity(@PathVariable Long proveedorId) throws UserNotFoundException {
+		return new ResponseEntity<>(proveedorService.findById(proveedorId), HttpStatus.OK);
 	}
 	
 	@GetMapping(ProveedorControllerUrls.GET_SUSCRIPCION)
@@ -69,7 +78,7 @@ public class ProveedorControler {
 			@RequestParam(defaultValue = "false") String getAsEntity) throws SuscriptionNotFound {
 		
 		// TODO: add access control to ensure this endpoint can only be accesed by admin and by the proveedor that matches with subscription
-		Suscripcion suscripcion = this.proveedorService.findSuscripcionById(suscriptionId);
+		Suscripcion suscripcion = suscriptionService.findSuscripcionById(suscriptionId);
 		
 		boolean getAsEntityBool = Boolean.parseBoolean(getAsEntity);
 		
@@ -99,9 +108,11 @@ public class ProveedorControler {
 	}
 	
 	@PostMapping(ProveedorControllerUrls.POST_PROVEEDOR_SUSCRIPCION)
-	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable Long proveedorId, @PathVariable Long planId) throws UserNotFoundException,
+	public ResponseEntity<SuscripcionDTO> createSuscripcion(@PathVariable Long proveedorId,
+			@PathVariable Long planId,
+			@RequestParam Optional<Long> promotionId) throws UserNotFoundException,
 	CantCreateSuscription {
-		return new ResponseEntity<SuscripcionDTO>(proveedorService.createSuscripcion(proveedorId, planId), HttpStatus.CREATED);
+		return new ResponseEntity<SuscripcionDTO>(proveedorService.createSuscripcion(proveedorId, planId, promotionId), HttpStatus.CREATED);
 	}
 
 	@Deprecated(forRemoval = true)

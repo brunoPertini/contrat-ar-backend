@@ -9,4 +9,6 @@ import com.contractar.microserviciopayment.models.OutsitePaymentProviderImpl;
 public interface OutsitePaymentProviderRepository extends CrudRepository<OutsitePaymentProviderImpl, Long> {
 	@SuppressWarnings("unchecked")
 	public OutsitePaymentProviderImpl save(OutsitePaymentProviderImpl p);
+	
+	public OutsitePaymentProviderImpl findByName(String name);
 }

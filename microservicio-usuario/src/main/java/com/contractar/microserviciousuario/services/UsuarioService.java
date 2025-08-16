@@ -88,6 +88,9 @@ public class UsuarioService {
 
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private AsyncService asyncService;
 
 	@Value("${microservicio-vendible.url}")
 	private String microservicioVendibleUrl;
@@ -208,7 +211,7 @@ public class UsuarioService {
 			proveedor.setCreatedAt(LocalDate.now());
 			proveedor.setPassword(passwordEncoder.encode(proveedor.getPassword()));
 			Proveedor newProveedor = proveedorRepository.save(proveedor);
-			requestUsuarioActiveFlag(newProveedor.getId());
+			asyncService.requestUsuarioActiveFlag(newProveedor.getId());
 			return newProveedor;
 		}
 		throw new UserCreationException();
@@ -348,6 +351,8 @@ public class UsuarioService {
 		if (Optional.ofNullable(newInfo.hasWhatsapp()).isPresent()) {
 			proveedor.setHasWhatsapp(newInfo.hasWhatsapp());
 		}
+		
+		newInfo.setUserId(proveedor.getId());
 
 		saveProveedorUpdateChange(newInfo);
 

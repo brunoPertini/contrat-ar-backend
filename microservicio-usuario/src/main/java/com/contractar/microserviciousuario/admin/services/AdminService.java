@@ -130,7 +130,11 @@ public class AdminService {
 	}
 
 	public void sendEmail(String path, MailInfo body) {
-		restTemplate.postForEntity(serviceMailingUrl + path, body, Void.class);
+		try {
+			restTemplate.postForEntity(serviceMailingUrl + path, body, Void.class);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 
 	private void sendChangeRequestNotificationEmails(ChangeRequest changeRequest) {

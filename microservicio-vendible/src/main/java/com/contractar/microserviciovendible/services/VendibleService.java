@@ -1,5 +1,7 @@
 package com.contractar.microserviciovendible.services;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +42,9 @@ import com.contractar.microserviciocommons.exceptions.UserNotFoundException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CantCreateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.CouldntChangeStateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFoundException;
+import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.helpers.StringHelper;
+import com.contractar.microserviciocommons.infra.RequestsHelper;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
@@ -266,6 +270,19 @@ public class VendibleService {
 		firstPv.setCategory(addedCategory);
 
 		Vendible addedVendible;
+		URL uploadedImageUrl;
+
+		if (firstPv.getImagenUrl() != null) {
+			try {
+				uploadedImageUrl = new URL(firstPv.getImagenUrl());
+			} catch (MalformedURLException e) {
+				throw new CantCreateException();
+			}
+
+			if (!RequestsHelper.isImageUrl(uploadedImageUrl)) {
+				throw new CantCreateException();
+			}
+		}
 
 		try {
 			addedVendible = this.findVendibleEntityByNombre(vendible.getNombre());
@@ -273,9 +290,6 @@ public class VendibleService {
 			addedVendible = this.persistVendible(vendibleType, vendible);
 		}
 
-		if (!securityHelper.isResponseContentTypeValid(firstPv.getImagenUrl(), "image")) {
-			throw new CantCreateException();
-		}
 		ProveedorType proveedorType = vendibleType.equals(VendibleType.SERVICIO.toString()) ? ProveedorType.SERVICIOS
 				: ProveedorType.PRODUCTOS;
 

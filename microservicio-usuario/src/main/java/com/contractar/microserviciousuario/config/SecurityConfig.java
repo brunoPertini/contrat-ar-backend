@@ -4,6 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.http.HttpMethod;
 import com.contractar.microserviciocommons.constants.controllers.AdminControllerUrls;
+import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.infra.SecurityHelper;
 import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 
@@ -25,7 +27,10 @@ import com.contractar.microserviciocommons.constants.RolesNames.RolesValues;
 @EnableMethodSecurity()
 public class SecurityConfig {
 	
-	private final String[] allowedDevOrigins = {"http://localhost:3000", "http://localhost:8090"};
+	@Value("${FRONTEND_URL}")
+	private String frontendUrl;
+	
+	private final String[] allowedDevOrigins = {"http://localhost:3000", frontendUrl};
 
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {
@@ -85,6 +90,8 @@ public class SecurityConfig {
 								.hasAnyAuthority(adminRole, proveedorProductoRole, proveedorServicioRole)
 								.requestMatchers(HttpMethod.GET, AdminControllerUrls.ADMIN_USUARIOS_SENSIBLE_INFO)
 								.hasAuthority(adminRole)
+								.requestMatchers(HttpMethod.POST, PromotionControllerUrls.PROMOTION_INSTANCE_BASE_URL)
+								.hasAnyAuthority(adminRole, proveedorProductoRole, proveedorServicioRole)
 								.anyRequest().permitAll())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt());
 

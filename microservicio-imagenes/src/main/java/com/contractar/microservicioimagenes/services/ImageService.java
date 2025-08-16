@@ -6,16 +6,22 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,17 +29,21 @@ import com.contractar.microservicioimagenes.exceptions.ImageUploadException;
 
 @Service
 public class ImageService {
-	
+
 	@Autowired
 	private RestTemplate httpClient;
 
-	@Value("${cdn.location.dev}")
+	@Value("${cdn.location}")
 	private String cdnBaseUrl;
-
-	@Value("${cdn.dir.dev}")
-	private String cdnDir;
+	
+	@Value("${cdn.publicUrl}")
+	private String cdnPublicUrl;
+	
+	@Value("${SPRING_PROFILES_ACTIVE:dev}")
+	private String currentProfile;
 
 	private final String[] acceptedFormats = { "jpg", "jpeg", "png" };
+	
 
 	private String findImageType(String input) {
 		int lastSlashIndex = input.lastIndexOf('/');
@@ -76,40 +86,45 @@ public class ImageService {
 		return croppedOutputStream.toByteArray();
 	}
 
-	private void saveImageToFile(byte[] imageBytes, String fileName, String uploadDir) throws IOException {
-		File directory = new File(uploadDir);
-		if (!directory.exists()) {
-			directory.mkdirs();
-		}
+	public String uploadProveedorVendibleImageToCDN(MultipartFile file, String uploadDirTemplate)
+			throws IOException, ImageUploadException {
 
-		String filePath = uploadDir + File.separator + fileName;
-
-		try (ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes)) {
-			Files.copy(inputStream, new File(filePath).toPath(), StandardCopyOption.REPLACE_EXISTING);
-		}
-
-	}
-	
-	private String saveImageFile(MultipartFile file, String uploadDirTemplate) throws IOException, ImageUploadException {
 		byte[] bytes = file.getBytes();
-
 		String imageFileType = findImageType(file.getContentType());
 
 		boolean isAcceptedFormat = Arrays.stream(acceptedFormats).anyMatch(format -> format.equals(imageFileType));
 
-		if (!isAcceptedFormat) {
-			throw new ImageUploadException("");
-		}
+		if (!isAcceptedFormat)
+			throw new ImageUploadException("Formato no aceptado");
 
 		byte[] croppedBytes = cropToSquare(bytes, imageFileType);
 
-		String fileName = file.getOriginalFilename();
+		String fullUploadUrl = cdnBaseUrl + "/upload/" + uploadDirTemplate;
 
-		saveImageToFile(croppedBytes, fileName, cdnDir + File.separator + uploadDirTemplate);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-		return cdnBaseUrl + File.separator + uploadDirTemplate + File.separator + fileName;
+		ByteArrayResource resource = new ByteArrayResource(croppedBytes) {
+			@Override
+			public String getFilename() {
+				return file.getOriginalFilename();
+			}
+		};
+
+		LinkedMultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+		body.add("file", resource);
+
+		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+		
+		try {
+			ResponseEntity<String> response = httpClient.postForEntity(fullUploadUrl, requestEntity, String.class);
+		} catch (HttpServerErrorException e) {
+			throw new ImageUploadException("Upload failed: " + 409);
+		}
+
+		return cdnPublicUrl + "/" + uploadDirTemplate + "/" + file.getOriginalFilename();
 	}
-	
+
 	/**
 	 * 
 	 * @param path image full url in the CDN
@@ -117,37 +132,40 @@ public class ImageService {
 	 */
 	public boolean imageIsStored(String path) {
 		try {
-			ResponseEntity<Void> response = httpClient.getForEntity(path, Void.class);
+			String parsedPath = path;
+			if (!currentProfile.equals("prod")) {
+				parsedPath = path.replace("http://localhost:8000", cdnBaseUrl);
+			}
+			ResponseEntity<Void> response = httpClient.getForEntity(parsedPath, Void.class);
 			return response.getStatusCode().is2xxSuccessful();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return false;
 		}
-		
+
 	}
-	
 
 	public String saveProveedorVendibleImage(MultipartFile file, Long proveedorId, String vendibleName)
 			throws IOException, ImageUploadException {
 		final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator + proveedorId.toString() + File.separator
 				+ vendibleName;
 
-		return saveImageFile(file, UPLOAD_DIR_TEMPLATE);
+		return uploadProveedorVendibleImageToCDN(file, UPLOAD_DIR_TEMPLATE);
 
 	}
-	
+
 	public String saveProveedorProfilePhoto(MultipartFile file, Long proveedorId)
 			throws IOException, ImageUploadException {
 		final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator + proveedorId.toString();
 
-		return saveImageFile(file, UPLOAD_DIR_TEMPLATE);
+		return uploadProveedorVendibleImageToCDN(file, UPLOAD_DIR_TEMPLATE);
 
 	}
-	
+
 	public String saveTemporalProveedorProfilePhoto(MultipartFile file, String dni)
 			throws IOException, ImageUploadException {
 		final String UPLOAD_DIR_TEMPLATE = "proveedores" + File.separator + dni;
 
-		return saveImageFile(file, UPLOAD_DIR_TEMPLATE);
+		return uploadProveedorVendibleImageToCDN(file, UPLOAD_DIR_TEMPLATE);
 
 	}
 

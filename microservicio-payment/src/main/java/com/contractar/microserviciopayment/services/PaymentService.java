@@ -209,31 +209,41 @@ public class PaymentService {
 		}
 	}
 
-	private PaymentUrls resolvePaymentUrls(PAYMENT_SOURCES source, String createdPaymentId, String returnTab) {
-		com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
-				.getOutsitePaymentProvider();
+	private String resolveWebhookUrl(PAYMENT_SOURCES source, String returnTab) {
+        if (source.equals(PAYMENT_SOURCES.SIGNUP)) {
+            return webhookUrl;
+        }
+        if ("MY_PAYMENTS".equals(returnTab)) {
+            return webhookUrl;
+        }
+        return webhookPlanChangeUrl;
+    }
 
-		String basePath = source.equals(PAYMENT_SOURCES.SIGNUP) ? frontendReturnUrl : userProfileReturnUrl;
+    private PaymentUrls resolvePaymentUrls(PAYMENT_SOURCES source, String createdPaymentId, String returnTab) {
+        com.contractar.microserviciopayment.providers.OutsitePaymentProvider paymentProviderImpl = providerServiceImplFactory
+                .getOutsitePaymentProvider();
 
-		String successReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
-				.replace("{paymentId}", createdPaymentId);
+        String basePath = source.equals(PAYMENT_SOURCES.SIGNUP) ? frontendReturnUrl : userProfileReturnUrl;
 
-		String errorReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
-				.replace("{paymentId}", createdPaymentId);
+        String successReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getSuccessStateValue())
+                .replace("{paymentId}", createdPaymentId);
 
-		String resolvedWebhookUrl = source.equals(PAYMENT_SOURCES.SIGNUP) ? webhookUrl : webhookPlanChangeUrl;
+        String errorReturnUrl = basePath.replace("{paymentStatus}", paymentProviderImpl.getFailureStateValue())
+                .replace("{paymentId}", createdPaymentId);
 
-		if (StringUtils.hasLength(returnTab)) {
-			successReturnUrl += "&returnTab=" + returnTab;
-			errorReturnUrl += "&returnTab=" + returnTab;
-		}
+        String resolvedWebhookUrl = resolveWebhookUrl(source, returnTab);
 
-		return new PaymentUrls(successReturnUrl, errorReturnUrl, resolvedWebhookUrl);
+        if (StringUtils.hasLength(returnTab)) {
+            successReturnUrl += "&returnTab=" + returnTab;
+            errorReturnUrl += "&returnTab=" + returnTab;
+        }
+
+        return new PaymentUrls(successReturnUrl, errorReturnUrl, resolvedWebhookUrl);
 
 	}
 
-	public SuscriptionPayment findLastSuscriptionPayment(Long suscriptionId) {
-		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscriptionId)
+	public SuscriptionPayment findLastSuscriptionPayment(Long suscripcionId) {
+		return suscriptionPaymentRepository.findTopBySuscripcionIdOrderByPaymentPeriodDesc(suscripcionId)
 				.map(payment -> payment).orElse(null);
 	}
 
@@ -282,7 +292,7 @@ public class PaymentService {
 	 */
 	@Transactional
 	public String payLastSuscriptionPeriod(Long suscriptionId, PAYMENT_SOURCES source, String returnTab,
-			Long toBindUserId, String userToken) throws SuscriptionNotFound, PaymentCantBeDone {
+			Long toBindUserId, String userToken, Long promotionId) throws SuscriptionNotFound, PaymentCantBeDone {
 		PaymentProvider currentProvider = this.getActivePaymentProvider();
 
 		SuscripcionDTO foundSuscription = this.getSuscription(suscriptionId);
@@ -348,7 +358,7 @@ public class PaymentService {
 		}
 
 		SuscriptionPayment createdPayment = suscriptionPaymentService.createPayment(paymentCreateDTO,
-				activePaymentProvider, suscriptionId);
+				activePaymentProvider, suscriptionId, promotionId);
 
 		createdPayment.setuserId(toBindUserId);
 

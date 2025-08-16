@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.contractar.microserviciocommons.constants.CustomHeaders;
 import com.contractar.microserviciocommons.exceptions.AccountVerificationException;
+import com.contractar.microserviciocommons.exceptions.CantCreatePromotion;
 import com.contractar.microserviciocommons.exceptions.CantCreateSuscription;
 import com.contractar.microserviciocommons.exceptions.CantUpdateUserException;
 import com.contractar.microserviciocommons.exceptions.CustomException;
@@ -88,5 +89,11 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		return ResponseEntity.status(HttpStatusCode.valueOf(ex.getStatusCode()))
 				.header(CustomHeaders.ACCOUNT_STATUS, ex.getAccountStatus().toString())
 				.body(ex.getMessage());
+	}
+	
+	@ExceptionHandler(CantCreatePromotion.class)
+	public ResponseEntity<Object> handlePromotionsExeptions(CustomException ex) {
+		return new ExceptionFactory().getResponseException(ex.getMessage(),
+				HttpStatusCode.valueOf(ex.getStatusCode()));
 	}
 }

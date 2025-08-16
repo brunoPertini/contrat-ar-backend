@@ -46,7 +46,7 @@ public class PaymentController {
 			HttpServletRequest request) throws SuscriptionNotFound,
 	PaymentAlreadyDone, PaymentCantBeDone {
 		String token = request.getHeader("Authorization").replace("Bearer ", "");
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null, body.getToBeBindUserId(), token);
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.SIGNUP, null, body.getToBeBindUserId(), token, null);
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	
@@ -57,7 +57,11 @@ public class PaymentController {
 			HttpServletRequest request) throws SuscriptionNotFound, 
 	PaymentCantBeDone {
 		String token = request.getHeader("Authorization").replace("Bearer ", "");
-		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE, returnTab, body.getToBeBindUserId(), token);
+		String checkoutUrl = paymentService.payLastSuscriptionPeriod(suscriptionId, PAYMENT_SOURCES.PROFILE,
+				returnTab,
+				body.getToBeBindUserId(),
+				token,
+				body.getPromotionId());
 		return ResponseEntity.ok(checkoutUrl);
 	}
 	

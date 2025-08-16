@@ -9,16 +9,17 @@ import com.contractar.microserviciocommons.infra.SecurityHelper;
 
 @Configuration
 public class BeansConfig {
-    @Bean
-    public RestTemplate restTemplate() {
-    	RestTemplate restTemplate = new RestTemplate();
-    	restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-        return restTemplate;
-    }
-    
-    @Bean
-    public SecurityHelper securityHelper() {
-    	SecurityHelper securityHelper = new SecurityHelper(restTemplate());
-        return securityHelper;
-    }
+
+	@Bean
+	RestTemplate restTemplate() {
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+		return restTemplate;
+	}
+
+	@Bean
+	SecurityHelper securityHelper() {
+		return new SecurityHelper(restTemplate());
+	}
+
 }

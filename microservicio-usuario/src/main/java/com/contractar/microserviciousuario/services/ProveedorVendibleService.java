@@ -3,6 +3,8 @@ package com.contractar.microserviciousuario.services;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +48,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleNotFound
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateException;
 import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateRuntimeException;
 import com.contractar.microserviciocommons.helpers.DistanceCalculator;
-import com.contractar.microserviciocommons.infra.SecurityHelper;
+import com.contractar.microserviciocommons.infra.RequestsHelper;
 import com.contractar.microserviciocommons.reflection.ReflectionHelper;
 import com.contractar.microserviciocommons.vendibles.VendibleHelper;
 import com.contractar.microserviciousuario.admin.dtos.PostsResponseDTO;
@@ -76,9 +78,6 @@ public class ProveedorVendibleService {
 	private RestTemplate httpClient;
 
 	@Autowired
-	private SecurityHelper securityHelper;
-
-	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Value("${microservicio-vendible.url}")
@@ -89,9 +88,6 @@ public class ProveedorVendibleService {
 
 	@Value("${microservicio-security.url}")
 	private String SERVICIO_SECURITY_URL;
-
-	@Value("${microservicio-config.url}")
-	private String serviceConfigUrl;
 
 	private static int SLIDER_MIN_PRICE;
 	private static int SLIDER_MAX_PRICE;
@@ -180,9 +176,20 @@ public class ProveedorVendibleService {
 	public void updateVendible(Long vendibleId, Long proveedorId, ProveedorVendibleUpdateDTO newData,
 			HttpServletRequest request)
 			throws VendibleNotFoundException, VendibleUpdateException, IllegalAccessException {
-		if (newData.getImagenUrl() != null
-				&& !securityHelper.isResponseContentTypeValid(newData.getImagenUrl(), "image")) {
-			throw new VendibleUpdateException();
+
+		URL uploadedImageUrl;
+
+		if (newData.getImagenUrl() != null) {
+			try {
+				uploadedImageUrl = new URL(newData.getImagenUrl());
+			} catch (MalformedURLException e) {
+				throw new VendibleUpdateException();
+			}
+
+			if (!RequestsHelper.isImageUrl(uploadedImageUrl)) {
+				throw new VendibleUpdateException();
+			}
+
 		}
 
 		Map<String, Object> dtoRawFields = ReflectionHelper.getObjectFields(newData);
@@ -352,7 +359,7 @@ public class ProveedorVendibleService {
 
 		this.pricesForSlider = new ArrayList<>();
 		this.distancesForSlider = new ArrayList<>();
-		
+
 		Map<Long, Double> distances = new HashMap<>();
 
 		ArrayList<DistanceProveedorDTO> posts = (ArrayList<DistanceProveedorDTO>) results.filter(proveedorVendible -> {

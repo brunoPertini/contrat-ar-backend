@@ -70,7 +70,7 @@ public class UsuarioController {
 
 			String createdUserToken = usuarioService.getTokenForCreatedUser(createdUsuario.getEmail(),
 					createdUsuario.getId());
-			ProveedorDTO responseBody = DtoHelper.toProveedorDTO(createdUsuario);
+			ProveedorDTO responseBody = dtoHelper.toProveedorDTO(createdUsuario);
 			responseBody.setCreationToken(createdUserToken);
 
 			return new ResponseEntity<>(responseBody, HttpStatus.CREATED);

@@ -11,6 +11,7 @@ import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import com.contractar.microserviciocommons.constants.controllers.SecurityControllerUrls;
@@ -28,9 +29,29 @@ public class SecurityHelper {
 	
 	public String fetchPublicKey() {
 		final String url = microservicioSecurityUrl + SecurityControllerUrls.GET_PUBLIC_KEY;
-		
-		return this.httpClient.getForObject(url, String.class);
+	    final int maxRetries = 5;
+	    final int delayMillis = 2000;
+
+	    for (int i = 1; i <= maxRetries; i++) {
+	        try {
+	        	return this.httpClient.getForObject(url, String.class);
+	        } catch (ResourceAccessException e) {
+	            System.out.println("Intento " + i + " falló: " + e.getMessage());
+	            if (i == maxRetries) {
+	                throw new IllegalStateException("No se pudo obtener la public_key de OAuth luego de " + maxRetries + " intentos", e);
+	            }
+	            try {
+	                Thread.sleep(delayMillis);
+	            } catch (InterruptedException ie) {
+	                Thread.currentThread().interrupt();
+	                throw new IllegalStateException("El thread fue interrumpido durante el reintento", ie);
+	            }
+	        }
+	    }
+
+	    throw new IllegalStateException("No debería llegar acá.");
 	}
+
 
 	public boolean isResponseContentTypeValid(String url, String expectedContentType) {
 		try {
