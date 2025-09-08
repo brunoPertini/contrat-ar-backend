@@ -27,6 +27,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import com.contractar.microserviciogateway.constants.RolesNames.RolesValues;
 import com.contractar.microserviciocommons.constants.CustomHeaders;
+import com.contractar.microserviciocommons.constants.controllers.GeoControllersUrls;
 import com.contractar.microserviciocommons.constants.controllers.ImagenesControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.PromotionControllerUrls;
 import com.contractar.microserviciocommons.constants.controllers.UsersControllerUrls;
@@ -141,7 +142,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 				.antMatchers("/error", "/geo/**", webHookUrl).permitAll()
 				.antMatchers(emailServicePublicUrls).permitAll()
 				.antMatchers(HttpMethod.GET, "/plan").permitAll()
-				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", signupEmailUrls[0], signupEmailUrls[1], staticContentPublicUrls[0])
+				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", GeoControllersUrls.GET_LOCATION_BY_IP, signupEmailUrls[0], signupEmailUrls[1], staticContentPublicUrls[0])
 				.access("@securityUtils.hasValidClientId(request)")
 				.antMatchers(HttpMethod.POST, "/usuarios/**", ImagenesControllerUrls.UPLOAD_PROVEEDOR_PHOTO_BY_DNI_URL) // Registro de usuarios
 				.access("@securityUtils.hasValidClientId(request)")

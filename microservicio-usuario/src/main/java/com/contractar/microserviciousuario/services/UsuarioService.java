@@ -23,6 +23,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.contractar.microserviciousuario.admin.dtos.ProveedorPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.dtos.UsuarioPersonalDataUpdateDTO;
 import com.contractar.microserviciousuario.admin.services.ChangeConfirmException;
+import com.contractar.microserviciousuario.dtos.CoordinatesDTO;
 import com.contractar.microserviciousuario.models.Cliente;
 import com.contractar.microserviciousuario.models.Proveedor;
 import com.contractar.microserviciousuario.models.ProveedorVendible;
@@ -34,6 +35,7 @@ import com.contractar.microserviciousuario.repository.ProveedorRepository;
 import com.contractar.microserviciousuario.repository.RoleRepository;
 import com.contractar.microserviciousuario.repository.UsuarioRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 import com.contractar.microservicioadapter.entities.VendibleAccesor;
@@ -97,6 +99,9 @@ public class UsuarioService {
 
 	@Value("${openstreet-api.url}")
 	private String openStreetAPIUrl;
+	
+	@Value("${ipapi.url}")
+	private String ipApiUrl;
 
 	@Value("${microservicio-imagenes.url}")
 	private String microservicioImagenesUrl;
@@ -472,6 +477,16 @@ public class UsuarioService {
 			return new ExceptionFactory().getResponseException(castedException.getMessage(),
 					HttpStatusCode.valueOf(castedException.getStatusCode()));
 		}
+	}
+	
+	public CoordinatesDTO getCoordinatesFromIp(HttpServletRequest request) {
+		String clientIp = request.getHeader("X-Forwarded-For");
+	    if (clientIp != null && !clientIp.isEmpty()) {
+	        clientIp = clientIp.split(",")[0].trim();
+	    } else {
+	        clientIp = request.getRemoteAddr();
+	    }
+		return httpClient.getForObject(ipApiUrl + clientIp + "/json", CoordinatesDTO.class);
 	}
 
 	public Object getUsuarioField(String field, Long userId) throws UserNotFoundException, IllegalAccessException {

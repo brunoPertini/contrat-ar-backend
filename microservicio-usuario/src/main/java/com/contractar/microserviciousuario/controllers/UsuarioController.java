@@ -34,6 +34,7 @@ import com.contractar.microserviciocommons.exceptions.vendibles.VendibleUpdateEx
 import com.contractar.microserviciocommons.mailing.LinkMailInfo;
 import com.contractar.microserviciocommons.mailing.MailInfo;
 import com.contractar.microserviciocommons.proveedores.ProveedorType;
+import com.contractar.microserviciousuario.dtos.CoordinatesDTO;
 import com.contractar.microserviciousuario.dtos.UsuarioOauthDTO;
 import com.contractar.microserviciousuario.helpers.DtoHelper;
 import com.contractar.microserviciousuario.models.Cliente;
@@ -187,6 +188,12 @@ public class UsuarioController {
 	public ResponseEntity<?> translateAddress(@RequestParam("latitude") double latitude,
 			@RequestParam("longitude") double longitude) {
 		return new ResponseEntity<>(this.usuarioService.translateCoordinates(latitude, longitude), HttpStatus.OK);
+	}
+	
+	@GetMapping(GeoControllersUrls.GET_LOCATION_BY_IP)
+	public ResponseEntity<CoordinatesDTO> getCoordinatesFromIp(HttpServletRequest request) {
+		CoordinatesDTO coordinates = this.usuarioService.getCoordinatesFromIp(request);
+		return new ResponseEntity<>(coordinates, HttpStatus.OK);	
 	}
 
 	@PostMapping(UsersControllerUrls.SEND_REGISTRATION_LINK_EMAIL)
