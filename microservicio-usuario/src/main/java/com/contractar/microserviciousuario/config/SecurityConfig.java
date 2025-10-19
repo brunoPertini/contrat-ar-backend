@@ -30,8 +30,8 @@ public class SecurityConfig {
 	@Value("${FRONTEND_URL}")
 	private String frontendUrl;
 	
-	private final String[] allowedDevOrigins = {"http://localhost:3000", "https://contratar.com.ar", frontendUrl};
-
+	private final String[] allowedDevOrigins = {"http://localhost:3000", "http://localhost:3001", "https://contratar.com.ar", frontendUrl};
+	
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {
 		final JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -62,13 +62,6 @@ public class SecurityConfig {
 		http.cors().configurationSource(request -> {
 			CorsConfiguration corsConfiguration = new CorsConfiguration();
 			corsConfiguration.setAllowedOrigins(Arrays.asList(allowedDevOrigins));
-			
-			 // TODO: AGREGAR CHEQUEO DE AMBIENTE DEV
-            String origin = request.getHeader("Origin");
-            if (origin != null && origin.contains("ngrok-free.app")) {
-                corsConfiguration.addAllowedOrigin(origin);
-            }
-            
             
 			corsConfiguration.addAllowedMethod("*");
 			corsConfiguration.addAllowedHeader("*");
@@ -78,7 +71,8 @@ public class SecurityConfig {
 
 		http.csrf().disable()
 				.authorizeHttpRequests(
-						authorize -> authorize.requestMatchers(HttpMethod.POST, AdminControllerUrls.USUARIOS_BASE_URL)
+						authorize -> authorize
+								.requestMatchers(HttpMethod.POST, AdminControllerUrls.USUARIOS_BASE_URL)
 								.hasAuthority(adminRole)
 								.requestMatchers(HttpMethod.PATCH, onlyAdminUrls)
 								.hasAuthority(adminRole)

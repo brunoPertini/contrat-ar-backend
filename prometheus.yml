@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'spring-microservices'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['localhost:8005', 'localhost:8081']
+

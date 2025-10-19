@@ -71,6 +71,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	private final String webHookUrl = "/pay/notification/**";
 	
 	private final String promotionBaseUrl = "/promotion";
+	
+	private final String prometheusUrlPath = "/actuator/prometheus";
 
 	@Bean
 	public JwtTokenStore tokenStore() {
@@ -113,7 +115,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.cors().configurationSource(request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            List.of("http://localhost:3000", "https://contratar.com.ar", frontendUrl).stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
+            List.of("http://localhost:3000", "http://localhost:3001","https://contratar.com.ar", frontendUrl).stream().forEach(url -> corsConfiguration.addAllowedOrigin(url));
             corsConfiguration.addAllowedMethod("*");
             corsConfiguration.addAllowedHeader("*");
             corsConfiguration.setAllowCredentials(false);
@@ -139,7 +141,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		http.csrf().disable();
 		http.authorizeRequests()
 				.antMatchers("/actuator/**").hasAuthority(adminRole)
-				.antMatchers("/error", "/geo/**", webHookUrl).permitAll()
+				.antMatchers("/error", "/geo/**", webHookUrl, prometheusUrlPath).permitAll()
 				.antMatchers(emailServicePublicUrls).permitAll()
 				.antMatchers(HttpMethod.GET, "/plan").permitAll()
 				.antMatchers("/oauth/login", "/oauth/public_key", "/oauth/userId", GeoControllersUrls.GET_LOCATION_BY_IP, signupEmailUrls[0], signupEmailUrls[1], staticContentPublicUrls[0])
